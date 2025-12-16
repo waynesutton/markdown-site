@@ -16,6 +16,7 @@
     "deploy:prod": "npx convex deploy && npm run sync:prod"
   },
   "dependencies": {
+    "@convex-dev/aggregate": "^0.2.0",
     "@radix-ui/react-icons": "^1.3.2",
     "convex": "^1.17.4",
     "date-fns": "^3.3.1",

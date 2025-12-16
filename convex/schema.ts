@@ -70,4 +70,10 @@ export default defineSchema({
   })
     .index("by_sessionId", ["sessionId"])
     .index("by_lastSeen", ["lastSeen"]),
+
+  // Unique visitors tracking (for aggregate counting)
+  visitors: defineTable({
+    sessionId: v.string(),
+    firstSeen: v.number(),
+  }).index("by_sessionId", ["sessionId"]),
 });
