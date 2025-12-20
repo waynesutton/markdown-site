@@ -3,10 +3,10 @@ title: "About"
 slug: "about"
 published: true
 order: 1
-excerpt: "A dev sync site builder for developers who want version-controlled content with real-time delivery."
+excerpt: "An open-source markdown sync site for developers and AI agents."
 ---
 
-This is a dev sync site builder for developers who want version-controlled content with real-time delivery. Write markdown locally, sync to a real-time database, and content appears instantly across all connected browsers.
+An open-source markdown sync site for developers and AI agents. Publish from the terminal with `npm run sync`. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
 
 ## What makes it a dev sync system
 

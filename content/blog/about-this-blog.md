@@ -13,7 +13,7 @@ excerpt: "Learn how this open source site works with real-time sync and instant 
 
 # About This Markdown Site
 
-This is an open-source markdown sync site built with React, TypeScript, and Convex. Write posts and pages in markdown, sync them to a real-time database, and deploy on Netlify.
+An open-source markdown sync site for developers and AI agents. Publish from the terminal with `npm run sync`. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
 
 ## How It Works
 

@@ -18,8 +18,8 @@ const siteConfig = {
   logo: "/images/logo.svg" as string | null,
   intro: (
     <>
-      An open-source markdown "sync" site you publish from the terminal with npm
-      run sync.{" "}
+      An open-source markdown sync site for developers and AI agents. Publish
+      from the terminal with npm run sync.{" "}
       <a
         href="https://github.com/waynesutton/markdown-site"
         target="_blank"
@@ -31,7 +31,7 @@ const siteConfig = {
       , customize it, ship it.
     </>
   ),
-  bio: `Write locally, sync instantly, skip the build. Powered by Convex and Netlify.`,
+  bio: `Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.`,
 
   // Featured section configuration
   // viewMode: 'list' shows bullet list, 'cards' shows card grid with excerpts

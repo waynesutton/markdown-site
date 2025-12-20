@@ -72,7 +72,7 @@ http.route({
     const response = {
       site: SITE_NAME,
       url: SITE_URL,
-      description: "An open-source markdown sync site you publish from the terminal with npm run sync. Write locally, sync instantly, skip the build, powered by Convex and Netlify.",
+      description: "An open-source markdown sync site for developers and AI agents. Publish from the terminal with npm run sync. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.",
       posts: posts.map((post) => ({
         title: post.title,
         slug: post.slug,
@@ -194,7 +194,7 @@ http.route({
     const response = {
       site: SITE_NAME,
       url: SITE_URL,
-      description: "An open-source markdown sync site you publish from the terminal with npm run sync. Write locally, sync instantly, skip the build, powered by Convex and Netlify.",
+      description: "An open-source markdown sync site for developers and AI agents. Publish from the terminal with npm run sync. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.",
       exportedAt: new Date().toISOString(),
       totalPosts: fullPosts.length,
       posts: fullPosts,

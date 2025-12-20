@@ -164,6 +164,22 @@ When you fork this project, update these files with your site information:
 | `public/openapi.yaml` | Server URL, site name in examples |
 | `public/.well-known/ai-plugin.json` | Site name, descriptions |
 
+### Site title and description metadata
+
+These files contain the main site description text. Update them with your own tagline:
+
+| File | What to change |
+|------|----------------|
+| `index.html` | meta description, og:description, twitter:description, JSON-LD |
+| `README.md` | Main description at top of file |
+| `src/pages/Home.tsx` | intro and bio text in siteConfig |
+| `convex/http.ts` | description field in API responses (2 locations) |
+| `convex/rss.ts` | SITE_DESCRIPTION constant |
+| `public/llms.txt` | Header quote and Description field |
+| `AGENTS.md` | Project overview section |
+| `content/blog/about-this-blog.md` | Opening paragraph |
+| `content/pages/about.md` | excerpt field and opening paragraph |
+
 **Backend constants** (`convex/http.ts` and `convex/rss.ts`):
 
 ```typescript

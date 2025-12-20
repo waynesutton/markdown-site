@@ -1,6 +1,6 @@
 # markdown "sync" site
 
-An open-source markdown "sync" site you publish from the terminal with npm run sync. Write locally, sync instantly, skip the build powered by Convex and Netlify
+An open-source markdown sync site for developers and AI agents. Publish from the terminal with `npm run sync`. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
 
 Write markdown locally, run `npm run sync` (dev) or `npm run sync:prod` (production), and content appears instantly across all connected browsers. Built with React, Convex, and Vite. Optimized for SEO, AI agents, and LLM discovery.
 

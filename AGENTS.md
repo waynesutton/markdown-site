@@ -4,7 +4,7 @@ Instructions for AI coding agents working on this codebase.
 
 ## Project overview
 
-A real-time markdown blog powered by Convex and React. Content syncs instantly without rebuilds. Write markdown, run a sync command, and posts appear immediately across all connected browsers.
+An open-source markdown sync site for developers and AI agents. Publish from the terminal with `npm run sync`. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
 
 **Key features:**
 - Markdown posts with frontmatter
