@@ -28,6 +28,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Fork configuration (user-specific)
+fork-config.json
+
 # Cursor rules
 .cursor/rules/write.mdc
 

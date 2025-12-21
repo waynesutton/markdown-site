@@ -1,0 +1,44 @@
+{
+  "siteName": "Your Site Name",
+  "siteTitle": "Your Tagline",
+  "siteDescription": "A one-sentence description of your site.",
+  "siteUrl": "https://yoursite.netlify.app",
+  "siteDomain": "yoursite.netlify.app",
+  "githubUsername": "yourusername",
+  "githubRepo": "your-repo-name",
+  "contactEmail": "you@example.com",
+  "creator": {
+    "name": "Your Name",
+    "twitter": "https://x.com/yourhandle",
+    "linkedin": "https://www.linkedin.com/in/yourprofile/",
+    "github": "https://github.com/yourusername"
+  },
+  "bio": "Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents.",
+  "logoGallery": {
+    "enabled": true,
+    "title": "Built with",
+    "scrolling": false,
+    "maxItems": 4
+  },
+  "gitHubContributions": {
+    "enabled": true,
+    "showYearNavigation": true,
+    "linkToProfile": true,
+    "title": "GitHub Activity"
+  },
+  "blogPage": {
+    "enabled": true,
+    "showInNav": true,
+    "title": "Blog",
+    "description": "All posts from the blog, sorted by date.",
+    "order": 2
+  },
+  "postsDisplay": {
+    "showOnHome": true,
+    "showOnBlogPage": true
+  },
+  "featuredViewMode": "cards",
+  "showViewToggle": true,
+  "theme": "tan"
+}
+

@@ -7,6 +7,40 @@ order: 5
 
 All notable changes to this project.
 
+## v1.18.0
+
+Released December 20, 2025
+
+**Automated fork configuration**
+
+- New `npm run configure` command for one-step fork setup
+- Copy `fork-config.json.example` to `fork-config.json`
+- Edit the JSON file with your site information
+- Run `npm run configure` to apply all changes automatically
+
+Two options for fork setup:
+
+1. **Automated** (recommended): JSON config file + `npm run configure`
+2. **Manual**: Follow step-by-step instructions in `FORK_CONFIG.md`
+
+The configure script updates all 11 configuration files:
+
+| File                                | What it updates                          |
+| ----------------------------------- | ---------------------------------------- |
+| `src/config/siteConfig.ts`          | Site name, bio, GitHub, features         |
+| `src/pages/Home.tsx`                | Intro paragraph, footer links            |
+| `src/pages/Post.tsx`                | SITE_URL, SITE_NAME constants            |
+| `convex/http.ts`                    | SITE_URL, SITE_NAME constants            |
+| `convex/rss.ts`                     | SITE_URL, SITE_TITLE, SITE_DESCRIPTION   |
+| `index.html`                        | Meta tags, JSON-LD, page title           |
+| `public/llms.txt`                   | Site info, GitHub link                   |
+| `public/robots.txt`                 | Sitemap URL                              |
+| `public/openapi.yaml`               | Server URL, site name                    |
+| `public/.well-known/ai-plugin.json` | Plugin metadata                          |
+| `src/context/ThemeContext.tsx`      | Default theme                            |
+
+New files: `FORK_CONFIG.md`, `fork-config.json.example`, `scripts/configure-fork.ts`
+
 ## v1.17.0
 
 Released December 20, 2025

@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.18.0] - 2025-12-20
+
+### Added
+
+- Automated fork configuration with `npm run configure`
+  - Copy `fork-config.json.example` to `fork-config.json`
+  - Edit JSON with your site information
+  - Run `npm run configure` to apply all changes automatically
+  - Updates all 11 configuration files in one command
+- Two options for fork setup
+  - **Option 1: Automated** (recommended): JSON config + single command
+  - **Option 2: Manual**: Follow step-by-step guide in `FORK_CONFIG.md`
+- `FORK_CONFIG.md` comprehensive fork guide
+  - YAML template for AI agent configuration
+  - Manual code snippets for each file
+  - AI agent prompt for automated updates
+- `fork-config.json.example` template with all configuration options
+  - Site name, URL, description
+  - Creator social links (Twitter, LinkedIn, GitHub)
+  - Bio and intro text
+  - Logo gallery settings
+  - GitHub contributions config
+  - Blog page and theme options
+
+### Technical
+
+- New script: `scripts/configure-fork.ts`
+- New npm command: `npm run configure`
+- Reads JSON config and updates 11 files with string replacements
+- Updates: siteConfig.ts, Home.tsx, Post.tsx, http.ts, rss.ts, index.html, llms.txt, robots.txt, openapi.yaml, ai-plugin.json, ThemeContext.tsx
+
 ## [1.17.0] - 2025-12-20
 
 ### Added

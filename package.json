@@ -13,6 +13,7 @@
     "sync": "npx tsx scripts/sync-posts.ts",
     "sync:prod": "SYNC_ENV=production npx tsx scripts/sync-posts.ts",
     "import": "npx tsx scripts/import-url.ts",
+    "configure": "npx tsx scripts/configure-fork.ts",
     "deploy": "npm run sync && npm run build",
     "deploy:prod": "npx convex deploy && npm run sync:prod"
   },

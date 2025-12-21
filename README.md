@@ -16,6 +16,49 @@ npm run sync        # dev
 npm run sync:prod   # production
 ```
 
+## Fork Configuration
+
+After forking this project, you have two options to configure your site:
+
+### Option 1: Automated (Recommended)
+
+Run a single command to configure all files automatically:
+
+```bash
+# Copy the example config
+cp fork-config.json.example fork-config.json
+
+# Edit with your site information
+# Open fork-config.json and update the values
+
+# Apply all changes
+npm run configure
+```
+
+This updates all 11 configuration files in one step.
+
+### Option 2: Manual
+
+Follow the step-by-step guide in `FORK_CONFIG.md` to update each file manually. This guide includes code snippets and an AI agent prompt for assistance.
+
+### Files Updated
+
+| File                                | What to update                                                              |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
+| `src/pages/Home.tsx`                | Intro paragraph text, footer links                                          |
+| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME`, description strings                                |
+| `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION`                                |
+| `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE`                                 |
+| `index.html`                        | Title, meta description, OG tags, JSON-LD                                   |
+| `public/llms.txt`                   | Site name, URL, description, topics                                         |
+| `public/robots.txt`                 | Sitemap URL and header comment                                              |
+| `public/openapi.yaml`               | API title, server URL, site name                                            |
+| `public/.well-known/ai-plugin.json` | Site name, descriptions                                                     |
+| `src/context/ThemeContext.tsx`      | Default theme                                                               |
+
+See `FORK_CONFIG.md` for detailed configuration examples and the full JSON schema.
+
 ## Features
 
 - Markdown-based blog posts with frontmatter
@@ -57,25 +100,6 @@ npm run sync:prod   # production
 - Import external URLs as markdown posts using Firecrawl
 - Run `npm run import <url>` to scrape and create draft posts locally
 - Then sync to dev or prod with `npm run sync` or `npm run sync:prod`
-
-## Files to Update When Forking
-
-When you fork this project, update these files with your site information:
-
-| File                                | What to update                                              |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
-| `src/pages/Home.tsx`                | Intro paragraph text (hardcoded JSX)                        |
-| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME`, description strings (3 locations)  |
-| `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)    |
-| `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)       |
-| `index.html`                        | Title, meta description, OG tags, JSON-LD                   |
-| `public/llms.txt`                   | Site name, URL, description, topics                         |
-| `public/robots.txt`                 | Sitemap URL and header comment                              |
-| `public/openapi.yaml`               | API title, server URL, site name in examples                |
-| `public/.well-known/ai-plugin.json` | Site name, descriptions                                     |
-
-See the [Setup Guide](/setup-guide) for detailed configuration examples.
 
 ## Getting Started
 

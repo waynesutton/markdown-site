@@ -4,18 +4,20 @@ A brief description of each file in the codebase.
 
 ## Root Files
 
-| File             | Description                                    |
-| ---------------- | ---------------------------------------------- |
-| `package.json`   | Dependencies and scripts for the blog          |
-| `tsconfig.json`  | TypeScript configuration                       |
-| `vite.config.ts` | Vite bundler configuration                     |
-| `index.html`     | Main HTML entry with SEO meta tags and JSON-LD |
-| `netlify.toml`   | Netlify deployment and Convex HTTP redirects   |
-| `README.md`      | Project documentation                          |
-| `AGENTS.md`      | AI coding agent instructions (agents.md spec)  |
-| `files.md`       | This file - codebase structure                 |
-| `changelog.md`   | Version history and changes                    |
-| `TASK.md`        | Task tracking and project status               |
+| File                       | Description                                          |
+| -------------------------- | ---------------------------------------------------- |
+| `package.json`             | Dependencies and scripts for the blog                |
+| `tsconfig.json`            | TypeScript configuration                             |
+| `vite.config.ts`           | Vite bundler configuration                           |
+| `index.html`               | Main HTML entry with SEO meta tags and JSON-LD       |
+| `netlify.toml`             | Netlify deployment and Convex HTTP redirects         |
+| `README.md`                | Project documentation                                |
+| `AGENTS.md`                | AI coding agent instructions (agents.md spec)        |
+| `files.md`                 | This file - codebase structure                       |
+| `changelog.md`             | Version history and changes                          |
+| `TASK.md`                  | Task tracking and project status                     |
+| `FORK_CONFIG.md`           | Fork configuration guide (manual + automated options)|
+| `fork-config.json.example` | Template JSON config for automated fork setup        |
 
 ## Source Files (`src/`)
 
@@ -142,10 +144,11 @@ Markdown files for static pages like About, Projects, Contact, Changelog.
 
 ## Scripts (`scripts/`)
 
-| File            | Description                                       |
-| --------------- | ------------------------------------------------- |
-| `sync-posts.ts` | Syncs markdown files to Convex at build time      |
-| `import-url.ts` | Imports external URLs as markdown posts (Firecrawl) |
+| File                 | Description                                                |
+| -------------------- | ---------------------------------------------------------- |
+| `sync-posts.ts`      | Syncs markdown files to Convex at build time               |
+| `import-url.ts`      | Imports external URLs as markdown posts (Firecrawl)        |
+| `configure-fork.ts`  | Automated fork configuration (reads fork-config.json)      |
 
 ## Netlify (`netlify/edge-functions/`)
 

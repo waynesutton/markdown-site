@@ -3,13 +3,18 @@
 ## To Do
 
 - [ ] create a ui site config page
-- [ ] create a prompt formator or checklidst or skill or agent to change everything at once after forking
 
 ## Current Status
 
-v1.17.0 deployed. Added GitHub contributions graph on homepage with theme-aware colors, year navigation, and configurable display options.
+v1.18.0 deployed. Added automated fork configuration with `npm run configure` command and comprehensive fork setup guide.
 
 ## Completed
+
+- [x] Automated fork configuration with npm run configure
+- [x] FORK_CONFIG.md comprehensive guide with two options (automated + manual)
+- [x] fork-config.json.example template with all configuration options
+- [x] scripts/configure-fork.ts for automated updates
+- [x] Updates all 11 configuration files in one command
 
 - [x] GitHub contributions graph on homepage with theme-aware colors
 - [x] Year navigation with Phosphor icons (CaretLeft, CaretRight)

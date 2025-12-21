@@ -73,4 +73,16 @@ It's a hybrid: developer workflow for publishing + real-time delivery like a dyn
 - Projects where AI agents generate content programmatically
 - Sites that need real-time updates without full rebuilds
 
+## Fork configuration
+
+After forking, configure your site with a single command:
+
+```bash
+cp fork-config.json.example fork-config.json
+# Edit fork-config.json
+npm run configure
+```
+
+Or follow the manual guide in `FORK_CONFIG.md`. Both options update all 11 configuration files with your site information.
+
 Fork it, customize it, ship it.

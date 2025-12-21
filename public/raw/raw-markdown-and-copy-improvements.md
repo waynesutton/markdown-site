@@ -1,100 +1,220 @@
-# v1.7 to v1.10 - Mobile menu, scroll-to-top, and fork configuration
+# v1.18.0 release: 12 versions of shipping
 
-> New features for mobile navigation, scroll-to-top button, fork configuration documentation, sharing content with AI tools, and improved table styling.
+> Everything new from v1.7 to v1.18.0. Automated fork setup, GitHub contributions graph, write page, mobile menu, aggregates, and more.
 
 ---
 Type: post
 Date: 2025-12-20
-Reading time: 5 min read
-Tags: features, markdown, updates, mobile, configuration
+Reading time: 8 min read
+Tags: release, features, updates, developer-tools
 ---
 
-## Fork configuration (v1.10.0)
+## What shipped from v1.7 to v1.18
 
-When you fork this project, update these files with your site information:
+This post covers 12 versions of updates to the markdown sync framework. From raw markdown files to automated fork configuration, here is everything that changed.
 
-| File                                | What to update                                              |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `src/pages/Home.tsx`                | Site name, title, intro, bio, featured config, logo gallery |
-| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME` (API responses, sitemap)            |
-| `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)    |
-| `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)       |
-| `index.html`                        | Title, meta description, OG tags, JSON-LD                   |
-| `public/llms.txt`                   | Site name, URL, description                                 |
-| `public/robots.txt`                 | Sitemap URL                                                 |
-| `public/openapi.yaml`               | Server URL, site name in examples                           |
-| `public/.well-known/ai-plugin.json` | Site name, descriptions                                     |
+## Automated fork configuration (v1.18.0)
 
-These constants affect RSS feeds, API responses, sitemaps, and social sharing metadata.
+Fork setup now takes one command:
+
+```bash
+cp fork-config.json.example fork-config.json
+# Edit fork-config.json with your site info
+npm run configure
+```
+
+The configure script updates all 11 configuration files:
+
+| File                                | What it updates                        |
+| ----------------------------------- | -------------------------------------- |
+| `src/config/siteConfig.ts`          | Site name, bio, GitHub, features       |
+| `src/pages/Home.tsx`                | Intro paragraph, footer links          |
+| `src/pages/Post.tsx`                | SITE_URL, SITE_NAME constants          |
+| `convex/http.ts`                    | SITE_URL, SITE_NAME constants          |
+| `convex/rss.ts`                     | SITE_URL, SITE_TITLE, SITE_DESCRIPTION |
+| `index.html`                        | Meta tags, JSON-LD, page title         |
+| `public/llms.txt`                   | Site info, GitHub link                 |
+| `public/robots.txt`                 | Sitemap URL                            |
+| `public/openapi.yaml`               | Server URL, site name                  |
+| `public/.well-known/ai-plugin.json` | Plugin metadata                        |
+| `src/context/ThemeContext.tsx`      | Default theme                          |
+
+Two options for fork setup:
+
+1. **Automated** (recommended): JSON config file + `npm run configure`
+2. **Manual**: Follow step-by-step instructions in `FORK_CONFIG.md`
+
+## GitHub contributions graph (v1.17.0)
+
+The homepage now displays a GitHub-style contribution graph. Configure it in siteConfig:
+
+```typescript
+gitHubContributions: {
+  enabled: true,
+  username: "your-github-username",
+  showYearNavigation: true,
+  linkToProfile: true,
+  title: "Contributions",
+}
+```
+
+Features:
+
+- Theme-aware colors (dark, light, tan, cloud each have unique palettes)
+- Year navigation with Phosphor CaretLeft/CaretRight icons
+- Click the graph to visit the GitHub profile
+- Uses public API (no GitHub token required)
+- Mobile responsive with scaled cells
+
+## Write page (v1.13.0 to v1.16.0)
+
+A markdown writing page now lives at `/write`. Not linked in navigation. Access it directly.
+
+Three-column layout:
+
+- **Left sidebar**: Home link, content type selector (Blog Post/Page), actions (Clear, Theme, Font)
+- **Center**: Full-height writing area with Copy All button
+- **Right sidebar**: Frontmatter reference with per-field copy buttons
+
+Features across iterations:
+
+- Font switcher toggles between Serif and Sans-serif
+- Theme toggle matches the rest of the app
+- localStorage persistence for content, type, and font preference
+- Word, line, and character counts in status bar
+- Warning banner about refresh losing content
+- Works with Grammarly and browser spellcheck
+- Mobile responsive with stacked layout
+
+The write page does not connect to Convex. It stores content locally. Copy your markdown and paste it into a file in `content/blog/` or `content/pages/`, then run `npm run sync`.
+
+## Stats aggregates (v1.11.0)
+
+The stats page now uses O(log n) aggregate counts instead of O(n) table scans.
+
+Before: Every stats query scanned the entire pageViews table.
+
+After: Three TableAggregate instances provide pre-computed counts:
+
+- `totalPageViews`: Global view count
+- `pageViewsByPath`: Per-page view counts
+- `uniqueVisitors`: Distinct session count
+
+Run the backfill after deploying:
+
+```bash
+npx convex run stats:backfillAggregates
+```
+
+The backfill processes 500 records at a time to stay under the 16MB Convex memory limit. It schedules itself to continue until complete.
+
+Stats queries now respond consistently fast regardless of how many page views exist.
+
+## Dedicated blog page (v1.12.0)
+
+A dedicated `/blog` page now exists. Configure it in siteConfig:
+
+```typescript
+blogPage: {
+  enabled: true,         // Enable /blog route
+  showInNav: true,       // Show in navigation
+  title: "Blog",         // Page title
+  order: 0,              // Nav order (lower = first)
+},
+displayOnHomepage: true, // Also show posts on homepage
+```
+
+Navigation combines the Blog link with page links and sorts by order. Set `order: 5` to place Blog after pages with order 0-4.
+
+Centralized configuration now lives in `src/config/siteConfig.ts` instead of scattered across components.
+
+## Fork configuration documentation (v1.10.0)
+
+The docs, setup guide, and README now include a "Files to Update When Forking" section listing all 9 configuration files:
+
+- Frontend: `siteConfig.ts`, `Home.tsx`, `Post.tsx`
+- Backend: `http.ts`, `rss.ts`
+- HTML: `index.html`
+- AI discovery: `llms.txt`, `robots.txt`, `openapi.yaml`, `ai-plugin.json`
 
 ## Scroll-to-top button (v1.9.0)
 
-A scroll-to-top button now appears after scrolling 300px. Configure it in `src/components/Layout.tsx`:
+A scroll-to-top button appears after scrolling 300px. Configure it in `src/components/Layout.tsx`:
 
 ```typescript
 const scrollToTopConfig: Partial<ScrollToTopConfig> = {
-  enabled: true, // Set to false to disable
-  threshold: 300, // Show after scrolling 300px
+  enabled: true, // Set false to disable
+  threshold: 300, // Pixels before showing
   smooth: true, // Smooth scroll animation
 };
 ```
 
-The button uses the Phosphor ArrowUp icon and works with all four themes. It uses a passive scroll listener for performance and includes a fade-in animation.
+Uses Phosphor ArrowUp icon. Works with all four themes. Passive scroll listener for performance.
 
 ## Mobile menu (v1.8.0)
 
-The site now includes a mobile menu with hamburger navigation for smaller screens. On mobile and tablet views, a hamburger icon appears in the top navigation. Tap it to open a slide-out drawer with all page navigation links.
+Hamburger navigation for mobile and tablet screens. Tap the icon to open a slide-out drawer with page links.
 
-**Features:**
+Features:
 
 - Smooth CSS transform animations
-- Keyboard accessible (press Escape to close)
+- Keyboard accessible (Escape to close)
 - Focus trap for screen reader support
 - Home link at the bottom of the drawer
-- Auto-closes when navigating to a new page
+- Auto-closes when navigating
 
-The desktop navigation remains unchanged. The mobile menu only appears on screens below 1024px.
+Desktop navigation stays unchanged. Mobile menu only appears below 1024px.
 
-## Static raw markdown files
+## Generate Skill (v1.8.0)
 
-Every published post and page now gets a static `.md` file at `/raw/{slug}.md`. These files are generated automatically when you run `npm run sync`.
+The CopyPageDropdown now includes a Generate Skill option. Click to download the current post or page as an AI agent skill file.
 
-**Example URLs:**
+The skill file includes:
+
+- Metadata section with title, description, and tags
+- When to use section describing scenarios
+- Instructions section with full content
+
+Downloads as `{slug}-skill.md`. Use these files to train AI agents or add context to workflows.
+
+## Static raw markdown files (v1.7.0)
+
+Every published post and page now gets a static `.md` file at `/raw/{slug}.md`. Generated during `npm run sync`.
+
+Example URLs:
 
 - `/raw/setup-guide.md`
 - `/raw/about.md`
 - `/raw/how-to-publish.md`
 
-Each file includes a metadata header with type, date, reading time, and tags. The content matches exactly what you see on the page.
+Each file includes a metadata header with type, date, reading time, and tags.
 
-**Use cases:**
+Use cases:
 
 - Share raw markdown with AI agents
 - Link directly to source content for LLM ingestion
 - View the markdown source of any post
 
-## View as Markdown in CopyPageDropdown
+## View as Markdown (v1.7.0)
 
-The Copy Page dropdown now includes a "View as Markdown" option. Click it to open the raw `.md` file in a new tab.
+The Copy Page dropdown now includes "View as Markdown" to open the raw `.md` file in a new tab.
 
-This joins the existing options:
+Other dropdown options:
 
-- Copy page (copies formatted markdown to clipboard)
+- Copy page (formatted markdown to clipboard)
 - Open in ChatGPT
 - Open in Claude
-- Open in Perplexity (new)
+- Open in Perplexity
 
-## Perplexity integration
+## Perplexity integration (v1.7.0)
 
-Perplexity is now available as an AI service option. Click "Open in Perplexity" to send the full article content directly to Perplexity for research and analysis.
+Perplexity is now available as an AI service option. Click to send full article content to Perplexity for research and analysis.
 
-Like the other AI options, if the URL gets too long, the content is copied to your clipboard and Perplexity opens in a new tab. Paste to continue.
+If the URL gets too long, content copies to clipboard and Perplexity opens in a new tab. Paste to continue.
 
-## Featured images
+## Featured images (v1.7.0)
 
-Posts and pages can now include a featured image that displays in the card view on the homepage.
-
-Add to your frontmatter:
+Posts and pages can include a featured image that displays in card view:
 
 ```yaml
 image: "/images/my-thumbnail.png"
@@ -102,11 +222,33 @@ featured: true
 featuredOrder: 1
 ```
 
-The image displays as a square thumbnail above the title in card view. Non-square images are automatically cropped to center. Recommended size: 400x400px minimum (800x800px for retina).
+The image displays as a square thumbnail above the title. Non-square images crop to center. Recommended: 400x400px minimum (800x800px for retina).
 
-## Improved markdown table styling
+## Open Graph image fix (v1.12.1)
 
-Tables now render with GitHub-style formatting across all four themes:
+Posts with `image` in frontmatter now display their specific OG image when shared. Posts without images fall back to `og-default.svg`. Pages now supported with `og:type` set to "website".
+
+Relative image paths (like `/images/v17.png`) resolve to absolute URLs automatically.
+
+## Centralized font sizes (v1.12.2)
+
+All font sizes now use CSS variables in `global.css`:
+
+```css
+:root {
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 16px;
+  --font-size-lg: 17px;
+  /* ... */
+}
+```
+
+Edit `:root` variables to customize font sizes across the entire site. Mobile responsive overrides at 768px breakpoint.
+
+## Improved table styling (v1.7.0)
+
+Tables render with GitHub-style formatting:
 
 | Feature | Status                  |
 | ------- | ----------------------- |
@@ -115,32 +257,31 @@ Tables now render with GitHub-style formatting across all four themes:
 | Hover   | Row highlighting        |
 | Themes  | Dark, light, tan, cloud |
 
-Tables adapt to each theme with proper alternating row colors and hover states.
+Alternating row colors and hover states adapt to each theme.
 
-## Generate Skill
+## Quick reference: sync vs deploy
 
-The CopyPageDropdown now includes a Generate Skill option. Click it to download the current post or page as an AI agent skill file.
+| Change                  | Command                    | Speed          |
+| ----------------------- | -------------------------- | -------------- |
+| Blog posts              | `npm run sync`             | Instant        |
+| Pages                   | `npm run sync`             | Instant        |
+| Featured items          | `npm run sync`             | Instant        |
+| Import external URL     | `npm run import` then sync | Instant        |
+| siteConfig changes      | Redeploy                   | Requires build |
+| Logo gallery config     | Redeploy                   | Requires build |
+| React components/styles | Redeploy                   | Requires build |
+| Fork configuration      | `npm run configure`        | Instant        |
 
-The skill file includes:
+Markdown content syncs instantly via Convex. Source code changes require pushing to GitHub for Netlify to rebuild.
 
-- Metadata section with title, description, and tags
-- When to use section describing scenarios for the skill
-- Instructions section with the full content
+## Upgrade path
 
-The file downloads as `{slug}-skill.md`. Use these skill files to train AI agents or add context to your workflows.
+If upgrading from an earlier version:
 
-## Summary
+1. Pull the latest code
+2. Run `npm install` for new dependencies
+3. Run `npx convex dev` to sync schema changes
+4. Run `npx convex run stats:backfillAggregates` if using stats
+5. Check `siteConfig.ts` for new configuration options
 
-These updates improve navigation, configuration, and sharing with AI tools:
-
-1. **Fork configuration** documentation for all 9 site files
-2. **Scroll-to-top button** with configurable threshold
-3. **Mobile menu** with slide-out drawer for smaller screens
-4. **Raw markdown files** at `/raw/{slug}.md` for direct access
-5. **View as Markdown** option in CopyPageDropdown
-6. **Perplexity** added alongside ChatGPT and Claude
-7. **Generate Skill** for AI agent training
-8. **Featured images** for visual card layouts
-9. **Better tables** with responsive styling
-
-All features work across all four themes and are mobile responsive. Run `npm run sync` for development and `npm run sync:prod` for production to update your site with these changes.
+All features work across all four themes and are mobile responsive.

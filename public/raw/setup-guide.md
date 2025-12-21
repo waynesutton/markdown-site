@@ -405,14 +405,58 @@ Both files are gitignored. Each developer creates their own local environment fi
 
 ## Customizing Your Framework
 
-### Files to Update When Forking
+### Fork Configuration Options
 
-When you fork this project, update these files with your site information:
+After forking, you have two options to configure your site:
+
+#### Option 1: Automated (Recommended)
+
+Run a single command to configure all files automatically:
+
+```bash
+# Copy the example config
+cp fork-config.json.example fork-config.json
+
+# Edit fork-config.json with your site information
+# Then apply all changes
+npm run configure
+```
+
+The `fork-config.json` file includes:
+
+```json
+{
+  "siteName": "Your Site Name",
+  "siteTitle": "Your Tagline",
+  "siteDescription": "Your site description.",
+  "siteUrl": "https://yoursite.netlify.app",
+  "siteDomain": "yoursite.netlify.app",
+  "githubUsername": "yourusername",
+  "githubRepo": "your-repo-name",
+  "contactEmail": "you@example.com",
+  "creator": {
+    "name": "Your Name",
+    "twitter": "https://x.com/yourhandle",
+    "linkedin": "https://www.linkedin.com/in/yourprofile/",
+    "github": "https://github.com/yourusername"
+  },
+  "bio": "Your bio text here.",
+  "theme": "tan"
+}
+```
+
+This updates all 11 configuration files in one step. See `FORK_CONFIG.md` for the full JSON schema.
+
+#### Option 2: Manual
+
+Follow the step-by-step guide in `FORK_CONFIG.md` to update each file manually. The guide includes code snippets for each file and an AI agent prompt for assisted configuration.
+
+### Files to Update When Forking
 
 | File                                | What to update                                                              |
 | ----------------------------------- | --------------------------------------------------------------------------- |
 | `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
-| `src/pages/Home.tsx`                | Intro paragraph text (hardcoded JSX)                                        |
+| `src/pages/Home.tsx`                | Intro paragraph text, footer links                                          |
 | `convex/http.ts`                    | `SITE_URL`, `SITE_NAME`, description strings (3 locations)                  |
 | `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)                    |
 | `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)                       |
@@ -421,6 +465,7 @@ When you fork this project, update these files with your site information:
 | `public/robots.txt`                 | Sitemap URL and header comment                                              |
 | `public/openapi.yaml`               | API title, server URL, site name in examples                                |
 | `public/.well-known/ai-plugin.json` | Site name, descriptions                                                     |
+| `src/context/ThemeContext.tsx`      | Default theme                                                               |
 
 ### Site title and description metadata
 

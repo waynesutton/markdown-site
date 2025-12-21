@@ -149,22 +149,39 @@ npm run sync:prod
 
 ## Configuration
 
-### Site and backend settings
+### Fork configuration
 
-When you fork this project, update these files with your site information:
+After forking, you have two options to configure your site:
 
-| File | What to update |
-|------|----------------|
-| `src/config/siteConfig.ts` | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
-| `src/pages/Home.tsx` | Intro paragraph text (hardcoded JSX) |
-| `convex/http.ts` | `SITE_URL`, `SITE_NAME`, description strings (3 locations) |
-| `convex/rss.ts` | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds) |
-| `src/pages/Post.tsx` | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags) |
-| `index.html` | Title, meta description, OG tags, JSON-LD |
-| `public/llms.txt` | Site name, URL, description, topics |
-| `public/robots.txt` | Sitemap URL and header comment |
-| `public/openapi.yaml` | API title, server URL, site name in examples |
-| `public/.well-known/ai-plugin.json` | Site name, descriptions |
+**Option 1: Automated (Recommended)**
+
+```bash
+cp fork-config.json.example fork-config.json
+# Edit fork-config.json with your site information
+npm run configure
+```
+
+This updates all 11 configuration files in one command. See `FORK_CONFIG.md` for the full JSON schema and options.
+
+**Option 2: Manual**
+
+Follow the step-by-step guide in `FORK_CONFIG.md` to update each file manually.
+
+### Files updated by configuration
+
+| File                                | What to update                                                              |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
+| `src/pages/Home.tsx`                | Intro paragraph text, footer links                                          |
+| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME`, description strings (3 locations)                  |
+| `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)                    |
+| `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)                       |
+| `index.html`                        | Title, meta description, OG tags, JSON-LD                                   |
+| `public/llms.txt`                   | Site name, URL, description, topics                                         |
+| `public/robots.txt`                 | Sitemap URL and header comment                                              |
+| `public/openapi.yaml`               | API title, server URL, site name in examples                                |
+| `public/.well-known/ai-plugin.json` | Site name, descriptions                                                     |
+| `src/context/ThemeContext.tsx`      | Default theme                                                               |
 
 ### Site title and description metadata
 
