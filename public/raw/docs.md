@@ -140,11 +140,12 @@ npm run sync:prod
 | Pages in `content/pages/`        | `npm run sync`             | Instant (no rebuild) |
 | Featured items (via frontmatter) | `npm run sync`             | Instant (no rebuild) |
 | Import external URL              | `npm run import` then sync | Instant (no rebuild) |
+| Images in `public/images/`       | Git commit + push          | Requires rebuild     |
 | `siteConfig` in `Home.tsx`       | Redeploy                   | Requires rebuild     |
 | Logo gallery config              | Redeploy                   | Requires rebuild     |
 | React components/styles          | Redeploy                   | Requires rebuild     |
 
-**Markdown content** syncs instantly. **Source code** requires pushing to GitHub for Netlify to rebuild.
+**Markdown content** syncs instantly to Convex. **Images and source code** require pushing to GitHub for Netlify to rebuild.
 
 ## Configuration
 
@@ -228,13 +229,15 @@ export default {
   featuredViewMode: "list", // 'list' or 'cards'
   showViewToggle: true,
 
-  // Logo gallery (with clickable links)
+  // Logo gallery (static grid or scrolling marquee)
   logoGallery: {
     enabled: true, // false to hide
     images: [{ src: "/images/logos/logo.svg", href: "https://example.com" }],
     position: "above-footer",
     speed: 30,
-    title: "Trusted by",
+    title: "Built with",
+    scrolling: false, // false = static grid, true = scrolling marquee
+    maxItems: 4, // Number of logos when scrolling is false
   },
 
   links: {
@@ -285,10 +288,10 @@ const siteConfig = {
 
 ### Logo gallery
 
-The homepage includes a scrolling logo marquee with sample logos. Each logo can link to a URL.
+The homepage includes a logo gallery that can scroll infinitely or display as a static grid. Each logo can link to a URL.
 
 ```typescript
-// In src/pages/Home.tsx
+// In src/config/siteConfig.ts
 logoGallery: {
   enabled: true, // false to hide
   images: [
@@ -297,17 +300,26 @@ logoGallery: {
   ],
   position: "above-footer", // or 'below-featured'
   speed: 30, // Seconds for one scroll cycle
-  title: "Trusted by", // undefined to hide
+  title: "Built with", // undefined to hide
+  scrolling: false, // false = static grid, true = scrolling marquee
+  maxItems: 4, // Number of logos when scrolling is false
 },
 ```
 
-| Option     | Description                                   |
-| ---------- | --------------------------------------------- |
-| `enabled`  | `true` to show, `false` to hide               |
-| `images`   | Array of `{ src, href }` objects              |
-| `position` | `'above-footer'` or `'below-featured'`        |
-| `speed`    | Seconds for one scroll cycle (lower = faster) |
-| `title`    | Text above gallery (`undefined` to hide)      |
+| Option      | Description                                        |
+| ----------- | -------------------------------------------------- |
+| `enabled`   | `true` to show, `false` to hide                    |
+| `images`    | Array of `{ src, href }` objects                   |
+| `position`  | `'above-footer'` or `'below-featured'`             |
+| `speed`     | Seconds for one scroll cycle (lower = faster)      |
+| `title`     | Text above gallery (`undefined` to hide)           |
+| `scrolling` | `true` for infinite scroll, `false` for static grid |
+| `maxItems`  | Max logos to show when `scrolling` is `false` (default: 4) |
+
+**Display modes:**
+
+- `scrolling: true`: Infinite horizontal scroll with all logos
+- `scrolling: false`: Static centered grid showing first `maxItems` logos
 
 **To add logos:**
 
@@ -418,6 +430,14 @@ Mobile sizes defined in `@media (max-width: 768px)` block.
 | Site logo        | `public/images/logo.svg`       | 512x512  |
 | Default OG image | `public/images/og-default.svg` | 1200x630 |
 | Post images      | `public/images/`               | Any      |
+
+**Images require git deploy.** Images are served as static files from your repository, not synced to Convex. After adding images to `public/images/`:
+
+1. Commit the image files to git
+2. Push to GitHub
+3. Wait for Netlify to rebuild
+
+The `npm run sync` command only syncs markdown text content. Images are deployed when Netlify builds your site.
 
 ## Search
 

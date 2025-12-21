@@ -11,7 +11,7 @@ An open-source markdown sync site for developers and AI agents. Publish from the
 
 **File-based content.** All posts and pages live in `content/blog/` and `content/pages/` as markdown files with frontmatter. No database UI. No admin panel. Just files in your repo.
 
-**CLI publishing workflow.** Write markdown locally, then run `npm run sync` (dev) or `npm run sync:prod` (production). Content appears instantly via Convex real-time sync.
+**CLI publishing workflow.** Write markdown locally, then run `npm run sync` (dev) or `npm run sync:prod` (production). Content appears instantly via Convex real-time sync. Images require git commit and push since they are served as static files from Netlify.
 
 **Version controlled.** Markdown source files live in your repo alongside code. Commit changes, review diffs, roll back like any codebase. The sync command pushes content to the database.
 

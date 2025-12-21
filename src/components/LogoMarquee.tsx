@@ -13,6 +13,8 @@ export interface LogoGalleryConfig {
   position: "above-footer" | "below-featured";
   speed: number; // Seconds for one complete scroll cycle
   title?: string; // Optional title above the marquee
+  scrolling?: boolean; // When false, shows static grid instead of scrolling marquee
+  maxItems?: number; // Max items to show in static mode (default: 4)
 }
 
 interface LogoMarqueeProps {
@@ -33,52 +35,71 @@ export default function LogoMarquee({ config }: LogoMarqueeProps) {
     return null;
   }
 
-  // Normalize and duplicate images for seamless infinite scroll
+  // Normalize images
   const normalizedImages = config.images.map(normalizeImage);
-  const duplicatedImages = [...normalizedImages, ...normalizedImages];
+  
+  // Check if scrolling mode (default true for backwards compatibility)
+  const isScrolling = config.scrolling !== false;
+  
+  // For static mode, limit to maxItems (default 4)
+  const maxItems = config.maxItems ?? 4;
+  const displayImages = isScrolling 
+    ? [...normalizedImages, ...normalizedImages] // Duplicate for seamless scroll
+    : normalizedImages.slice(0, maxItems); // Limit for static grid
+
+  // Render logo item (shared between modes)
+  const renderLogo = (logo: LogoItem, index: number) => (
+    <div key={`${logo.src}-${index}`} className={isScrolling ? "logo-marquee-item" : "logo-static-item"}>
+      {logo.href ? (
+        <a
+          href={logo.href}
+          target={logo.href.startsWith("http") ? "_blank" : undefined}
+          rel={logo.href.startsWith("http") ? "noopener noreferrer" : undefined}
+          className="logo-marquee-link"
+        >
+          <img
+            src={logo.src}
+            alt=""
+            className="logo-marquee-image"
+            loading="lazy"
+          />
+        </a>
+      ) : (
+        <img
+          src={logo.src}
+          alt=""
+          className="logo-marquee-image"
+          loading="lazy"
+        />
+      )}
+    </div>
+  );
 
   return (
     <div className="logo-marquee-container">
       {config.title && (
         <p className="logo-marquee-title">{config.title}</p>
       )}
-      <div
-        className="logo-marquee"
-        style={
-          {
-            "--marquee-speed": `${config.speed}s`,
-          } as React.CSSProperties
-        }
-      >
-        <div className="logo-marquee-track">
-          {duplicatedImages.map((logo, index) => (
-            <div key={`${logo.src}-${index}`} className="logo-marquee-item">
-              {logo.href ? (
-                <a
-                  href={logo.href}
-                  target={logo.href.startsWith("http") ? "_blank" : undefined}
-                  rel={logo.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className="logo-marquee-link"
-                >
-                  <img
-                    src={logo.src}
-                    alt=""
-                    className="logo-marquee-image"
-                    loading="lazy"
-                  />
-                </a>
-              ) : (
-                <img
-                  src={logo.src}
-                  alt=""
-                  className="logo-marquee-image"
-                  loading="lazy"
-                />
-              )}
-            </div>
-          ))}
+      {isScrolling ? (
+        // Scrolling marquee mode
+        <div
+          className="logo-marquee"
+          style={
+            {
+              "--marquee-speed": `${config.speed}s`,
+            } as React.CSSProperties
+          }
+        >
+          <div className="logo-marquee-track">
+            {displayImages.map(renderLogo)}
+          </div>
         </div>
-      </div>
+      ) : (
+        // Static grid mode
+        <div className="logo-static-grid">
+          {displayImages.map(renderLogo)}
+        </div>
+      )}
     </div>
   );
 }

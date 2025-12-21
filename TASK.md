@@ -2,15 +2,21 @@
 
 ## To Do
 
-- [ ] add github code block
 - [ ] create a ui site config page
 - [ ] create a prompt formator or checklidst or skill or agent to change everything at once after forking
 
 ## Current Status
 
-v1.16.0 deployed. Added public /write page with three-column Cursor docs-style layout, font switcher, theme toggle, and localStorage persistence for markdown writing.
+v1.17.0 deployed. Added GitHub contributions graph on homepage with theme-aware colors, year navigation, and configurable display options.
 
 ## Completed
+
+- [x] GitHub contributions graph on homepage with theme-aware colors
+- [x] Year navigation with Phosphor icons (CaretLeft, CaretRight)
+- [x] Click graph to visit GitHub profile
+- [x] Configurable via siteConfig.gitHubContributions
+- [x] Theme-specific contribution colors for all 4 themes
+- [x] Mobile responsive design with scaled cells
 
 - [x] Public /write page with three-column layout (not linked in nav)
 - [x] Left sidebar: Home link, content type selector, actions (Clear, Theme, Font)

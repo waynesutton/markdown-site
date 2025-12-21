@@ -338,6 +338,14 @@ This image appears when sharing on social media. Recommended: 1200x630 pixels.
 ![Photo](https://images.unsplash.com/photo-xxx?w=800)
 ```
 
+**Images require git deploy.** Images are served as static files from your repository, not synced to Convex. After adding images to `public/images/`:
+
+1. Commit the image files to git
+2. Push to GitHub
+3. Wait for Netlify to rebuild
+
+The `npm run sync` command only syncs markdown text content. Images are deployed when Netlify builds your site.
+
 ### Sync After Adding Posts
 
 After adding or editing posts, sync to Convex.
@@ -381,11 +389,12 @@ Both files are gitignored. Each developer creates their own local environment fi
 | Pages in `content/pages/`        | `npm run sync`             | Instant (no rebuild) |
 | Featured items (via frontmatter) | `npm run sync`             | Instant (no rebuild) |
 | Import external URL              | `npm run import` then sync | Instant (no rebuild) |
+| Images in `public/images/`       | Git commit + push          | Requires rebuild     |
 | `siteConfig` in `Home.tsx`       | Redeploy                   | Requires rebuild     |
 | Logo gallery config              | Redeploy                   | Requires rebuild     |
 | React components/styles          | Redeploy                   | Requires rebuild     |
 
-**Markdown content** syncs instantly via Convex. **Source code changes** require pushing to GitHub for Netlify to rebuild.
+**Markdown content** syncs instantly via Convex. **Images and source code** require pushing to GitHub for Netlify to rebuild.
 
 **Featured items** can now be controlled via markdown frontmatter. Add `featured: true` and `featuredOrder: 1` to any post or page, then run `npm run sync`.
 
@@ -512,7 +521,7 @@ export default {
   featuredViewMode: "list", // 'list' or 'cards'
   showViewToggle: true, // Let users switch between views
 
-  // Logo gallery (marquee scroll with clickable links)
+  // Logo gallery (static grid or scrolling marquee with clickable links)
   logoGallery: {
     enabled: true, // Set false to hide
     images: [
@@ -521,7 +530,9 @@ export default {
     ],
     position: "above-footer", // or 'below-featured'
     speed: 30, // Seconds for one scroll cycle
-    title: "Trusted by",
+    title: "Built with",
+    scrolling: false, // false = static grid, true = scrolling marquee
+    maxItems: 4, // Number of logos when scrolling is false
   },
 
   links: {
@@ -572,7 +583,7 @@ Users can toggle between list and card views using the icon button next to "Get 
 
 ### Logo Gallery
 
-The homepage includes a scrolling logo gallery with 5 sample logos. Customize or disable it in siteConfig:
+The homepage includes a logo gallery that can scroll infinitely or display as a static grid. Customize or disable it in siteConfig:
 
 **Disable the gallery:**
 
@@ -597,7 +608,9 @@ logoGallery: {
   ],
   position: "above-footer",
   speed: 30,
-  title: "Trusted by",
+  title: "Built with",
+  scrolling: false, // false = static grid, true = scrolling marquee
+  maxItems: 4, // Number of logos to show when scrolling is false
 },
 ```
 
@@ -612,15 +625,22 @@ Delete the sample files from `public/images/logos/` and clear the images array, 
 
 **Configuration options:**
 
-| Option     | Description                                          |
-| ---------- | ---------------------------------------------------- |
-| `enabled`  | `true` to show, `false` to hide                      |
-| `images`   | Array of logo objects with `src` and optional `href` |
-| `position` | `'above-footer'` or `'below-featured'`               |
-| `speed`    | Seconds for one scroll cycle (lower = faster)        |
-| `title`    | Text above gallery (set to `undefined` to hide)      |
+| Option      | Description                                          |
+| ----------- | ---------------------------------------------------- |
+| `enabled`   | `true` to show, `false` to hide                      |
+| `images`    | Array of logo objects with `src` and optional `href` |
+| `position`  | `'above-footer'` or `'below-featured'`               |
+| `speed`     | Seconds for one scroll cycle (lower = faster)        |
+| `title`     | Text above gallery (set to `undefined` to hide)      |
+| `scrolling` | `true` for infinite scroll, `false` for static grid  |
+| `maxItems`  | Max logos to show when `scrolling` is `false` (default: 4) |
 
-The gallery uses CSS animations for smooth infinite scrolling. Logos display in grayscale and colorize on hover.
+**Display modes:**
+
+- **Scrolling marquee** (`scrolling: true`): Infinite horizontal scroll animation. All logos display in a continuous loop.
+- **Static grid** (`scrolling: false`): Centered grid showing the first `maxItems` logos without animation.
+
+Logos display in grayscale and colorize on hover.
 
 ### Blog page
 

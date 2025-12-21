@@ -7,6 +7,29 @@ order: 5
 
 All notable changes to this project.
 
+## v1.17.0
+
+Released December 20, 2025
+
+**GitHub contributions graph**
+
+- GitHub activity graph on homepage with theme-aware colors
+- Year navigation with Phosphor CaretLeft/CaretRight icons
+- Click graph to visit GitHub profile
+- Configurable via `siteConfig.gitHubContributions`
+- Uses public API (no GitHub token required)
+
+Theme-specific contribution colors:
+
+- Dark theme: GitHub green on dark background
+- Light theme: Standard GitHub green
+- Tan theme: Warm brown tones
+- Cloud theme: Gray-blue tones
+
+New component: `src/components/GitHubContributions.tsx`
+
+Set `enabled: false` in siteConfig to disable.
+
 ## v1.15.2
 
 Released December 20, 2025
@@ -356,7 +379,7 @@ Released December 14, 2025
 
 **Initial release**
 
-- Markdown blog posts with frontmatter parsing
+- Markdown posts with frontmatter parsing
 - Static pages support (About, Projects, Contact)
 - Four theme options: Dark, Light, Tan (default), Cloud
 - Syntax highlighting for code blocks

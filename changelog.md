@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.17.0] - 2025-12-20
+
+### Added
+
+- GitHub contributions graph on homepage
+  - Displays yearly contribution activity with theme-aware colors
+  - Fetches data from public API (no GitHub token required)
+  - Year navigation with Phosphor icons (CaretLeft, CaretRight)
+  - Click graph to visit GitHub profile
+  - Configurable via `siteConfig.gitHubContributions`
+- Theme-specific contribution colors
+  - Dark theme: GitHub green on dark background
+  - Light theme: Standard GitHub green
+  - Tan theme: Warm brown tones matching site palette
+  - Cloud theme: Gray-blue tones
+- Mobile responsive design
+  - Scales down on tablets and phones
+  - Day labels hidden on small screens for space
+  - Touch-friendly navigation buttons
+
+### Technical
+
+- New component: `src/components/GitHubContributions.tsx`
+- Uses `github-contributions-api.jogruber.de` public API
+- CSS variables for contribution level colors per theme
+- Configuration interface: `GitHubContributionsConfig`
+- Set `enabled: false` in siteConfig to disable
+
 ## [1.16.0] - 2025-12-21
 
 ### Added

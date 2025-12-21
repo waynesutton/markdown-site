@@ -3,6 +3,16 @@ import { ReactNode } from "react";
 export type { LogoItem, LogoGalleryConfig } from "../components/LogoMarquee";
 import type { LogoGalleryConfig } from "../components/LogoMarquee";
 
+// GitHub contributions graph configuration
+// Displays your GitHub activity on the homepage
+export interface GitHubContributionsConfig {
+  enabled: boolean; // Enable/disable the contributions graph
+  username: string; // GitHub username to fetch contributions for
+  showYearNavigation: boolean; // Show prev/next year arrows
+  linkToProfile: boolean; // Click graph to go to GitHub profile
+  title?: string; // Optional title above the graph
+}
+
 // Blog page configuration
 // Controls whether posts appear on homepage, dedicated blog page, or both
 export interface BlogPageConfig {
@@ -36,6 +46,9 @@ export interface SiteConfig {
   // Logo gallery configuration
   logoGallery: LogoGalleryConfig;
 
+  // GitHub contributions graph configuration
+  gitHubContributions: GitHubContributionsConfig;
+
   // Blog page configuration
   blogPage: BlogPageConfig;
 
@@ -54,12 +67,12 @@ export interface SiteConfig {
 // Customize this for your site
 export const siteConfig: SiteConfig = {
   // Basic site info
-  name: 'markdown "sync" site',
-  title: "markdown sync site",
+  name: 'markdown "sync" framework',
+  title: "markdown sync framework",
   // Optional logo/header image (place in public/images/, set to null to hide)
   logo: "/images/logo.svg",
   intro: null, // Set in Home.tsx to allow JSX with links
-  bio: `Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.`,
+  bio: `Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents.`,
 
   // Featured section configuration
   // viewMode: 'list' shows bullet list, 'cards' shows card grid with excerpts
@@ -69,23 +82,25 @@ export const siteConfig: SiteConfig = {
 
   // Logo gallery configuration
   // Set enabled to false to hide, or remove/replace sample images with your own
+  // scrolling: true = infinite scroll marquee, false = static centered grid
+  // maxItems: only used when scrolling is false (default: 4)
   logoGallery: {
     enabled: true,
     images: [
       {
-        src: "/images/logos/sample-logo-1.svg",
+        src: "/images/logos/convex-wordmark-black.svg",
         href: "https://markdowncms.netlify.app/",
       },
       {
-        src: "/images/logos/convex-wordmark-black.svg",
+        src: "/images/logos/netlify.svg",
         href: "/about#the-real-time-twist",
       },
       {
-        src: "/images/logos/sample-logo-3.svg",
+        src: "/images/logos/markdown.svg",
         href: "https://markdowncms.netlify.app/",
       },
       {
-        src: "/images/logos/sample-logo-4.svg",
+        src: "/images/logos/react.svg",
         href: "https://markdowncms.netlify.app/",
       },
       {
@@ -95,7 +110,19 @@ export const siteConfig: SiteConfig = {
     ],
     position: "above-footer",
     speed: 30,
-    title: "Trusted by (sample logos)",
+    title: "Built with",
+    scrolling: false, // Set to false for static grid showing first maxItems logos
+    maxItems: 4, // Number of logos to show when scrolling is false
+  },
+
+  // GitHub contributions graph configuration
+  // Set enabled to false to hide, or change username to your GitHub username
+  gitHubContributions: {
+    enabled: true, // Set to false to hide the contributions graph
+    username: "waynesutton", // Your GitHub username
+    showYearNavigation: true, // Show arrows to navigate between years
+    linkToProfile: true, // Click graph to open GitHub profile
+    title: "GitHub Activity", // Optional title above the graph
   },
 
   // Blog page configuration

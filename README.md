@@ -1,8 +1,8 @@
-# markdown "sync" site
+# markdown "sync" framework
 
-An open-source markdown sync site for developers and AI agents. Publish from the terminal with `npm run sync`. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
+An open-source publishing framework for AI agents and developers. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
 
-Write markdown locally, run `npm run sync` (dev) or `npm run sync:prod` (production), and content appears instantly across all connected browsers. Built with React, Convex, and Vite. Optimized for SEO, AI agents, and LLM discovery.
+Write markdown locally, run `npm run sync` (dev) or `npm run sync:prod` (production), and content appears instantly across all connected browsers. Built with React, Convex, and Vite. Optimized for AEO, GEO, and LLM discovery.
 
 **How publishing works:** Write posts in markdown, run `npm run sync` for development or `npm run sync:prod` for production, and they appear on your live site immediately. No rebuild or redeploy needed. Convex handles real-time data sync, so all connected browsers update automatically.
 
@@ -27,6 +27,7 @@ npm run sync:prod   # production
 - Full text search with Command+K shortcut
 - Featured section with list/card view toggle
 - Logo gallery with continuous marquee scroll
+- GitHub contributions graph with year navigation
 - Static raw markdown files at `/raw/{slug}.md`
 - Dedicated blog page with configurable navigation order
 - Markdown writing page at `/write` with frontmatter reference
@@ -63,15 +64,16 @@ When you fork this project, update these files with your site information:
 
 | File                                | What to update                                              |
 | ----------------------------------- | ----------------------------------------------------------- |
-| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery       |
-| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME` (API responses, sitemap)            |
+| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
+| `src/pages/Home.tsx`                | Intro paragraph text (hardcoded JSX)                        |
+| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME`, description strings (3 locations)  |
 | `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)    |
 | `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)       |
 | `index.html`                        | Title, meta description, OG tags, JSON-LD                   |
-| `public/llms.txt`                   | Site URL and description                                    |
-| `public/robots.txt`                 | Sitemap URL                                                 |
-| `public/.well-known/ai-plugin.json` | Site name and description                                   |
-| `public/openapi.yaml`               | API title and site name                                     |
+| `public/llms.txt`                   | Site name, URL, description, topics                         |
+| `public/robots.txt`                 | Sitemap URL and header comment                              |
+| `public/openapi.yaml`               | API title, server URL, site name in examples                |
+| `public/.well-known/ai-plugin.json` | Site name, descriptions                                     |
 
 See the [Setup Guide](/setup-guide) for detailed configuration examples.
 
@@ -165,6 +167,17 @@ Add images in markdown content:
 
 Place image files in `public/images/`. The alt text displays as a caption.
 
+### Image deployment
+
+Images are served as static files from your git repository, not synced to Convex. After adding images:
+
+1. Add image files to `public/images/`
+2. Reference in frontmatter (`image: "/images/my-image.png"`) or markdown (`![Alt](/images/my-image.png)`)
+3. Commit and push to git
+4. Netlify rebuilds and serves the images
+
+The `npm run sync` command only syncs markdown text content. Images require a full deploy via git push.
+
 ### Site Logo
 
 Edit `src/pages/Home.tsx` to set your site logo:
@@ -238,13 +251,13 @@ blogPage: {
 displayOnHomepage: true, // Show posts on homepage
 ```
 
-| Option | Description |
-| ------ | ----------- |
-| `enabled` | Enable the `/blog` route |
-| `showInNav` | Show Blog link in navigation |
-| `title` | Text for nav link and page heading |
-| `order` | Position in navigation (lower = first) |
-| `displayOnHomepage` | Show post list on homepage |
+| Option              | Description                            |
+| ------------------- | -------------------------------------- |
+| `enabled`           | Enable the `/blog` route               |
+| `showInNav`         | Show Blog link in navigation           |
+| `title`             | Text for nav link and page heading     |
+| `order`             | Position in navigation (lower = first) |
+| `displayOnHomepage` | Show post list on homepage             |
 
 **Display options:**
 
@@ -295,6 +308,37 @@ Each logo object supports:
 Delete sample files from `public/images/logos/` and replace the images array with your own logos, or set `enabled: false` to hide the gallery entirely.
 
 The gallery uses CSS animations for smooth infinite scrolling. Logos appear grayscale and colorize on hover.
+
+## GitHub Contributions Graph
+
+Display your GitHub contribution activity on the homepage. Configure in `src/config/siteConfig.ts`:
+
+```typescript
+gitHubContributions: {
+  enabled: true,           // Set to false to hide
+  username: "yourusername", // Your GitHub username
+  showYearNavigation: true, // Show arrows to navigate between years
+  linkToProfile: true,      // Click graph to open GitHub profile
+  title: "GitHub Activity", // Optional title above the graph
+},
+```
+
+| Option               | Description                                   |
+| -------------------- | --------------------------------------------- |
+| `enabled`            | `true` to show, `false` to hide               |
+| `username`           | Your GitHub username                          |
+| `showYearNavigation` | Show prev/next year navigation buttons        |
+| `linkToProfile`      | Click graph to visit GitHub profile           |
+| `title`              | Text above graph (set to `undefined` to hide) |
+
+The graph displays with theme-aware colors that match each site theme:
+
+- **Dark**: GitHub green on dark background
+- **Light**: Standard GitHub green
+- **Tan**: Warm brown tones
+- **Cloud**: Gray-blue tones
+
+Uses the public `github-contributions-api.jogruber.de` API (no GitHub token required).
 
 ### Favicon
 

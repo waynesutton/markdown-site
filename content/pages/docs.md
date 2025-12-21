@@ -5,7 +5,7 @@ published: true
 order: 0
 ---
 
-Reference documentation for setting up, customizing, and deploying this markdown site.
+Reference documentation for setting up, customizing, and deploying this markdown framework.
 
 **How publishing works:** Write posts in markdown, run `npm run sync` for development or `npm run sync:prod` for production, and they appear on your live site immediately. No rebuild or redeploy needed. Convex handles real-time data sync, so connected browsers update automatically.
 
@@ -140,11 +140,12 @@ npm run sync:prod
 | Pages in `content/pages/`        | `npm run sync`             | Instant (no rebuild) |
 | Featured items (via frontmatter) | `npm run sync`             | Instant (no rebuild) |
 | Import external URL              | `npm run import` then sync | Instant (no rebuild) |
+| Images in `public/images/`       | Git commit + push          | Requires rebuild     |
 | `siteConfig` in `Home.tsx`       | Redeploy                   | Requires rebuild     |
 | Logo gallery config              | Redeploy                   | Requires rebuild     |
 | React components/styles          | Redeploy                   | Requires rebuild     |
 
-**Markdown content** syncs instantly. **Source code** requires pushing to GitHub for Netlify to rebuild.
+**Markdown content** syncs instantly to Convex. **Images and source code** require pushing to GitHub for Netlify to rebuild.
 
 ## Configuration
 
@@ -154,14 +155,15 @@ When you fork this project, update these files with your site information:
 
 | File | What to update |
 |------|----------------|
-| `src/config/siteConfig.ts` | Site name, title, intro, bio, blog page, logo gallery |
-| `convex/http.ts` | `SITE_URL`, `SITE_NAME` (API responses, sitemap) |
+| `src/config/siteConfig.ts` | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
+| `src/pages/Home.tsx` | Intro paragraph text (hardcoded JSX) |
+| `convex/http.ts` | `SITE_URL`, `SITE_NAME`, description strings (3 locations) |
 | `convex/rss.ts` | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds) |
 | `src/pages/Post.tsx` | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags) |
 | `index.html` | Title, meta description, OG tags, JSON-LD |
-| `public/llms.txt` | Site name, URL, description |
-| `public/robots.txt` | Sitemap URL |
-| `public/openapi.yaml` | Server URL, site name in examples |
+| `public/llms.txt` | Site name, URL, description, topics |
+| `public/robots.txt` | Sitemap URL and header comment |
+| `public/openapi.yaml` | API title, server URL, site name in examples |
 | `public/.well-known/ai-plugin.json` | Site name, descriptions |
 
 ### Site title and description metadata
@@ -172,13 +174,16 @@ These files contain the main site description text. Update them with your own ta
 |------|----------------|
 | `index.html` | meta description, og:description, twitter:description, JSON-LD |
 | `README.md` | Main description at top of file |
-| `src/pages/Home.tsx` | intro and bio text in siteConfig |
-| `convex/http.ts` | description field in API responses (2 locations) |
-| `convex/rss.ts` | SITE_DESCRIPTION constant |
-| `public/llms.txt` | Header quote and Description field |
+| `src/config/siteConfig.ts` | name, title, and bio fields |
+| `src/pages/Home.tsx` | Intro paragraph (hardcoded JSX with links) |
+| `convex/http.ts` | SITE_NAME constant and description strings (3 locations) |
+| `convex/rss.ts` | SITE_TITLE and SITE_DESCRIPTION constants |
+| `public/llms.txt` | Header quote, Name, and Description fields |
+| `public/openapi.yaml` | API title and example site name |
 | `AGENTS.md` | Project overview section |
-| `content/blog/about-this-blog.md` | Opening paragraph |
+| `content/blog/about-this-blog.md` | Title, description, excerpt, and opening paragraph |
 | `content/pages/about.md` | excerpt field and opening paragraph |
+| `content/pages/docs.md` | Opening description paragraph |
 
 **Backend constants** (`convex/http.ts` and `convex/rss.ts`):
 
@@ -228,13 +233,15 @@ export default {
   featuredViewMode: "list", // 'list' or 'cards'
   showViewToggle: true,
 
-  // Logo gallery (with clickable links)
+  // Logo gallery (static grid or scrolling marquee)
   logoGallery: {
     enabled: true, // false to hide
     images: [{ src: "/images/logos/logo.svg", href: "https://example.com" }],
     position: "above-footer",
     speed: 30,
-    title: "Trusted by",
+    title: "Built with",
+    scrolling: false, // false = static grid, true = scrolling marquee
+    maxItems: 4, // Number of logos when scrolling is false
   },
 
   links: {
@@ -283,12 +290,36 @@ const siteConfig = {
 };
 ```
 
-### Logo gallery
+### GitHub contributions graph
 
-The homepage includes a scrolling logo marquee with sample logos. Each logo can link to a URL.
+Display your GitHub contribution activity on the homepage. Configure in `siteConfig`:
 
 ```typescript
-// In src/pages/Home.tsx
+gitHubContributions: {
+  enabled: true,           // Set to false to hide
+  username: "yourusername", // Your GitHub username
+  showYearNavigation: true, // Show arrows to navigate between years
+  linkToProfile: true,      // Click graph to open GitHub profile
+  title: "GitHub Activity", // Optional title above the graph
+},
+```
+
+| Option | Description |
+| ------ | ----------- |
+| `enabled` | `true` to show, `false` to hide |
+| `username` | Your GitHub username |
+| `showYearNavigation` | Show prev/next year navigation |
+| `linkToProfile` | Click graph to visit GitHub profile |
+| `title` | Text above graph (`undefined` to hide) |
+
+Theme-aware colors match each site theme. Uses public API (no GitHub token required).
+
+### Logo gallery
+
+The homepage includes a logo gallery that can scroll infinitely or display as a static grid. Each logo can link to a URL.
+
+```typescript
+// In src/config/siteConfig.ts
 logoGallery: {
   enabled: true, // false to hide
   images: [
@@ -297,17 +328,26 @@ logoGallery: {
   ],
   position: "above-footer", // or 'below-featured'
   speed: 30, // Seconds for one scroll cycle
-  title: "Trusted by", // undefined to hide
+  title: "Built with", // undefined to hide
+  scrolling: false, // false = static grid, true = scrolling marquee
+  maxItems: 4, // Number of logos when scrolling is false
 },
 ```
 
-| Option     | Description                                   |
-| ---------- | --------------------------------------------- |
-| `enabled`  | `true` to show, `false` to hide               |
-| `images`   | Array of `{ src, href }` objects              |
-| `position` | `'above-footer'` or `'below-featured'`        |
-| `speed`    | Seconds for one scroll cycle (lower = faster) |
-| `title`    | Text above gallery (`undefined` to hide)      |
+| Option      | Description                                        |
+| ----------- | -------------------------------------------------- |
+| `enabled`   | `true` to show, `false` to hide                    |
+| `images`    | Array of `{ src, href }` objects                   |
+| `position`  | `'above-footer'` or `'below-featured'`             |
+| `speed`     | Seconds for one scroll cycle (lower = faster)      |
+| `title`     | Text above gallery (`undefined` to hide)           |
+| `scrolling` | `true` for infinite scroll, `false` for static grid |
+| `maxItems`  | Max logos to show when `scrolling` is `false` (default: 4) |
+
+**Display modes:**
+
+- `scrolling: true`: Infinite horizontal scroll with all logos
+- `scrolling: false`: Static centered grid showing first `maxItems` logos
 
 **To add logos:**
 
@@ -418,6 +458,14 @@ Mobile sizes defined in `@media (max-width: 768px)` block.
 | Site logo        | `public/images/logo.svg`       | 512x512  |
 | Default OG image | `public/images/og-default.svg` | 1200x630 |
 | Post images      | `public/images/`               | Any      |
+
+**Images require git deploy.** Images are served as static files from your repository, not synced to Convex. After adding images to `public/images/`:
+
+1. Commit the image files to git
+2. Push to GitHub
+3. Wait for Netlify to rebuild
+
+The `npm run sync` command only syncs markdown text content. Images are deployed when Netlify builds your site.
 
 ## Search
 

@@ -1,6 +1,6 @@
 ---
-title: "Setup Guide - Fork and Deploy Your Own Markdown Site"
-description: "Step-by-step guide to fork this markdown sync site, set up Convex backend, and deploy to Netlify in under 10 minutes."
+title: "Setup Guide - Fork and Deploy Your Own Markdown Framework"
+description: "Step-by-step guide to fork this markdown sync framework, set up Convex backend, and deploy to Netlify in under 10 minutes."
 date: "2025-01-14"
 slug: "setup-guide"
 published: true
@@ -9,18 +9,18 @@ readTime: "8 min read"
 featured: true
 featuredOrder: 3
 image: "/images/setupguide.png"
-excerpt: "Complete guide to fork, set up, and deploy your own markdown blog in under 10 minutes."
+excerpt: "Complete guide to fork, set up, and deploy your own markdown framework in under 10 minutes."
 ---
 
-# Fork and Deploy Your Own Markdown Blog
+# Fork and Deploy Your Own Markdown Framework
 
-This guide walks you through forking [this markdown site](https://github.com/waynesutton/markdown-site), setting up your Convex backend, and deploying to Netlify. The entire process takes about 10 minutes.
+This guide walks you through forking [this markdown framework](https://github.com/waynesutton/markdown-site), setting up your Convex backend, and deploying to Netlify. The entire process takes about 10 minutes.
 
 **How publishing works:** Once deployed, you write posts in markdown, run `npm run sync` for development or `npm run sync:prod` for production, and they appear on your live site immediately. No rebuild or redeploy needed. Convex handles real-time data sync, so all connected browsers update automatically.
 
 ## Table of Contents
 
-- [Fork and Deploy Your Own Markdown Blog](#fork-and-deploy-your-own-markdown-blog)
+- [Fork and Deploy Your Own Markdown Framework](#fork-and-deploy-your-own-markdown-framework)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Step 1: Fork the Repository](#step-1-fork-the-repository)
@@ -42,18 +42,22 @@ This guide walks you through forking [this markdown site](https://github.com/way
     - [Sync After Adding Posts](#sync-after-adding-posts)
     - [Environment Files](#environment-files)
     - [When to Sync vs Deploy](#when-to-sync-vs-deploy)
-  - [Customizing Your Blog](#customizing-your-blog)
+  - [Customizing Your Framework](#customizing-your-framework)
     - [Files to Update When Forking](#files-to-update-when-forking)
+    - [Site title and description metadata](#site-title-and-description-metadata)
     - [Update Backend Configuration](#update-backend-configuration)
     - [Change the Favicon](#change-the-favicon)
     - [Change the Site Logo](#change-the-site-logo)
     - [Change the Default Open Graph Image](#change-the-default-open-graph-image)
     - [Update Site Configuration](#update-site-configuration)
     - [Featured Section](#featured-section)
+    - [GitHub Contributions Graph](#github-contributions-graph)
     - [Logo Gallery](#logo-gallery)
+    - [Blog page](#blog-page)
     - [Scroll-to-top button](#scroll-to-top-button)
     - [Change the Default Theme](#change-the-default-theme)
     - [Change the Font](#change-the-font)
+    - [Change Font Sizes](#change-font-sizes)
     - [Add Static Pages (Optional)](#add-static-pages-optional)
     - [Update SEO Meta Tags](#update-seo-meta-tags)
     - [Update llms.txt and robots.txt](#update-llmstxt-and-robotstxt)
@@ -70,6 +74,7 @@ This guide walks you through forking [this markdown site](https://github.com/way
     - [RSS/Sitemap not working](#rsssitemap-not-working)
     - [Build failures on Netlify](#build-failures-on-netlify)
   - [Project Structure](#project-structure)
+  - [Write Page](#write-page)
   - [Next Steps](#next-steps)
 
 ## Prerequisites
@@ -341,6 +346,14 @@ This image appears when sharing on social media. Recommended: 1200x630 pixels.
 ![Photo](https://images.unsplash.com/photo-xxx?w=800)
 ```
 
+**Images require git deploy.** Images are served as static files from your repository, not synced to Convex. After adding images to `public/images/`:
+
+1. Commit the image files to git
+2. Push to GitHub
+3. Wait for Netlify to rebuild
+
+The `npm run sync` command only syncs markdown text content. Images are deployed when Netlify builds your site.
+
 ### Sync After Adding Posts
 
 After adding or editing posts, sync to Convex.
@@ -384,31 +397,33 @@ Both files are gitignored. Each developer creates their own local environment fi
 | Pages in `content/pages/`        | `npm run sync`             | Instant (no rebuild) |
 | Featured items (via frontmatter) | `npm run sync`             | Instant (no rebuild) |
 | Import external URL              | `npm run import` then sync | Instant (no rebuild) |
+| Images in `public/images/`       | Git commit + push          | Requires rebuild     |
 | `siteConfig` in `Home.tsx`       | Redeploy                   | Requires rebuild     |
 | Logo gallery config              | Redeploy                   | Requires rebuild     |
 | React components/styles          | Redeploy                   | Requires rebuild     |
 
-**Markdown content** syncs instantly via Convex. **Source code changes** require pushing to GitHub for Netlify to rebuild.
+**Markdown content** syncs instantly via Convex. **Images and source code** require pushing to GitHub for Netlify to rebuild.
 
 **Featured items** can now be controlled via markdown frontmatter. Add `featured: true` and `featuredOrder: 1` to any post or page, then run `npm run sync`.
 
-## Customizing Your Blog
+## Customizing Your Framework
 
 ### Files to Update When Forking
 
 When you fork this project, update these files with your site information:
 
-| File                                | What to update                                              |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery       |
-| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME` (API responses, sitemap)            |
-| `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)    |
-| `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)       |
-| `index.html`                        | Title, meta description, OG tags, JSON-LD                   |
-| `public/llms.txt`                   | Site name, URL, description                                 |
-| `public/robots.txt`                 | Sitemap URL                                                 |
-| `public/openapi.yaml`               | Server URL, site name in examples                           |
-| `public/.well-known/ai-plugin.json` | Site name, descriptions                                     |
+| File                                | What to update                                                              |
+| ----------------------------------- | --------------------------------------------------------------------------- |
+| `src/config/siteConfig.ts`          | Site name, title, intro, bio, blog page, logo gallery, GitHub contributions |
+| `src/pages/Home.tsx`                | Intro paragraph text (hardcoded JSX)                                        |
+| `convex/http.ts`                    | `SITE_URL`, `SITE_NAME`, description strings (3 locations)                  |
+| `convex/rss.ts`                     | `SITE_URL`, `SITE_TITLE`, `SITE_DESCRIPTION` (RSS feeds)                    |
+| `src/pages/Post.tsx`                | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE` (OG tags)                       |
+| `index.html`                        | Title, meta description, OG tags, JSON-LD                                   |
+| `public/llms.txt`                   | Site name, URL, description, topics                                         |
+| `public/robots.txt`                 | Sitemap URL and header comment                                              |
+| `public/openapi.yaml`               | API title, server URL, site name in examples                                |
+| `public/.well-known/ai-plugin.json` | Site name, descriptions                                                     |
 
 ### Site title and description metadata
 
@@ -418,13 +433,16 @@ These files contain the main site description text. Update them with your own ta
 | --------------------------------- | -------------------------------------------------------------- |
 | `index.html`                      | meta description, og:description, twitter:description, JSON-LD |
 | `README.md`                       | Main description at top of file                                |
-| `src/pages/Home.tsx`              | intro and bio text in siteConfig                               |
-| `convex/http.ts`                  | description field in API responses (2 locations)               |
-| `convex/rss.ts`                   | SITE_DESCRIPTION constant                                      |
-| `public/llms.txt`                 | Header quote and Description field                             |
+| `src/config/siteConfig.ts`        | name, title, and bio fields                                    |
+| `src/pages/Home.tsx`              | Intro paragraph (hardcoded JSX with links)                     |
+| `convex/http.ts`                  | SITE_NAME constant and description strings (3 locations)       |
+| `convex/rss.ts`                   | SITE_TITLE and SITE_DESCRIPTION constants                      |
+| `public/llms.txt`                 | Header quote, Name, and Description fields                     |
+| `public/openapi.yaml`             | API title and example site name                                |
 | `AGENTS.md`                       | Project overview section                                       |
-| `content/blog/about-this-blog.md` | Opening paragraph                                              |
+| `content/blog/about-this-blog.md` | Title, description, excerpt, and opening paragraph             |
 | `content/pages/about.md`          | excerpt field and opening paragraph                            |
+| `content/pages/docs.md`           | Opening description paragraph                                  |
 
 ### Update Backend Configuration
 
@@ -504,10 +522,10 @@ export default {
 
   // Blog page configuration
   blogPage: {
-    enabled: true,         // Enable /blog route
-    showInNav: true,       // Show in navigation
-    title: "Blog",         // Nav link and page title
-    order: 0,              // Nav order (lower = first)
+    enabled: true, // Enable /blog route
+    showInNav: true, // Show in navigation
+    title: "Blog", // Nav link and page title
+    order: 0, // Nav order (lower = first)
   },
   displayOnHomepage: true, // Show posts on homepage
 
@@ -515,7 +533,7 @@ export default {
   featuredViewMode: "list", // 'list' or 'cards'
   showViewToggle: true, // Let users switch between views
 
-  // Logo gallery (marquee scroll with clickable links)
+  // Logo gallery (static grid or scrolling marquee with clickable links)
   logoGallery: {
     enabled: true, // Set false to hide
     images: [
@@ -524,7 +542,9 @@ export default {
     ],
     position: "above-footer", // or 'below-featured'
     speed: 30, // Seconds for one scroll cycle
-    title: "Trusted by",
+    title: "Built with",
+    scrolling: false, // false = static grid, true = scrolling marquee
+    maxItems: 4, // Number of logos when scrolling is false
   },
 
   links: {
@@ -573,9 +593,33 @@ Use `featuredOrder` to control display order. Lower numbers appear first. Posts 
 
 Users can toggle between list and card views using the icon button next to "Get started:". To change the default view, set `featuredViewMode: "cards"` in siteConfig.
 
+### GitHub Contributions Graph
+
+Display your GitHub contribution activity on the homepage. Configure in `siteConfig`:
+
+```typescript
+gitHubContributions: {
+  enabled: true,           // Set to false to hide
+  username: "yourusername", // Your GitHub username
+  showYearNavigation: true, // Show arrows to navigate between years
+  linkToProfile: true,      // Click graph to open GitHub profile
+  title: "GitHub Activity", // Optional title above the graph
+},
+```
+
+| Option               | Description                                   |
+| -------------------- | --------------------------------------------- |
+| `enabled`            | `true` to show, `false` to hide               |
+| `username`           | Your GitHub username                          |
+| `showYearNavigation` | Show prev/next year buttons                   |
+| `linkToProfile`      | Click graph to visit GitHub profile           |
+| `title`              | Text above graph (set to `undefined` to hide) |
+
+The graph displays with theme-aware colors that match each site theme (dark, light, tan, cloud). Uses the public `github-contributions-api.jogruber.de` API (no GitHub token required).
+
 ### Logo Gallery
 
-The homepage includes a scrolling logo gallery with 5 sample logos. Customize or disable it in siteConfig:
+The homepage includes a logo gallery that can scroll infinitely or display as a static grid. Customize or disable it in siteConfig:
 
 **Disable the gallery:**
 
@@ -600,7 +644,9 @@ logoGallery: {
   ],
   position: "above-footer",
   speed: 30,
-  title: "Trusted by",
+  title: "Built with",
+  scrolling: false, // false = static grid, true = scrolling marquee
+  maxItems: 4, // Number of logos to show when scrolling is false
 },
 ```
 
@@ -615,15 +661,22 @@ Delete the sample files from `public/images/logos/` and clear the images array, 
 
 **Configuration options:**
 
-| Option     | Description                                          |
-| ---------- | ---------------------------------------------------- |
-| `enabled`  | `true` to show, `false` to hide                      |
-| `images`   | Array of logo objects with `src` and optional `href` |
-| `position` | `'above-footer'` or `'below-featured'`               |
-| `speed`    | Seconds for one scroll cycle (lower = faster)        |
-| `title`    | Text above gallery (set to `undefined` to hide)      |
+| Option      | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| `enabled`   | `true` to show, `false` to hide                            |
+| `images`    | Array of logo objects with `src` and optional `href`       |
+| `position`  | `'above-footer'` or `'below-featured'`                     |
+| `speed`     | Seconds for one scroll cycle (lower = faster)              |
+| `title`     | Text above gallery (set to `undefined` to hide)            |
+| `scrolling` | `true` for infinite scroll, `false` for static grid        |
+| `maxItems`  | Max logos to show when `scrolling` is `false` (default: 4) |
 
-The gallery uses CSS animations for smooth infinite scrolling. Logos display in grayscale and colorize on hover.
+**Display modes:**
+
+- **Scrolling marquee** (`scrolling: true`): Infinite horizontal scroll animation. All logos display in a continuous loop.
+- **Static grid** (`scrolling: false`): Centered grid showing the first `maxItems` logos without animation.
+
+Logos display in grayscale and colorize on hover.
 
 ### Blog page
 
@@ -639,13 +692,13 @@ blogPage: {
 displayOnHomepage: true, // Show posts on homepage
 ```
 
-| Option | Description |
-| ------ | ----------- |
-| `enabled` | Enable the `/blog` route |
-| `showInNav` | Show Blog link in navigation |
-| `title` | Text for nav link and page heading |
-| `order` | Position in navigation (lower = first) |
-| `displayOnHomepage` | Show post list on homepage |
+| Option              | Description                            |
+| ------------------- | -------------------------------------- |
+| `enabled`           | Enable the `/blog` route               |
+| `showInNav`         | Show Blog link in navigation           |
+| `title`             | Text for nav link and page heading     |
+| `order`             | Position in navigation (lower = first) |
+| `displayOnHomepage` | Show post list on homepage             |
 
 **Display options:**
 
@@ -937,7 +990,7 @@ See [netlify-deploy-fix.md](https://github.com/waynesutton/markdown-site/blob/ma
 ```
 markdown-site/
 ├── content/
-│   ├── blog/           # Markdown blog posts
+│   ├── blog/           # Markdown posts
 │   └── pages/          # Static pages (About, Docs, etc.)
 ├── convex/             # Convex backend functions
 │   ├── http.ts         # HTTP endpoints

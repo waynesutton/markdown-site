@@ -1,6 +1,6 @@
 ---
 title: "How to Publish a Blog Post"
-description: "A quick guide to writing and publishing markdown blog posts using Cursor after your blog is set up."
+description: "A quick guide to writing and publishing markdown posts using Cursor after your framework is set up."
 date: "2025-01-17"
 slug: "how-to-publish"
 published: true

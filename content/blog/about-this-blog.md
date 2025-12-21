@@ -1,19 +1,19 @@
 ---
-title: "About This Markdown Site"
-description: "How this open source site works with Convex for real-time sync and Netlify for deployment."
+title: "About This Markdown Framework"
+description: "How this open source framework works with Convex for real-time sync and Netlify for deployment."
 date: "2025-01-16"
 slug: "about-this-blog"
 published: true
-tags: ["convex", "netlify", "open-source", "markdown"]
+tags: ["convex", "netlify", "open-source", "markdown", "ai", "llm"]
 readTime: "4 min read"
 featured: false
 featuredOrder: 3
-excerpt: "Learn how this open source site works with real-time sync and instant updates."
+excerpt: "Learn how this open source framework works with real-time sync and instant updates."
 ---
 
-# About This Markdown Site
+# About This Markdown Framework
 
-An open-source markdown sync site for developers and AI agents. Publish from the terminal with `npm run sync`. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
+An open-source publishing framework for AI agents and developers. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
 
 ## How It Works
 

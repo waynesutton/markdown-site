@@ -29,9 +29,9 @@ A brief description of each file in the codebase.
 
 ### Config (`src/config/`)
 
-| File            | Description                                                                      |
-| --------------- | -------------------------------------------------------------------------------- |
-| `siteConfig.ts` | Centralized site configuration (name, logo, blog page, posts display, nav order) |
+| File            | Description                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| `siteConfig.ts` | Centralized site configuration (name, logo, blog page, posts display, GitHub contributions, nav order) |
 
 ### Pages (`src/pages/`)
 
@@ -45,18 +45,19 @@ A brief description of each file in the codebase.
 
 ### Components (`src/components/`)
 
-| File                   | Description                                                |
-| ---------------------- | ---------------------------------------------------------- |
-| `Layout.tsx`           | Page wrapper with search button, theme toggle, mobile menu, and scroll-to-top |
-| `ThemeToggle.tsx`      | Theme switcher (dark/light/tan/cloud)                      |
-| `PostList.tsx`         | Year-grouped blog post list                                |
-| `BlogPost.tsx`         | Markdown renderer with syntax highlighting                 |
-| `CopyPageDropdown.tsx` | Share dropdown for LLMs (ChatGPT, Claude, Perplexity) with View as Markdown and Generate Skill options |
-| `SearchModal.tsx`      | Full text search modal with keyboard navigation            |
-| `FeaturedCards.tsx`    | Card grid for featured posts/pages with excerpts           |
-| `LogoMarquee.tsx`      | Scrolling logo gallery with clickable links                |
-| `MobileMenu.tsx`       | Slide-out drawer menu for mobile navigation with hamburger button |
-| `ScrollToTop.tsx`      | Configurable scroll-to-top button with Phosphor ArrowUp icon |
+| File                      | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| `Layout.tsx`              | Page wrapper with search button, theme toggle, mobile menu, and scroll-to-top |
+| `ThemeToggle.tsx`         | Theme switcher (dark/light/tan/cloud)                      |
+| `PostList.tsx`            | Year-grouped blog post list                                |
+| `BlogPost.tsx`            | Markdown renderer with syntax highlighting                 |
+| `CopyPageDropdown.tsx`    | Share dropdown for LLMs (ChatGPT, Claude, Perplexity) with View as Markdown and Generate Skill options |
+| `SearchModal.tsx`         | Full text search modal with keyboard navigation            |
+| `FeaturedCards.tsx`       | Card grid for featured posts/pages with excerpts           |
+| `LogoMarquee.tsx`         | Scrolling logo gallery with clickable links                |
+| `MobileMenu.tsx`          | Slide-out drawer menu for mobile navigation with hamburger button |
+| `ScrollToTop.tsx`         | Configurable scroll-to-top button with Phosphor ArrowUp icon |
+| `GitHubContributions.tsx` | GitHub activity graph with theme-aware colors and year navigation |
 
 ### Context (`src/context/`)
 

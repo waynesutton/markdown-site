@@ -1,4 +1,4 @@
-# robots.txt for markdown sync site
+# robots.txt for markdown sync framework
 # https://www.robotstxt.org/
 
 User-agent: *

@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 
 // Site configuration
 const SITE_URL = "https://markdowncms.netlify.app";
-const SITE_NAME = "markdown sync site";
+const SITE_NAME = "markdown sync framework";
 const DEFAULT_OG_IMAGE = "/images/og-default.svg";
 
 export default function Post() {

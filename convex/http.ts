@@ -7,7 +7,7 @@ const http = httpRouter();
 
 // Site configuration
 const SITE_URL = process.env.SITE_URL || "https://markdowncms.netlify.app";
-const SITE_NAME = "markdown sync site";
+const SITE_NAME = "markdown sync framework";
 
 // RSS feed endpoint (descriptions only)
 http.route({
@@ -72,7 +72,7 @@ http.route({
     const response = {
       site: SITE_NAME,
       url: SITE_URL,
-      description: "An open-source markdown sync site for developers and AI agents. Publish from the terminal with npm run sync. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.",
+      description: "An open-source publishing framework for AI agents and developers. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.",
       posts: posts.map((post) => ({
         title: post.title,
         slug: post.slug,
@@ -194,7 +194,7 @@ http.route({
     const response = {
       site: SITE_NAME,
       url: SITE_URL,
-      description: "An open-source markdown sync site for developers and AI agents. Publish from the terminal with npm run sync. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.",
+      description: "An open-source publishing framework for AI agents and developers. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.",
       exportedAt: new Date().toISOString(),
       totalPosts: fullPosts.length,
       posts: fullPosts,
@@ -231,7 +231,7 @@ function generateMetaHtml(content: {
   type?: "post" | "page";
 }): string {
   const siteUrl = process.env.SITE_URL || "https://markdowncms.netlify.app";
-  const siteName = "markdown sync site";
+  const siteName = "markdown sync framework";
   const defaultImage = `${siteUrl}/images/og-default.svg`;
   const canonicalUrl = `${siteUrl}/${content.slug}`;
 

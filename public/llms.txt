@@ -1,13 +1,13 @@
 # llms.txt - Information for AI assistants and LLMs
 # Learn more: https://llmstxt.org/
 
-> An open-source markdown sync site for developers and AI agents. Publish from the terminal with npm run sync.
+> An open-source publishing framework for AI agents and developers. Write markdown, sync from the terminal.
 
 # Site Information
-- Name: markdown sync site
+- Name: markdown sync framework
 - URL: https://markdowncms.netlify.app
-- Description: An open-source markdown sync site for developers and AI agents. Publish from the terminal with npm run sync. Write locally, sync instantly with real-time updates. Powered by Convex and Netlify.
-- Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source
+- Description: An open-source publishing framework for AI agents and developers. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
+- Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source, AI, LLM, AEO, GEO
 
 # API Endpoints
 

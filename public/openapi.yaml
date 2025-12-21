@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: markdown sync site API
+  title: markdown sync framework API
   description: |
     API for accessing blog posts and pages as markdown content.
     All endpoints return JSON by default. Use format=md for raw markdown.
@@ -28,7 +28,7 @@ paths:
                 properties:
                   site:
                     type: string
-                    example: markdown sync site
+                    example: markdown sync framework
                   url:
                     type: string
                     example: https://markdowncms.netlify.app

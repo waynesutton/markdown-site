@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import PostList from "../components/PostList";
 import FeaturedCards from "../components/FeaturedCards";
 import LogoMarquee from "../components/LogoMarquee";
+import GitHubContributions from "../components/GitHubContributions";
 import siteConfig from "../config/siteConfig";
 
 // Local storage key for view mode preference
@@ -93,8 +94,8 @@ export default function Home() {
 
         {/* Intro with JSX support for links */}
         <p className="home-intro">
-          An open-source markdown sync site for developers and AI agents.
-          Publish from the terminal with npm run sync.{" "}
+          An open-source publishing framework for AI agents and developers.
+          Write markdown, sync from the terminal.{" "}
           <a
             href="https://github.com/waynesutton/markdown-site"
             target="_blank"
@@ -188,6 +189,11 @@ export default function Home() {
             <PostList posts={posts} />
           )}
         </section>
+      )}
+
+      {/* GitHub contributions graph - above logo gallery */}
+      {siteConfig.gitHubContributions?.enabled && (
+        <GitHubContributions config={siteConfig.gitHubContributions} />
       )}
 
       {/* Logo gallery (above-footer position) */}

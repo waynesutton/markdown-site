@@ -1,6 +1,6 @@
 ---
 title: "New features: search, featured section, and logo gallery"
-description: "Three updates that make your markdown site more useful: Command+K search, frontmatter-controlled featured items, and a scrolling logo gallery."
+description: "Three updates that make your markdown framework more useful: Command+K search, frontmatter-controlled featured items, and a scrolling logo gallery."
 date: "2025-12-17"
 slug: "new-features-search-featured-logos"
 published: true
