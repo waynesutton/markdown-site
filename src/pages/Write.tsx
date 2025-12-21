@@ -303,10 +303,10 @@ export default function Write() {
           </div>
         </nav>
 
-        {/* Warning about refresh */}
+        {/* Local storage notice */}
         <div className="write-warning">
           <Warning size={14} />
-          <span>Refresh loses content</span>
+          <span>Saved locally in this browser only. Copy to avoid losing.</span>
         </div>
       </aside>
 
