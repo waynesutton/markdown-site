@@ -170,7 +170,10 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
       </MobileMenu>
 
-      <main className="main-content">{children}</main>
+      {/* Use wider layout for stats page, normal layout for other pages */}
+      <main className={location.pathname === "/stats" ? "main-content-wide" : "main-content"}>
+        {children}
+      </main>
 
       {/* Search modal */}
       <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />

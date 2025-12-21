@@ -303,6 +303,15 @@ body {
   padding: 40px 24px;
 }
 
+/* Wide content layout for pages that need more space (stats, etc.) */
+.main-content-wide {
+  flex: 1;
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
 /* Top navigation bar */
 .top-nav {
   position: fixed;
@@ -1263,7 +1272,7 @@ body {
   background: var(--text-muted);
 }
 
-/* Stats page styles */
+/* Stats page styles (legacy - kept for backwards compatibility) */
 .stats-page {
   padding-top: 20px;
 }
@@ -1293,7 +1302,7 @@ body {
   line-height: 1.7;
 }
 
-/* Stats cards grid */
+/* Stats cards grid (legacy) */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1349,7 +1358,7 @@ body {
   margin-top: 4px;
 }
 
-/* Stats sections */
+/* Stats sections (legacy) */
 .stats-section {
   margin-bottom: 40px;
 }
@@ -1362,7 +1371,7 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Stats list */
+/* Stats list (legacy) */
 .stats-list {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -1411,7 +1420,236 @@ body {
   color: var(--text-secondary);
 }
 
-/* Stats responsive styles */
+/* ============================================
+   MODERN STATS PAGE STYLES (WIDE LAYOUT)
+   Horizontal card design with numbered sections
+   ============================================ */
+
+/* Wide stats page container - full width layout */
+.stats-page-wide {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.stats-nav-wide {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.stats-header-wide {
+  margin-bottom: 48px;
+}
+
+.stats-title-wide {
+  font-size: var(--font-size-stats-title);
+  font-weight: 400;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.stats-subtitle-wide {
+  font-size: var(--font-size-stats-subtitle);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 600px;
+}
+
+/* Modern horizontal cards container - 5 equal columns on large screens */
+.stats-cards-modern {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin-bottom: 64px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+/* Ensure 5-column layout on large screens (explicit rule) */
+@media (min-width: 1101px) {
+  .stats-cards-modern {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Individual modern stat card */
+.stat-card-modern {
+  padding: 24px 20px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+.stat-card-modern:last-child {
+  border-right: none;
+}
+
+.stat-card-modern:hover {
+  background: var(--bg-hover);
+}
+
+/* Highlighted card state (like the green one in screenshot) */
+.stat-card-modern.stat-card-highlighted {
+  background: var(--bg-primary);
+}
+
+.stat-card-modern.stat-card-highlighted:hover {
+  background: var(--bg-hover);
+}
+
+/* Card header with icon and number */
+.stat-card-modern-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.stat-card-modern-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+}
+
+.stat-card-modern-icon.highlighted {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.stat-card-modern-number {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Card content */
+.stat-card-modern-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-modern-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
+}
+
+/* Highlighted title gets accent color */
+.stat-card-highlighted .stat-card-modern-title {
+  color: #10b981;
+}
+
+.stat-card-modern-value {
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.stat-card-modern-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.stat-card-modern-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+/* Wide stats sections */
+.stats-section-wide {
+  margin-bottom: 48px;
+}
+
+.stats-section-title-wide {
+  font-size: var(--font-size-stats-section-title);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  letter-spacing: -0.01em;
+}
+
+/* Wide stats list */
+.stats-list-wide {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.stats-list-item-wide {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  transition: background-color 0.15s ease;
+}
+
+.stats-list-item-wide:hover {
+  background-color: var(--bg-hover);
+}
+
+.stats-list-item-wide:not(:last-child) {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stats-list-info-wide {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stats-list-path-wide,
+.stats-list-title-wide {
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.stats-list-type-wide {
+  font-size: 11px;
+  color: var(--text-muted);
+  background-color: var(--bg-hover);
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+.stats-list-count-wide {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Stats responsive styles (legacy) */
 @media (max-width: 900px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1452,6 +1690,109 @@ body {
 @media (max-width: 480px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Modern stats responsive styles */
+@media (max-width: 1100px) {
+  .stats-page-wide {
+    padding: 32px 24px;
+  }
+
+  .stats-cards-modern {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .stat-card-modern {
+    min-height: 160px;
+  }
+
+  .stat-card-modern:nth-child(3) {
+    border-right: none;
+  }
+
+  .stat-card-modern:nth-child(4),
+  .stat-card-modern:nth-child(5) {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .stat-card-modern:nth-child(4) {
+    border-right: 1px solid var(--border-color);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-page-wide {
+    padding: 24px 16px;
+  }
+
+  .stats-cards-modern {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-card-modern {
+    padding: 20px 16px;
+    min-height: 150px;
+  }
+
+  .stat-card-modern:nth-child(2n) {
+    border-right: none;
+  }
+
+  .stat-card-modern:nth-child(3),
+  .stat-card-modern:nth-child(4),
+  .stat-card-modern:nth-child(5) {
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+  }
+
+  .stat-card-modern:nth-child(4) {
+    border-right: none;
+  }
+
+  .stat-card-modern-value {
+    font-size: 24px;
+  }
+
+  .stats-title-wide {
+    font-size: var(--font-size-4xl);
+  }
+
+  .stats-list-item-wide {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .stats-list-info-wide {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-cards-modern {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card-modern {
+    border-right: none !important;
+    min-height: auto;
+    padding: 18px 16px;
+  }
+
+  .stat-card-modern:not(:first-child) {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .stat-card-modern-header {
+    margin-bottom: 14px;
+  }
+
+  .stat-card-modern-value {
+    font-size: 22px;
   }
 }
 
