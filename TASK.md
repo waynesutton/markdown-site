@@ -4,10 +4,17 @@
 
 ## Current Status
 
-v1.20.2 deployed. Write conflict prevention for heartbeat mutations.
+v1.20.3 deployed. SEO/AEO/GEO improvements for AI crawlers and search engines.
 
 ## Completed
 
+- [x] Raw markdown files now accessible to AI crawlers (ChatGPT, Perplexity)
+- [x] Added /raw/ path bypass in botMeta edge function
+- [x] Sitemap now includes static pages (about, docs, contact, etc.)
+- [x] Security headers added to netlify.toml
+- [x] Link header pointing to llms.txt for AI discovery
+- [x] Preconnect hints for Convex backend
+- [x] Fixed URL consistency in openapi.yaml and robots.txt
 - [x] Write conflict prevention: increased dedup windows, added heartbeat jitter
 - [x] Visitor map styling: removed box-shadow, increased land dot contrast and opacity
 - [x] Real-time visitor map on stats page showing live visitor locations

@@ -49,6 +49,24 @@
   path = "/*"
   function = "botMeta"
 
+# Security and SEO headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Link = "</llms.txt>; rel=\"author\""
+
+# Raw markdown files with proper content-type
+[[headers]]
+  for = "/raw/*.md"
+  [headers.values]
+    Content-Type = "text/markdown; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+    X-Robots-Tag = "noindex"
+
 [context.production.environment]
   NODE_ENV = "production"
 

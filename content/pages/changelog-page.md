@@ -7,6 +7,21 @@ order: 5
 
 All notable changes to this project.
 
+## v1.20.3
+
+Released December 21, 2025
+
+**SEO, AEO, and GEO improvements**
+
+- Raw markdown files now accessible to AI crawlers (ChatGPT, Perplexity)
+- Added `/raw/` path bypass in botMeta edge function so AI services receive markdown, not HTML
+- Sitemap now includes static pages (about, docs, contact, etc.)
+- Security headers: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy
+- Link header pointing to llms.txt for AI discovery
+- Raw markdown files served with proper Content-Type and CORS headers
+- Preconnect hints for Convex backend (faster API calls)
+- Fixed URL consistency: openapi.yaml and robots.txt now use www.markdown.fast
+
 ## v1.20.2
 
 Released December 21, 2025

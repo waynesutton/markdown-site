@@ -5,7 +5,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://markdown.fast/sitemap.xml
+Sitemap: https://www.markdown.fast/sitemap.xml
 
 # AI and LLM crawlers
 User-agent: GPTBot

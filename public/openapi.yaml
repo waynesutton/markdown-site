@@ -9,7 +9,7 @@ info:
     url: https://github.com/waynesutton/markdown-site
 
 servers:
-  - url: https://markdown.fast
+  - url: https://www.markdown.fast
     description: Production server
 
 paths:

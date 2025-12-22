@@ -42,12 +42,13 @@ export default async function handler(
   // Only intercept post pages for bots
   const pathParts = url.pathname.split("/").filter(Boolean);
 
-  // Skip if it's the home page, static assets, or API routes
+  // Skip if it's the home page, static assets, API routes, or raw markdown files
   if (
     pathParts.length === 0 ||
     pathParts[0].includes(".") ||
     pathParts[0] === "api" ||
-    pathParts[0] === "_next"
+    pathParts[0] === "_next" ||
+    pathParts[0] === "raw"
   ) {
     return context.next();
   }

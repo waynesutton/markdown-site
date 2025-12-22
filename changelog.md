@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.20.3] - 2025-12-21
+
+### Fixed
+
+- Raw markdown files now accessible to AI crawlers (ChatGPT, Perplexity)
+  - Added `/raw/` path bypass in botMeta edge function
+  - AI services were receiving HTML instead of markdown content
+
+### Added
+
+- SEO and AEO improvements
+  - Sitemap now includes static pages (about, docs, contact, etc.)
+  - Security headers: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy
+  - Link header pointing to llms.txt for AI discovery
+  - Raw markdown files served with proper Content-Type and CORS headers
+  - Preconnect hints for Convex backend (faster API calls)
+
+### Changed
+
+- Fixed URL consistency: openapi.yaml and robots.txt now use www.markdown.fast
+
 ## [1.20.2] - 2025-12-21
 
 ### Fixed
