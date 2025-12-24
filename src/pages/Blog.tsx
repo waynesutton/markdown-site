@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import PostList from "../components/PostList";
@@ -43,23 +43,12 @@ export default function Blog() {
 
   return (
     <div className="blog-page">
-      {/* Navigation with back button and optional logo */}
+      {/* Navigation with back button */}
       <nav className="post-nav">
         <button onClick={() => navigate("/")} className="back-button">
           <ArrowLeft size={16} />
           <span>Back</span>
         </button>
-        {/* Inner page logo (desktop: left, mobile: right) */}
-        {siteConfig.innerPageLogo.enabled && siteConfig.logo && (
-          <Link to="/" className="inner-page-logo-link">
-            <img
-              src={siteConfig.logo}
-              alt={siteConfig.name}
-              className="inner-page-logo"
-              style={{ height: siteConfig.innerPageLogo.size }}
-            />
-          </Link>
-        )}
       </nav>
 
       {/* Blog page header */}

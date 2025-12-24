@@ -134,8 +134,20 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="layout">
-      {/* Top navigation bar with page links, search, and theme toggle */}
+      {/* Top navigation bar with logo, page links, search, and theme toggle */}
       <div className="top-nav">
+        {/* Logo on the left (visible on all pages) */}
+        {siteConfig.innerPageLogo.enabled && siteConfig.logo && (
+          <Link to="/" className="top-nav-logo-link">
+            <img
+              src={siteConfig.logo}
+              alt={siteConfig.name}
+              className="top-nav-logo"
+              style={{ height: siteConfig.innerPageLogo.size }}
+            />
+          </Link>
+        )}
+
         {/* Mobile left controls: hamburger, search, theme (visible on mobile/tablet only) */}
         <div className="mobile-nav-controls">
           {/* Hamburger button for mobile menu */}

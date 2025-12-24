@@ -181,10 +181,12 @@
   --bg-primary: #111111;
   --bg-secondary: #1a1a1a;
   --bg-hover: #252525;
+  --bg-sidebar: #0d0d0d;
   --text-primary: #fafafa;
   --text-secondary: #a1a1a1;
   --text-muted: #6b6b6b;
   --border-color: #2a2a2a;
+  --border-sidebar: #2a2a2a;
   --accent: #fafafa;
   --accent-hover: #e5e5e5;
   --link-color: #fafafa;
@@ -200,10 +202,12 @@
   --bg-primary: #ffffff;
   --bg-secondary: #fafafa;
   --bg-hover: #f5f5f5;
+  --bg-sidebar: #f8f8f8;
   --text-primary: #111111;
   --text-secondary: #6b6b6b;
   --text-muted: #a1a1a1;
   --border-color: #e5e5e5;
+  --border-sidebar: #e5e5e5;
   --accent: #111111;
   --accent-hover: #333333;
   --link-color: #111111;
@@ -219,10 +223,12 @@
   --bg-primary: #faf8f5;
   --bg-secondary: #f5f3f0;
   --bg-hover: #ebe9e6;
+  --bg-sidebar: #f5f2ed;
   --text-primary: #1a1a1a;
   --text-secondary: #6b6b6b;
   --text-muted: #999999;
   --border-color: #e6e4e1;
+  --border-sidebar: #e0ddd8;
   --accent: #8b7355;
   --accent-hover: #735f47;
   --link-color: #8b7355;
@@ -239,10 +245,12 @@
   --bg-primary: #f5f5f5;
   --bg-secondary: #ebebeb;
   --bg-hover: #e0e0e0;
+  --bg-sidebar: #eeeeee;
   --text-primary: #171717;
   --text-secondary: #525252;
   --text-muted: #737373;
   --border-color: #d4d4d4;
+  --border-sidebar: #d4d4d4;
   --accent: #171717;
   --accent-hover: #404040;
   --link-color: #171717;
@@ -318,7 +326,8 @@ body {
 /* Top navigation bar */
 .top-nav {
   position: fixed;
-  top: 10px;
+  top: 0px;
+  left: 13px;
   right: 13px;
   z-index: 100;
   display: flex;
@@ -330,11 +339,30 @@ body {
   border-radius: 8px;
 }
 
+/* Logo in top navigation */
+.top-nav-logo-link {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.top-nav-logo-link:hover {
+  opacity: 0.7;
+}
+
+.top-nav-logo {
+  width: auto;
+  display: block;
+  height: 28px;
+}
+
 /* Mobile nav controls (search, theme, hamburger) - shown on left on mobile */
 .mobile-nav-controls {
   display: none;
   align-items: center;
   gap: 4px;
+  margin-left: auto;
 }
 
 /* Desktop controls (search, theme) - shown on right on desktop */
@@ -349,6 +377,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  margin-left: auto;
 }
 
 .page-nav-link {
@@ -604,6 +633,8 @@ body {
   max-width: 1400px;
   margin-left: calc(-1 * (min(100vw - 48px, 1400px) - 680px) / 2);
   position: relative;
+  /* Add left padding to align content with sidebar edge */
+  padding-left: 24px;
 }
 
 .post-nav {
@@ -613,53 +644,13 @@ body {
   margin-bottom: 40px;
 }
 
-/* Inner page logo styles (blog page, posts, pages) */
-/* Desktop: logo first on the left, back button after */
-.inner-page-logo-link {
-  display: flex;
-  align-items: center;
-  order: 0;
-}
-
-.inner-page-logo {
-  width: auto;
-  display: block;
-  transition: opacity 0.2s ease;
-}
-
-.inner-page-logo-link:hover .inner-page-logo {
-  opacity: 0.7;
-}
-
-/* Nav layout adjustments for logo */
+/* Nav layout adjustments */
 .post-nav .back-button {
-  order: 1;
-  margin-left: 16px;
+  margin-left: 0;
 }
 
 .post-nav .copy-page-dropdown {
-  order: 2;
   margin-left: auto;
-}
-
-/* Mobile: logo on left, back button position unchanged */
-@media (max-width: 768px) {
-  .inner-page-logo-link {
-    order: 0;
-  }
-
-  .inner-page-logo {
-    height: 24px !important; /* Smaller on mobile to keep header compact */
-  }
-
-  .post-nav .back-button {
-    margin-left: 12px;
-  }
-
-  .post-nav .copy-page-dropdown {
-    order: 2;
-    margin-left: auto;
-  }
 }
 
 /* Shift CopyPageDropdown 7px to the left for sidebar layouts */
@@ -818,7 +809,7 @@ body {
   border: none;
   font-size: var(--font-size-back-button);
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 8px 0px;
   margin-left: -12px;
   border-radius: 6px;
   transition:
@@ -839,36 +830,49 @@ body {
   margin-bottom: 48px;
 }
 
-/* Sidebar layout for pages - two-column grid */
+/* Sidebar layout for pages - two-column grid with docs-style sidebar */
 .post-content-with-sidebar {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 48px;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
   align-items: flex-start;
   width: 100%;
 }
 
+/* Sidebar wrapper - docs-style with alt background and right border */
 .post-sidebar-wrapper {
   position: sticky;
-  top: 100px;
+  top: 80px;
   align-self: flex-start;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 100px);
   overflow-y: auto;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-sidebar);
+  margin-left: -24px;
+  padding-left: 24px;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  margin-top: -24px;
+  /* Extend background to fill height */
+  min-height: calc(100vh - 80px);
 }
 
-/* Left sidebar - flush left */
+/* Left sidebar - flush left with internal padding */
 .post-sidebar-left {
-  padding-right: 16px;
+  padding-right: 24px;
 }
 
-/* Content area - flexible width */
+/* Content area - flexible width with left padding for gap from sidebar */
 .post-article-with-sidebar {
   min-width: 0; /* Prevent overflow */
   max-width: 800px;
+  padding-left: 48px;
+  padding-top: 0;
 }
 
+/* Page sidebar TOC navigation */
 .page-sidebar {
-  padding-right: 16px;
+  padding-right: 8px;
 }
 
 .page-sidebar-list {
@@ -994,17 +998,28 @@ body {
     display: none;
   }
 
+  /* Reset sidebar styles for mobile (when shown in hamburger) */
   .post-sidebar-left {
     position: static;
     width: 100%;
     max-height: none;
     padding-right: 0;
-    border-bottom: 1px solid var(--border-color);
+    padding-left: 0;
+    padding-top: 0;
     padding-bottom: 16px;
+    margin-left: 0;
+    margin-top: 0;
+    min-height: auto;
+    background-color: transparent;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
   }
 
+  /* Reset content area padding on mobile */
   .post-article-with-sidebar {
     max-width: 100%;
+    padding-left: 0;
+    padding-top: 0;
   }
 
   .page-sidebar {
@@ -1082,7 +1097,7 @@ body {
 .post-author-image {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: 10%;
   object-fit: cover;
   border: 1px solid var(--border-color);
 }
@@ -1667,9 +1682,14 @@ body {
 
   .top-nav {
     top: 6px;
-    right: 16px;
-    gap: 12px;
+    left: 6px;
+    right: 6px;
+    gap: 8px;
     padding: 6px 10px;
+  }
+
+  .top-nav-logo {
+    height: 24px;
   }
 
   .page-nav {

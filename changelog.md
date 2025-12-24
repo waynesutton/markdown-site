@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.25.1] - 2025-12-24
+
+### Changed
+
+- Logo moved to top navigation header on all pages
+  - Logo now appears in the header bar (top-left) on blog posts, pages, and blog page
+  - Logo is separate from back button and navigation links
+  - Reads from `siteConfig.innerPageLogo` and `siteConfig.logo` configuration
+  - Works consistently across all pages (with and without sidebar)
+  - Mobile responsive: logo positioned on left in header
+
+### Technical
+
+- `src/components/Layout.tsx`: Added logo to top navigation header, reads from siteConfig
+- `src/pages/Post.tsx`: Removed logo from post navigation (was next to back button)
+- `src/pages/Blog.tsx`: Removed logo from blog navigation
+- `src/styles/global.css`: Added `.top-nav-logo-link` and `.top-nav-logo` styles, updated `.top-nav` layout to span left-to-right, removed old `.inner-page-logo` styles
+
+## [1.25.0] - 2025-12-24
+
+### Changed
+
+- Sidebar styling updated to match Cursor docs style
+  - Sidebar now has alternate background color (`--sidebar-alt-bg`) for visual separation
+  - Vertical border line on right side of sidebar
+  - Theme-aware colors for all four themes (dark, light, tan, cloud)
+  - Sidebar width increased to 240px for better readability
+  - Mobile responsive: sidebar hidden on screens below 1024px
+
+### Technical
+
+- `src/styles/global.css`: Added `--sidebar-alt-bg` CSS variables for each theme, updated `.post-sidebar-wrapper` with alternate background and right border, adjusted grid layout for wider sidebar
+
 ## [1.24.9] - 2025-12-24
 
 ### Added

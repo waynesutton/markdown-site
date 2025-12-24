@@ -40,8 +40,8 @@ A brief description of each file in the codebase.
 | File        | Description                                                       |
 | ----------- | ----------------------------------------------------------------- |
 | `Home.tsx`  | Landing page with featured content and optional post list         |
-| `Blog.tsx`  | Dedicated blog page with post list or card grid view (configurable via siteConfig.blogPage, supports view toggle) |
-| `Post.tsx`  | Individual blog post or page view with optional sidebar layout (update SITE_URL/SITE_NAME when forking) |
+| `Blog.tsx`  | Dedicated blog page with post list or card grid view (configurable via siteConfig.blogPage, supports view toggle). Includes back button in navigation |
+| `Post.tsx`  | Individual blog post or page view with optional sidebar layout. Includes back button and CopyPageDropdown in post navigation (update SITE_URL/SITE_NAME when forking) |
 | `Stats.tsx` | Real-time analytics dashboard with visitor stats and GitHub stars |
 | `Write.tsx` | Three-column markdown writing page with Cursor docs-style UI, frontmatter reference with copy buttons, theme toggle, font switcher (serif/sans-serif), and localStorage persistence (not linked in nav) |
 
@@ -49,7 +49,7 @@ A brief description of each file in the codebase.
 
 | File                      | Description                                                |
 | ------------------------- | ---------------------------------------------------------- |
-| `Layout.tsx`              | Page wrapper with search button, theme toggle, mobile menu (left-aligned on mobile), and scroll-to-top. Combines Blog link, hardcoded nav items, and markdown pages for navigation |
+| `Layout.tsx`              | Page wrapper with logo in header (top-left), search button, theme toggle, mobile menu (left-aligned on mobile), and scroll-to-top. Combines Blog link, hardcoded nav items, and markdown pages for navigation. Logo reads from siteConfig.innerPageLogo |
 | `ThemeToggle.tsx`         | Theme switcher (dark/light/tan/cloud)                      |
 | `PostList.tsx`            | Year-grouped blog post list or card grid (supports list/cards view modes) |
 | `BlogPost.tsx`            | Markdown renderer with syntax highlighting and collapsible sections (details/summary) |
@@ -86,7 +86,7 @@ A brief description of each file in the codebase.
 
 | File         | Description                                                                          |
 | ------------ | ------------------------------------------------------------------------------------ |
-| `global.css` | Global CSS with theme variables, centralized font-size CSS variables for all themes |
+| `global.css` | Global CSS with theme variables, centralized font-size CSS variables for all themes, sidebar styling with alternate background colors and right border for docs-style layout |
 
 ## Convex Backend (`convex/`)
 

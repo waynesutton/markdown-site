@@ -6,7 +6,6 @@ import CopyPageDropdown from "../components/CopyPageDropdown";
 import PageSidebar from "../components/PageSidebar";
 import { extractHeadings } from "../utils/extractHeadings";
 import { useSidebar } from "../context/SidebarContext";
-import siteConfig from "../config/siteConfig";
 import { format, parseISO } from "date-fns";
 import { ArrowLeft, Link as LinkIcon, Twitter, Rss } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -186,17 +185,6 @@ export default function Post() {
             <ArrowLeft size={16} />
             <span>Back</span>
           </button>
-          {/* Inner page logo (desktop: left, mobile: right) */}
-          {siteConfig.innerPageLogo.enabled && siteConfig.logo && (
-            <Link to="/" className="inner-page-logo-link">
-              <img
-                src={siteConfig.logo}
-                alt={siteConfig.name}
-                className="inner-page-logo"
-                style={{ height: siteConfig.innerPageLogo.size }}
-              />
-            </Link>
-          )}
           {/* CopyPageDropdown in nav */}
           <CopyPageDropdown
             title={page.title}
@@ -289,17 +277,6 @@ export default function Post() {
           <ArrowLeft size={16} />
           <span>Back</span>
         </button>
-        {/* Inner page logo (desktop: left, mobile: right) */}
-        {siteConfig.innerPageLogo.enabled && siteConfig.logo && (
-          <Link to="/" className="inner-page-logo-link">
-            <img
-              src={siteConfig.logo}
-              alt={siteConfig.name}
-              className="inner-page-logo"
-              style={{ height: siteConfig.innerPageLogo.size }}
-            />
-          </Link>
-        )}
         {/* Copy page dropdown for sharing with full metadata */}
         <CopyPageDropdown
           title={post.title}
