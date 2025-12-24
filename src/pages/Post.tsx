@@ -7,7 +7,7 @@ import PageSidebar from "../components/PageSidebar";
 import { extractHeadings } from "../utils/extractHeadings";
 import { useSidebar } from "../context/SidebarContext";
 import { format, parseISO } from "date-fns";
-import { ArrowLeft, Link as LinkIcon, Twitter, Rss } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Twitter, Rss, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Site configuration
@@ -23,6 +23,15 @@ export default function Post() {
   // Check for page first, then post
   const page = useQuery(api.pages.getPageBySlug, slug ? { slug } : "skip");
   const post = useQuery(api.posts.getPostBySlug, slug ? { slug } : "skip");
+  
+  // Fetch related posts based on current post's tags (only for blog posts, not pages)
+  const relatedPosts = useQuery(
+    api.posts.getRelatedPosts,
+    post && !page
+      ? { currentSlug: post.slug, tags: post.tags, limit: 3 }
+      : "skip",
+  );
+  
   const [copied, setCopied] = useState(false);
 
   // Scroll to hash anchor after content loads
@@ -367,11 +376,35 @@ export default function Post() {
 
           {post.tags && post.tags.length > 0 && (
             <div className="post-tags">
+              <Tag size={14} className="post-tags-icon" aria-hidden="true" />
               {post.tags.map((tag) => (
-                <span key={tag} className="post-tag">
+                <Link
+                  key={tag}
+                  to={`/tags/${encodeURIComponent(tag.toLowerCase())}`}
+                  className="post-tag post-tag-link"
+                >
                   {tag}
-                </span>
+                </Link>
               ))}
+            </div>
+          )}
+
+          {/* Related posts section - only shown for blog posts with shared tags */}
+          {relatedPosts && relatedPosts.length > 0 && (
+            <div className="related-posts">
+              <h3 className="related-posts-title">Related Posts</h3>
+              <ul className="related-posts-list">
+                {relatedPosts.map((relatedPost) => (
+                  <li key={relatedPost.slug} className="related-post-item">
+                    <Link to={`/${relatedPost.slug}`} className="related-post-link">
+                      <span className="related-post-title">{relatedPost.title}</span>
+                      {relatedPost.readTime && (
+                        <span className="related-post-meta">{relatedPost.readTime}</span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </footer>

@@ -4,6 +4,87 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.26.0] - 2025-12-24
+
+### Added
+
+- Tag pages at `/tags/[tag]` route
+  - Dynamic tag archive pages showing all posts with a specific tag
+  - View mode toggle (list/cards) with localStorage persistence
+  - Mobile responsive layout matching existing blog page design
+  - Sitemap updated to include all tag pages dynamically
+- Related posts component for blog post footers
+  - Shows up to 3 related posts based on shared tags
+  - Sorted by relevance (number of shared tags) then by date
+  - Only displays on blog posts (not static pages)
+- Improved tag links in post footers
+  - Tags now link to `/tags/[tag]` archive pages
+  - Visual styling consistent with existing theme
+- Open in AI service links re-enabled in CopyPageDropdown
+  - Uses GitHub raw URLs instead of Netlify paths (bypasses edge function issues)
+  - ChatGPT, Claude, and Perplexity links with universal prompt
+  - "Requires git push" hint for users (npm sync alone doesn't update GitHub)
+  - Visual divider separating AI options from other menu items
+
+### Changed
+
+- `src/config/siteConfig.ts`: Added `gitHubRepo` configuration for constructing raw GitHub URLs
+- `convex/schema.ts`: Added `by_tags` index to posts table for efficient tag queries
+- `convex/posts.ts`: Added `getAllTags`, `getPostsByTag`, and `getRelatedPosts` queries
+- `convex/http.ts`: Sitemap now includes dynamically generated tag pages
+- Updated `content/pages/docs.md` and `content/blog/setup-guide.md` with git push requirement for AI links
+
+### Technical
+
+- New component: `src/pages/TagPage.tsx`
+- New route: `/tags/:tag` in `src/App.tsx`
+- CSS styles for tag pages, related posts, and post tag links in `src/styles/global.css`
+- Mobile responsive breakpoints for all new components
+
+## [1.25.4] - 2025-12-24
+
+### Fixed
+
+- Sidebar border width now consistent across all pages
+  - Fixed border appearing thicker on changelog page when sidebar scrolls
+  - Changed from `border-right` to `box-shadow: inset` for consistent 1px width regardless of scrollbar presence
+  - Border now renders correctly on both docs and changelog pages
+
+### Changed
+
+- Sidebar scrollbar hidden while maintaining scroll functionality
+  - Scrollbar no longer visible but scrolling still works
+  - Applied cross-browser scrollbar hiding (Chrome/Safari/Edge, Firefox, IE)
+  - Cleaner sidebar appearance matching Cursor docs style
+
+- Sidebar styling improvements
+  - Added top border using CSS variable (`var(--border-sidebar)`) for theme consistency
+  - Added border-radius for rounded corners
+  - Updated CSS comments to document border implementation approach
+
+### Technical
+
+- `src/styles/global.css`: Changed `.post-sidebar-wrapper` border from `border-right` to `box-shadow: inset -1px 0 0`
+- `src/styles/global.css`: Added scrollbar hiding with `-ms-overflow-style: none`, `scrollbar-width: none`, and `::-webkit-scrollbar`
+- `src/styles/global.css`: Added `border-top: 1px solid var(--border-sidebar)` and `border-radius: 8px` to sidebar wrapper
+- `src/styles/global.css`: Updated CSS comments to explain border implementation choices
+
+## [1.25.3] - 2025-12-24
+
+### Fixed
+
+- Mobile menu now appears correctly at all breakpoints where sidebar is hidden
+  - Changed mobile hamburger menu breakpoint from `max-width: 768px` to `max-width: 1024px`
+  - Changed desktop hide breakpoint from `min-width: 769px` to `min-width: 1025px`
+  - Mobile menu now shows whenever sidebar is hidden (matches sidebar breakpoint)
+  - Fixed gap where users had no navigation between 769px and 1024px viewport widths
+
+### Technical
+
+- `src/styles/global.css`: Updated mobile nav controls media query to `max-width: 1024px`
+- `src/styles/global.css`: Updated desktop hide media query to `min-width: 1025px`
+- `src/styles/global.css`: Updated tablet drawer width breakpoint to `max-width: 1024px`
+
 ## [1.25.2] - 2025-12-24
 
 ### Changed

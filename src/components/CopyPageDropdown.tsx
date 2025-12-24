@@ -1,8 +1,33 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Copy, Check, AlertCircle, FileText, Download } from "lucide-react";
+import {
+  Copy,
+  Check,
+  AlertCircle,
+  FileText,
+  Download,
+  ExternalLink,
+} from "lucide-react";
+import siteConfig from "../config/siteConfig";
 
 // Maximum URL length for query parameters (conservative limit)
 const MAX_URL_LENGTH = 6000;
+
+// Universal AI prompt for reading raw markdown
+const AI_READ_PROMPT = `Read the raw markdown document at the URL below. If the content loads successfully:
+- Provide a concise accurate summary
+- Be ready to answer follow up questions using only this document
+
+If the content cannot be loaded:
+- Say so explicitly
+- Do not guess or infer content
+
+URL:`;
+
+// Construct GitHub raw URL for a slug
+function getGitHubRawUrl(slug: string): string {
+  const { owner, repo, branch, contentPath } = siteConfig.gitHubRepo;
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${contentPath}/${slug}.md`;
+}
 
 // Extended props interface with optional metadata
 interface CopyPageDropdownProps {
@@ -394,13 +419,103 @@ export default function CopyPageDropdown(props: CopyPageDropdownProps) {
             </div>
           </button>
 
-          {/* AI service options temporarily disabled
-           * ChatGPT, Claude, and Perplexity links were removed because
-           * Netlify edge functions block AI crawler fetch requests to /raw/*.md
-           * despite multiple configuration attempts. See blog post:
-           * /netlify-edge-excludedpath-ai-crawlers for details.
-           * Users can still copy markdown and paste into AI tools.
-           */}
+          {/* Divider */}
+          <div className="copy-page-divider" role="separator" />
+
+          {/* AI service links using GitHub raw URLs */}
+          {/* Note: Requires git push to work - npm sync alone is not sufficient */}
+          <button
+            className="copy-page-item"
+            onClick={() => {
+              const rawUrl = getGitHubRawUrl(props.slug);
+              const prompt = encodeURIComponent(`${AI_READ_PROMPT} ${rawUrl}`);
+              window.open(
+                `https://chatgpt.com/?q=${prompt}`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+              setIsOpen(false);
+            }}
+            role="menuitem"
+            tabIndex={0}
+          >
+            <ExternalLink
+              size={16}
+              className="copy-page-icon"
+              aria-hidden="true"
+            />
+            <div className="copy-page-item-content">
+              <span className="copy-page-item-title">
+                Open in ChatGPT
+                <span className="external-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </span>
+              <span className="copy-page-item-desc">Requires git push</span>
+            </div>
+          </button>
+
+          <button
+            className="copy-page-item"
+            onClick={() => {
+              const rawUrl = getGitHubRawUrl(props.slug);
+              const prompt = encodeURIComponent(`${AI_READ_PROMPT} ${rawUrl}`);
+              window.open(
+                `https://claude.ai/new?q=${prompt}`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+              setIsOpen(false);
+            }}
+            role="menuitem"
+            tabIndex={0}
+          >
+            <ExternalLink
+              size={16}
+              className="copy-page-icon"
+              aria-hidden="true"
+            />
+            <div className="copy-page-item-content">
+              <span className="copy-page-item-title">
+                Open in Claude
+                <span className="external-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </span>
+              <span className="copy-page-item-desc">Requires git push</span>
+            </div>
+          </button>
+
+          <button
+            className="copy-page-item"
+            onClick={() => {
+              const rawUrl = getGitHubRawUrl(props.slug);
+              const prompt = encodeURIComponent(`${AI_READ_PROMPT} ${rawUrl}`);
+              window.open(
+                `https://www.perplexity.ai/?q=${prompt}`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+              setIsOpen(false);
+            }}
+            role="menuitem"
+            tabIndex={0}
+          >
+            <ExternalLink
+              size={16}
+              className="copy-page-icon"
+              aria-hidden="true"
+            />
+            <div className="copy-page-item-content">
+              <span className="copy-page-item-title">
+                Open in Perplexity
+                <span className="external-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </span>
+              <span className="copy-page-item-desc">Requires git push</span>
+            </div>
+          </button>
         </div>
       )}
     </div>

@@ -2,13 +2,32 @@
 
 ## To Do
 
-- [ ] fix Netlify edge functions blocking AI crawlers from static files
+- [ ] Newsletter signup
+- [ ] Comments system
+- [ ] Draft preview mode
 
 ## Current Status
 
-v1.24.4 deployed. Added `showInNav` field for pages and hardcoded navigation items configuration for React routes.
+v1.26.0 ready. Added tag pages, related posts, and re-enabled AI service links using GitHub raw URLs.
 
 ## Completed
+
+- [x] Tag pages at `/tags/[tag]` route with view mode toggle
+- [x] Related posts component for blog post footers (up to 3 related posts by shared tags)
+- [x] Tag links in post footers now navigate to tag archive pages
+- [x] Open in AI links (ChatGPT, Claude, Perplexity) re-enabled using GitHub raw URLs
+- [x] `gitHubRepo` configuration in siteConfig.ts for AI service URL construction
+- [x] `by_tags` index added to posts table in convex/schema.ts
+- [x] New Convex queries: `getAllTags`, `getPostsByTag`, `getRelatedPosts`
+- [x] Sitemap updated to include dynamically generated tag pages
+- [x] Documentation updated with git push requirement for AI links
+- [x] Mobile responsive styling for tag pages and related posts
+- [x] Fixed sidebar border width consistency using box-shadow instead of border-right
+- [x] Hidden sidebar scrollbar while maintaining scroll functionality
+- [x] Added top border and border-radius to sidebar wrapper using CSS variables
+- [x] Updated CSS documentation for sidebar border implementation
+- [x] Fixed mobile menu breakpoint to match sidebar hide breakpoint (1024px)
+- [x] Mobile hamburger menu now shows whenever sidebar is hidden
 - [x] add MIT Licensed. Do whatevs.
 - [x] Blog page view mode toggle (list and card views)
 - [x] Post cards component with thumbnails, titles, excerpts, and metadata
@@ -182,9 +201,6 @@ v1.24.4 deployed. Added `showInNav` field for pages and hardcoded navigation ite
 
 ## Someday Features TBD
 
-- [ ] Related posts suggestions
 - [ ] Newsletter signup
 - [ ] Comments system
 - [ ] Draft preview mode
-
-

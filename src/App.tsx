@@ -4,6 +4,7 @@ import Post from "./pages/Post";
 import Stats from "./pages/Stats";
 import Blog from "./pages/Blog";
 import Write from "./pages/Write";
+import TagPage from "./pages/TagPage";
 import Layout from "./components/Layout";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { SidebarProvider } from "./context/SidebarContext";
@@ -29,6 +30,8 @@ function App() {
           {siteConfig.blogPage.enabled && (
             <Route path="/blog" element={<Blog />} />
           )}
+          {/* Tag page route - displays posts filtered by tag */}
+          <Route path="/tags/:tag" element={<TagPage />} />
           {/* Catch-all for post/page slugs - must be last */}
           <Route path="/:slug" element={<Post />} />
         </Routes>

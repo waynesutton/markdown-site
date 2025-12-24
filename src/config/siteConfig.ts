@@ -56,6 +56,15 @@ export interface HardcodedNavItem {
   showInNav?: boolean; // Show in navigation menu (default: true)
 }
 
+// GitHub repository configuration
+// Used for "Open in AI" links that use GitHub raw URLs
+export interface GitHubRepoConfig {
+  owner: string; // GitHub username or organization
+  repo: string; // Repository name
+  branch: string; // Default branch (e.g., "main")
+  contentPath: string; // Path to raw markdown files (e.g., "public/raw")
+}
+
 // Site configuration interface
 export interface SiteConfig {
   // Basic site info
@@ -96,6 +105,9 @@ export interface SiteConfig {
     convex: string;
     netlify: string;
   };
+
+  // GitHub repository configuration for AI service links
+  gitHubRepo: GitHubRepoConfig;
 }
 
 // Default site configuration
@@ -219,6 +231,17 @@ export const siteConfig: SiteConfig = {
     docs: "/setup-guide",
     convex: "https://convex.dev",
     netlify: "https://netlify.com",
+  },
+
+  // GitHub repository configuration
+  // Used for "Open in AI" links (ChatGPT, Claude, Perplexity)
+  // These links use GitHub raw URLs since AI services can reliably fetch from GitHub
+  // Note: Content must be pushed to GitHub for AI links to work
+  gitHubRepo: {
+    owner: "waynesutton", // GitHub username or organization
+    repo: "markdown-site", // Repository name
+    branch: "main", // Default branch
+    contentPath: "public/raw", // Path to raw markdown files
   },
 };
 

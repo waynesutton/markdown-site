@@ -23,13 +23,14 @@ http.route({
   handler: rssFullFeed,
 });
 
-// Sitemap.xml endpoint for search engines (includes posts and pages)
+// Sitemap.xml endpoint for search engines (includes posts, pages, and tag pages)
 http.route({
   path: "/sitemap.xml",
   method: "GET",
   handler: httpAction(async (ctx) => {
     const posts = await ctx.runQuery(api.posts.getAllPosts);
     const pages = await ctx.runQuery(api.pages.getAllPages);
+    const tags = await ctx.runQuery(api.posts.getAllTags);
 
     const urls = [
       // Homepage
@@ -53,6 +54,14 @@ http.route({
     <loc>${SITE_URL}/${page.slug}</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>`,
+      ),
+      // All tag pages
+      ...tags.map(
+        (tagInfo) => `  <url>
+    <loc>${SITE_URL}/tags/${encodeURIComponent(tagInfo.tag.toLowerCase())}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>`,
       ),
     ];

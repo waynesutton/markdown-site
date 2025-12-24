@@ -1060,18 +1060,24 @@ On mobile and tablet screens (under 768px), a hamburger menu provides navigation
 
 Each post and page includes a share dropdown with options for AI tools:
 
-| Option             | Description                                       |
-| ------------------ | ------------------------------------------------- |
-| Copy page          | Copies formatted markdown to clipboard            |
-| Open in ChatGPT    | Opens ChatGPT with article content                |
-| Open in Claude     | Opens Claude with article content                 |
-| Open in Perplexity | Opens Perplexity for research with content        |
-| View as Markdown   | Opens raw `.md` file in new tab                   |
-| Generate Skill     | Downloads `{slug}-skill.md` for AI agent training |
+| Option               | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| Copy page            | Copies formatted markdown to clipboard            |
+| Open in ChatGPT      | Opens ChatGPT with raw markdown URL               |
+| Open in Claude       | Opens Claude with raw markdown URL                |
+| Open in Perplexity   | Opens Perplexity with raw markdown URL            |
+| View as Markdown     | Opens raw `.md` file in new tab                   |
+| Download as SKILL.md | Downloads skill file for AI agent training        |
 
-**Generate Skill** formats the content as an AI agent skill file with metadata, when to use, and instructions sections.
+**Git push required for AI links:** The "Open in ChatGPT," "Open in Claude," and "Open in Perplexity" options use GitHub raw URLs to fetch content. For these to work, your content must be pushed to GitHub with `git push`. The `npm run sync` command syncs content to Convex for your live site, but AI services fetch directly from GitHub.
 
-**Long content:** If content exceeds URL limits, it copies to clipboard and opens the AI service in a new tab. Paste to continue.
+| What you want                        | Command needed                 |
+| ------------------------------------ | ------------------------------ |
+| Content visible on your site         | `npm run sync` or `sync:prod`  |
+| AI links (ChatGPT/Claude/Perplexity) | `git push` to GitHub           |
+| Both                                 | `npm run sync` then `git push` |
+
+**Download as SKILL.md** formats the content as an Anthropic Agent Skills file with metadata, triggers, and instructions sections.
 
 ## API Endpoints
 

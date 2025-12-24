@@ -33,7 +33,7 @@ A brief description of each file in the codebase.
 
 | File            | Description                                                                                               |
 | --------------- | --------------------------------------------------------------------------------------------------------- |
-| `siteConfig.ts` | Centralized site configuration (name, logo, blog page, posts display, GitHub contributions, nav order, inner page logo settings, hardcoded navigation items for React routes) |
+| `siteConfig.ts` | Centralized site configuration (name, logo, blog page, posts display, GitHub contributions, nav order, inner page logo settings, hardcoded navigation items for React routes, GitHub repository config for AI service raw URLs) |
 
 ### Pages (`src/pages/`)
 
@@ -41,8 +41,9 @@ A brief description of each file in the codebase.
 | ----------- | ----------------------------------------------------------------- |
 | `Home.tsx`  | Landing page with featured content and optional post list         |
 | `Blog.tsx`  | Dedicated blog page with post list or card grid view (configurable via siteConfig.blogPage, supports view toggle). Includes back button in navigation |
-| `Post.tsx`  | Individual blog post or page view with optional sidebar layout. Includes back button and CopyPageDropdown in post navigation (update SITE_URL/SITE_NAME when forking) |
+| `Post.tsx`  | Individual blog post or page view with optional sidebar layout. Includes back button, CopyPageDropdown, tag links, and related posts section in footer for blog posts (update SITE_URL/SITE_NAME when forking) |
 | `Stats.tsx` | Real-time analytics dashboard with visitor stats and GitHub stars |
+| `TagPage.tsx` | Tag archive page displaying posts filtered by a specific tag. Includes view mode toggle (list/cards) with localStorage persistence |
 | `Write.tsx` | Three-column markdown writing page with Cursor docs-style UI, frontmatter reference with copy buttons, theme toggle, font switcher (serif/sans-serif), and localStorage persistence (not linked in nav) |
 
 ### Components (`src/components/`)
@@ -53,7 +54,7 @@ A brief description of each file in the codebase.
 | `ThemeToggle.tsx`         | Theme switcher (dark/light/tan/cloud)                      |
 | `PostList.tsx`            | Year-grouped blog post list or card grid (supports list/cards view modes) |
 | `BlogPost.tsx`            | Markdown renderer with syntax highlighting and collapsible sections (details/summary) |
-| `CopyPageDropdown.tsx`    | Share dropdown with Copy page (markdown to clipboard), View as Markdown (opens raw .md file), and Download as SKILL.md (Anthropic Agent Skills format). AI service links (ChatGPT, Claude, Perplexity) disabled due to Netlify edge function issues |
+| `CopyPageDropdown.tsx`    | Share dropdown with Copy page (markdown to clipboard), View as Markdown (opens raw .md file), Download as SKILL.md (Anthropic Agent Skills format), and Open in AI links (ChatGPT, Claude, Perplexity) using GitHub raw URLs with universal prompt |
 | `SearchModal.tsx`         | Full text search modal with keyboard navigation            |
 | `FeaturedCards.tsx`       | Card grid for featured posts/pages with excerpts           |
 | `LogoMarquee.tsx`         | Scrolling logo gallery with clickable links                |
@@ -86,14 +87,14 @@ A brief description of each file in the codebase.
 
 | File         | Description                                                                          |
 | ------------ | ------------------------------------------------------------------------------------ |
-| `global.css` | Global CSS with theme variables, centralized font-size CSS variables for all themes, sidebar styling with alternate background colors and right border for docs-style layout |
+| `global.css` | Global CSS with theme variables, centralized font-size CSS variables for all themes, sidebar styling with alternate background colors, hidden scrollbar, and consistent borders using box-shadow for docs-style layout |
 
 ## Convex Backend (`convex/`)
 
 | File               | Description                                                          |
 | ------------------ | -------------------------------------------------------------------- |
-| `schema.ts`        | Database schema (posts, pages, viewCounts, pageViews, activeSessions) |
-| `posts.ts`         | Queries and mutations for blog posts, view counts                    |
+| `schema.ts`        | Database schema (posts, pages, viewCounts, pageViews, activeSessions) with by_tags index for tag queries |
+| `posts.ts`         | Queries and mutations for blog posts, view counts, getAllTags, getPostsByTag, and getRelatedPosts |
 | `pages.ts`         | Queries and mutations for static pages                               |
 | `search.ts`        | Full text search queries across posts and pages                      |
 | `stats.ts`         | Real-time stats with aggregate component for O(log n) counts, page view recording, session heartbeat |
@@ -110,7 +111,7 @@ A brief description of each file in the codebase.
 | `/stats`                   | Real-time site analytics page          |
 | `/rss.xml`                 | RSS feed with descriptions             |
 | `/rss-full.xml`            | RSS feed with full content for LLMs    |
-| `/sitemap.xml`             | Dynamic XML sitemap for search engines |
+| `/sitemap.xml`             | Dynamic XML sitemap for search engines (includes posts, pages, and tag pages) |
 | `/api/posts`               | JSON list of all posts                 |
 | `/api/post`                | Single post as JSON or markdown        |
 | `/api/export`              | Batch export all posts with content    |
