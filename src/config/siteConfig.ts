@@ -537,7 +537,7 @@ Created by [Wayne](https://x.com/waynesutton) with Convex, Cursor, and Claude Op
   // Admin UI for managing subscribers and sending newsletters at /newsletter-admin
   // Hidden from nav by default (no auth - security through obscurity)
   newsletterAdmin: {
-    enabled: true, // Global toggle for admin UI
+    enabled: false, // Global toggle for admin UI
     showInNav: false, // Hide from navigation for security
   },
 
