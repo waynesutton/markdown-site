@@ -39,7 +39,7 @@ A brief description of each file in the codebase.
 
 | File          | Description                                                                                                                                                                                                                                                                                                                                                       |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Home.tsx`    | Landing page with featured content and optional post list. Supports configurable post limit (homePostsLimit) and optional "read more" link (homePostsReadMore) via siteConfig.postsDisplay                                                                                                                                                                        |
+| `Home.tsx`    | Landing page with featured content and optional post list. Fetches home intro content from `content/pages/home.md` (slug: `home-intro`) for synced markdown intro text. Supports configurable post limit (homePostsLimit) and optional "read more" link (homePostsReadMore) via siteConfig.postsDisplay. Falls back to siteConfig.bio if home-intro page not found. Home intro content uses blog heading styles (blog-h1 through blog-h6) with clickable anchor links, matching blog post typography. Includes helper functions (generateSlug, getTextContent, HeadingAnchor) for heading ID generation and anchor links. |
 | `Blog.tsx`    | Dedicated blog page with featured layout: hero post (first blogFeatured), featured row (remaining blogFeatured in 2 columns with excerpts), and regular posts (3 columns without excerpts). Supports list/card view toggle. Includes back button in navigation                                                                                                    |
 | `Post.tsx`    | Individual blog post or page view with optional left sidebar (TOC) and right sidebar (CopyPageDropdown). Includes back button (hidden when used as homepage), tag links, related posts section in footer for blog posts, footer component with markdown support, and social footer. Supports 3-column layout at 1135px+. Can display image at top when showImageAtTop: true. Can be used as custom homepage via siteConfig.homepage (update SITE_URL/SITE_NAME when forking) |
 | `Stats.tsx`   | Real-time analytics dashboard with visitor stats and GitHub stars                                                                                                                                                                                                                                                                                                 |
@@ -168,6 +168,9 @@ Markdown files with frontmatter for blog posts. Each file becomes a blog post.
 
 Markdown files for static pages like About, Projects, Contact, Changelog.
 
+**Special pages:**
+- `home.md` (slug: `home-intro`): Homepage intro/bio content. Set `showInNav: false` to hide from navigation. Content syncs with `npm run sync` and displays on the homepage without redeploy.
+
 | Field           | Description                                                             |
 | --------------- | ----------------------------------------------------------------------- |
 | `title`         | Page title                                                              |
@@ -189,6 +192,7 @@ Markdown files for static pages like About, Projects, Contact, Changelog.
 | `aiChat`        | Enable AI Agent chat in right sidebar (optional). Set `true` to enable (requires `rightSidebar: true` and `siteConfig.aiChat.enabledOnContent: true`). Set `false` to explicitly hide even if global config is enabled. |
 | `newsletter`    | Override newsletter signup display (optional, true/false) |
 | `contactForm`   | Enable contact form on this page (optional). Requires siteConfig.contactForm.enabled: true and AGENTMAIL_API_KEY/AGENTMAIL_INBOX environment variables. |
+| `textAlign`     | Text alignment: "left", "center", "right" (optional, default: "left"). Used by home.md for home intro content alignment |
 
 ## Scripts (`scripts/`)
 

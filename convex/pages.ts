@@ -132,6 +132,7 @@ export const getPageBySlug = query({
       aiChat: v.optional(v.boolean()),
       contactForm: v.optional(v.boolean()),
       newsletter: v.optional(v.boolean()),
+      textAlign: v.optional(v.string()),
     }),
     v.null(),
   ),
@@ -168,6 +169,7 @@ export const getPageBySlug = query({
       aiChat: page.aiChat,
       contactForm: page.contactForm,
       newsletter: page.newsletter,
+      textAlign: page.textAlign,
     };
   },
 });
@@ -198,6 +200,7 @@ export const syncPagesPublic = mutation({
         aiChat: v.optional(v.boolean()),
         contactForm: v.optional(v.boolean()),
         newsletter: v.optional(v.boolean()),
+        textAlign: v.optional(v.string()),
       }),
     ),
   },
@@ -245,6 +248,7 @@ export const syncPagesPublic = mutation({
           aiChat: page.aiChat,
           contactForm: page.contactForm,
           newsletter: page.newsletter,
+          textAlign: page.textAlign,
           lastSyncedAt: now,
         });
         updated++;

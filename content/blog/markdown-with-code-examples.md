@@ -9,6 +9,7 @@ readTime: "5 min read"
 authorName: "Markdown"
 authorImage: "/images/authors/markdown.png"
 featured: false
+layout: "sidebar"
 featuredOrder: 5
 image: "/images/markdown.png"
 ---
@@ -122,6 +123,22 @@ Reference files with inline code: `convex/schema.ts`, `src/pages/Home.tsx`.
 
 ## Tables
 
+### Basic table
+
+Copy this markdown to create a table:
+
+```markdown
+| Command             | Description                    |
+| ------------------- | ------------------------------ |
+| `npm run dev`       | Start development server       |
+| `npm run build`     | Build for production           |
+| `npm run sync`      | Sync markdown to Convex (dev)  |
+| `npm run sync:prod` | Sync markdown to Convex (prod) |
+| `npx convex dev`    | Start Convex dev server        |
+```
+
+Result:
+
 | Command             | Description                    |
 | ------------------- | ------------------------------ |
 | `npm run dev`       | Start development server       |
@@ -132,19 +149,74 @@ Reference files with inline code: `convex/schema.ts`, `src/pages/Home.tsx`.
 
 ## Lists
 
-### Unordered
+### Unordered list
+
+Copy this markdown to create an unordered list:
+
+```markdown
+- Write posts in markdown
+- Store in Convex database
+- Deploy to Netlify
+- Updates sync in real-time
+```
+
+Result:
 
 - Write posts in markdown
 - Store in Convex database
 - Deploy to Netlify
 - Updates sync in real-time
 
-### Ordered
+### Ordered list
+
+Copy this markdown to create an ordered list:
+
+```markdown
+1. Fork the repository
+2. Set up Convex backend
+3. Configure Netlify
+4. Start writing
+```
+
+Result:
 
 1. Fork the repository
 2. Set up Convex backend
 3. Configure Netlify
 4. Start writing
+
+### List without bullets or numbers
+
+Use HTML with inline styles to create a list without visible bullets or numbers:
+
+```html
+<ul style="list-style: none; padding-left: 0;">
+  <li>Write posts in markdown</li>
+  <li>Store in Convex database</li>
+  <li>Deploy to Netlify</li>
+  <li>Updates sync in real-time</li>
+</ul>
+```
+
+Result:
+
+<ul style="list-style: none; padding-left: 0;">
+  <li>Write posts in markdown</li>
+  <li>Store in Convex database</li>
+  <li>Deploy to Netlify</li>
+  <li>Updates sync in real-time</li>
+</ul>
+
+**Alternative:** If you just need simple text items without list semantics, use plain paragraphs with line breaks:
+
+```markdown
+Write posts in markdown  
+Store in Convex database  
+Deploy to Netlify  
+Updates sync in real-time
+```
+
+(Each line ends with two spaces for a line break)
 
 ## Blockquotes
 
@@ -298,6 +370,19 @@ Result:
 2. Second step
    - Another sub-point
 
+## HTML comments
+
+Use HTML comments to add notes that won't appear in the rendered output:
+
+```html
+<!-- This is a comment that won't be displayed -->
+Your visible content here.
+```
+
+Result: Only "Your visible content here." is displayed.
+
+**Note:** HTML comments are automatically stripped from the rendered output. Special comments like `<!-- newsletter -->` and `<!-- contactform -->` are preserved for embedding components.
+
 ## Escaping characters
 
 Use backslash to display literal markdown characters:
@@ -390,15 +475,10 @@ Use HTML `<details>` and `<summary>` tags to create expandable/collapsible conte
 
 ```html
 <details>
-<summary>Click to expand</summary>
+  <summary>Click to expand</summary>
 
-Hidden content goes here. You can include:
-
-- Lists
-- **Bold** and _italic_ text
-- Code blocks
-- Any markdown content
-
+  Hidden content goes here. You can include: - Lists - **Bold** and _italic_
+  text - Code blocks - Any markdown content
 </details>
 ```
 
@@ -420,10 +500,9 @@ Add the `open` attribute to start expanded:
 
 ```html
 <details open>
-<summary>Already expanded</summary>
+  <summary>Already expanded</summary>
 
-This section starts open. Users can click to collapse it.
-
+  This section starts open. Users can click to collapse it.
 </details>
 ```
 
@@ -436,18 +515,14 @@ This section starts open. Users can click to collapse it.
 
 ### Toggle with code
 
-```html
+````html
 <details>
-<summary>View the code example</summary>
+  <summary>View the code example</summary>
 
-```typescript
-export const getPosts = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("posts").collect();
-  },
-});
-```
+  ```typescript export const getPosts = query({ args: {}, handler: async (ctx)
+  => { return await ctx.db.query("posts").collect(); }, });
+</details>
+````
 
 </details>
 ```
@@ -472,17 +547,15 @@ You can nest collapsible sections:
 
 ```html
 <details>
-<summary>Outer section</summary>
+  <summary>Outer section</summary>
 
-Some content here.
+  Some content here.
 
-<details>
-<summary>Inner section</summary>
+  <details>
+    <summary>Inner section</summary>
 
-Nested content inside.
-
-</details>
-
+    Nested content inside.
+  </details>
 </details>
 ```
 

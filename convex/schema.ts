@@ -67,6 +67,7 @@ export default defineSchema({
     aiChat: v.optional(v.boolean()), // Enable AI chat in right sidebar
     contactForm: v.optional(v.boolean()), // Enable contact form on this page
     newsletter: v.optional(v.boolean()), // Override newsletter signup display (true/false)
+    textAlign: v.optional(v.string()), // Text alignment: "left", "center", "right" (default: "left")
     lastSyncedAt: v.number(),
   })
   .index("by_slug", ["slug"])

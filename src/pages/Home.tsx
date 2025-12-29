@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import PostList from "../components/PostList";
 import FeaturedCards from "../components/FeaturedCards";
 import LogoMarquee from "../components/LogoMarquee";
@@ -14,6 +16,76 @@ import siteConfig from "../config/siteConfig";
 // Local storage key for view mode preference
 const VIEW_MODE_KEY = "featured-view-mode";
 
+// Strip HTML comments from content, preserving special placeholders
+// Removes <!-- ... --> but keeps <!-- newsletter --> and <!-- contactform -->
+function stripHtmlComments(content: string): string {
+  // First, temporarily replace special placeholders with markers
+  const markers = {
+    newsletter: "___NEWSLETTER_PLACEHOLDER___",
+    contactform: "___CONTACTFORM_PLACEHOLDER___",
+  };
+  
+  let processed = content;
+  
+  // Replace special placeholders with markers
+  processed = processed.replace(/<!--\s*newsletter\s*-->/gi, markers.newsletter);
+  processed = processed.replace(/<!--\s*contactform\s*-->/gi, markers.contactform);
+  
+  // Remove all remaining HTML comments (including multi-line)
+  processed = processed.replace(/<!--[\s\S]*?-->/g, "");
+  
+  // Restore special placeholders
+  processed = processed.replace(markers.newsletter, "<!-- newsletter -->");
+  processed = processed.replace(markers.contactform, "<!-- contactform -->");
+  
+  return processed;
+}
+
+// Generate slug from text for heading IDs
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
+// Extract text content from React children
+function getTextContent(children: React.ReactNode): string {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) {
+    return children.map(getTextContent).join("");
+  }
+  if (children && typeof children === "object" && "props" in children) {
+    return getTextContent((children as React.ReactElement).props.children);
+  }
+  return "";
+}
+
+// Anchor link component for headings
+function HeadingAnchor({ id }: { id: string }) {
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Copy URL to clipboard, but allow default scroll behavior
+    const url = `${window.location.origin}${window.location.pathname}#${id}`;
+    navigator.clipboard.writeText(url).catch(() => {
+      // Silently fail if clipboard API is not available
+    });
+  };
+
+  return (
+    <a
+      href={`#${id}`}
+      className="heading-anchor"
+      onClick={handleClick}
+      aria-label="Copy link to heading"
+      title="Copy link to heading"
+    >
+      #
+    </a>
+  );
+}
+
 export default function Home() {
   // Fetch published posts from Convex (only if showing on home)
   const posts = useQuery(
@@ -24,6 +96,9 @@ export default function Home() {
   // Fetch featured posts and pages from Convex (for list view)
   const featuredPosts = useQuery(api.posts.getFeaturedPosts);
   const featuredPages = useQuery(api.pages.getFeaturedPages);
+
+  // Fetch home intro content from Convex (synced via markdown)
+  const homeIntro = useQuery(api.pages.getPageBySlug, { slug: "home-intro" });
 
   // State for view mode toggle (list or cards)
   const [viewMode, setViewMode] = useState<"list" | "cards">(
@@ -96,22 +171,115 @@ export default function Home() {
         )}
         <h1 className="home-name">{siteConfig.name}</h1>
 
-        {/* Intro with JSX support for links */}
-        <p className="home-intro">
-          An open-source publishing framework built for AI agents and developers
-          to ship websites, docs, or blogs. <br></br>
-          <br /> Write markdown, sync from the terminal.{" "}
-          <a
-            href="https://github.com/waynesutton/markdown-site"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Home intro from Convex page content (synced via npm run sync) */}
+        {homeIntro ? (
+          <div
+            className="home-intro-content"
+            style={{
+              textAlign:
+                (homeIntro.textAlign as "left" | "center" | "right") || "left",
+            }}
           >
-            Fork it
-          </a>
-          , customize it, ship it.
-        </p>
-
-        <p className="home-bio">{siteConfig.bio}</p>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                // Open external links in new tab
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    target={href?.startsWith("http") ? "_blank" : undefined}
+                    rel={
+                      href?.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    className="blog-link"
+                  >
+                    {children}
+                  </a>
+                ),
+                // Headings with blog styling
+                h1({ children }) {
+                  const id = generateSlug(getTextContent(children));
+                  return (
+                    <h1 id={id} className="blog-h1">
+                      <HeadingAnchor id={id} />
+                      {children}
+                    </h1>
+                  );
+                },
+                h2({ children }) {
+                  const id = generateSlug(getTextContent(children));
+                  return (
+                    <h2 id={id} className="blog-h2">
+                      <HeadingAnchor id={id} />
+                      {children}
+                    </h2>
+                  );
+                },
+                h3({ children }) {
+                  const id = generateSlug(getTextContent(children));
+                  return (
+                    <h3 id={id} className="blog-h3">
+                      <HeadingAnchor id={id} />
+                      {children}
+                    </h3>
+                  );
+                },
+                h4({ children }) {
+                  const id = generateSlug(getTextContent(children));
+                  return (
+                    <h4 id={id} className="blog-h4">
+                      <HeadingAnchor id={id} />
+                      {children}
+                    </h4>
+                  );
+                },
+                h5({ children }) {
+                  const id = generateSlug(getTextContent(children));
+                  return (
+                    <h5 id={id} className="blog-h5">
+                      <HeadingAnchor id={id} />
+                      {children}
+                    </h5>
+                  );
+                },
+                h6({ children }) {
+                  const id = generateSlug(getTextContent(children));
+                  return (
+                    <h6 id={id} className="blog-h6">
+                      <HeadingAnchor id={id} />
+                      {children}
+                    </h6>
+                  );
+                },
+                // Lists with blog styling
+                ul({ children }) {
+                  return <ul className="blog-ul">{children}</ul>;
+                },
+                ol({ children }) {
+                  return <ol className="blog-ol">{children}</ol>;
+                },
+                li({ children }) {
+                  return <li className="blog-li">{children}</li>;
+                },
+                // Blockquote with blog styling
+                blockquote({ children }) {
+                  return <blockquote className="blog-blockquote">{children}</blockquote>;
+                },
+                // Horizontal rule with blog styling
+                hr() {
+                  return <hr className="blog-hr" />;
+                },
+              }}
+            >
+              {stripHtmlComments(homeIntro.content)}
+            </ReactMarkdown>
+          </div>
+        ) : (
+          // Fallback to siteConfig.bio while loading or if page doesn't exist
+          <p className="home-bio">{siteConfig.bio}</p>
+        )}
 
         {/* Newsletter signup (below-intro position) */}
         {siteConfig.newsletter?.enabled &&
@@ -124,7 +292,7 @@ export default function Home() {
         {hasFeaturedContent && (
           <div className="home-featured">
             <div className="home-featured-header">
-              <p className="home-featured-intro">Get started:</p>
+              <p className="home-featured-intro">{siteConfig.featuredTitle}</p>
               {siteConfig.showViewToggle && (
                 <button
                   className="view-toggle-button"

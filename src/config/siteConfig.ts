@@ -226,6 +226,7 @@ export interface SiteConfig {
 
   // Featured section configuration
   featuredViewMode: "cards" | "list";
+  featuredTitle: string; // Featured section title (e.g., "Get started:", "Featured", "Popular")
   showViewToggle: boolean;
 
   // Logo gallery configuration
@@ -311,6 +312,8 @@ export const siteConfig: SiteConfig = {
   // Featured section configuration
   // viewMode: 'list' shows bullet list, 'cards' shows card grid with excerpts
   featuredViewMode: "cards",
+  // Featured section title (e.g., "Get started:", "Featured", "Popular")
+  featuredTitle: "Get started:",
   // Allow users to toggle between list and card views
   showViewToggle: true,
 

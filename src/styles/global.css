@@ -481,6 +481,35 @@ body {
   color: var(--link-hover);
 }
 
+/* Home intro content from synced markdown page */
+.home-intro-content {
+  max-width: 800px;
+  margin: 0 auto 16px;
+  /* Text alignment controlled via frontmatter textAlign field (default: left) */
+}
+
+.home-intro-content p {
+  font-size: var(--font-size-home-intro);
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+.home-intro-content p:last-child {
+  margin-bottom: 0;
+}
+
+.home-intro-content a {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.home-intro-content a:hover {
+  color: var(--link-hover);
+}
+
 .home-featured {
   margin: 24px 0;
 }
@@ -6459,7 +6488,9 @@ body {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .contact-form__reset-button:hover {

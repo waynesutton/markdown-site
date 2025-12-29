@@ -4,6 +4,66 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.41.0] - 2025-12-28
+
+### Added
+
+- Blog heading styles for home intro content
+  - Headings (h1-h6) in `content/pages/home.md` now use same styling as blog posts
+  - Classes: `blog-h1`, `blog-h2`, `blog-h3`, `blog-h4`, `blog-h5`, `blog-h6`
+  - Clickable anchor links (#) appear on hover for each heading
+  - Automatic ID generation from heading text for anchor navigation
+- Additional blog styling for home intro
+  - Lists (`ul`, `ol`, `li`) use `blog-ul`, `blog-ol`, `blog-li` classes
+  - Blockquotes use `blog-blockquote` class
+  - Horizontal rules use `blog-hr` class
+  - Links use `blog-link` class
+
+### Changed
+
+- `src/pages/Home.tsx`: Added custom ReactMarkdown components for headings and other elements
+- Home intro headings now match blog post typography and spacing
+
+### Technical
+
+- Updated: `src/pages/Home.tsx` (added generateSlug, getTextContent, HeadingAnchor helper functions, custom ReactMarkdown components for h1-h6, ul, ol, li, blockquote, hr, and updated a component to use blog-link class)
+- Headings in home intro content now have IDs and anchor links matching blog post behavior
+
+## [1.40.0] - 2025-12-28
+
+### Added
+
+- Synced home intro content via markdown file
+  - New `content/pages/home.md` file for homepage intro/bio text
+  - Home intro content now syncs with `npm run sync` like other pages
+  - No redeploy needed for homepage text changes
+  - Full markdown support with links: `[text](url)`
+  - External links automatically open in new tab
+  - Fallback to `siteConfig.bio` if page not found
+- New `textAlign` frontmatter field for pages
+  - Control text alignment: "left", "center", "right"
+  - Default: "left" (previously was always centered)
+  - Used by `home.md` to control home intro alignment
+- New `featuredTitle` config option in siteConfig.ts
+  - Customize the featured section title (e.g., "Get started:", "Featured", "Popular")
+  - Previously hardcoded as "Get started:" in Home.tsx
+
+### Changed
+
+- `src/pages/Home.tsx`: Now fetches home intro from Convex instead of hardcoded JSX
+- Combined `home-intro` and `home-bio` into single markdown-powered section
+- Home intro content defaults to left alignment (can be set to center/right via frontmatter)
+
+### Technical
+
+- New file: `content/pages/home.md` (slug: `home-intro`, `showInNav: false`, `textAlign: left`)
+- Updated: `src/pages/Home.tsx` (added ReactMarkdown, useQuery for home-intro, textAlign support, featuredTitle from siteConfig)
+- Updated: `src/styles/global.css` (added `.home-intro-content` styles)
+- Updated: `convex/schema.ts` (added `textAlign` field to pages table)
+- Updated: `convex/pages.ts` (added `textAlign` to getPageBySlug and syncPagesPublic)
+- Updated: `scripts/sync-posts.ts` (added `textAlign` to PageFrontmatter and ParsedPage)
+- Updated: `src/config/siteConfig.ts` (added `featuredTitle` to SiteConfig interface and config object)
+
 ## [1.39.0] - 2025-12-28
 
 ### Added

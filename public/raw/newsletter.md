@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2025-12-28
+Date: 2025-12-29
 ---
 
 # Newsletter Demo Page

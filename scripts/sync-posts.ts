@@ -97,6 +97,7 @@ interface PageFrontmatter {
   aiChat?: boolean; // Enable AI chat in right sidebar (requires rightSidebar: true)
   contactForm?: boolean; // Enable contact form on this page
   newsletter?: boolean; // Override newsletter signup display (true/false)
+  textAlign?: string; // Text alignment: "left", "center", "right" (default: "left")
 }
 
 interface ParsedPage {
@@ -121,6 +122,7 @@ interface ParsedPage {
   aiChat?: boolean; // Enable AI chat in right sidebar (requires rightSidebar: true)
   contactForm?: boolean; // Enable contact form on this page
   newsletter?: boolean; // Override newsletter signup display (true/false)
+  textAlign?: string; // Text alignment: "left", "center", "right" (default: "left")
 }
 
 // Calculate reading time based on word count
@@ -229,6 +231,7 @@ function parsePageFile(filePath: string): ParsedPage | null {
       aiChat: frontmatter.aiChat, // Enable AI chat in right sidebar
       contactForm: frontmatter.contactForm, // Enable contact form on this page
       newsletter: frontmatter.newsletter, // Override newsletter signup display
+      textAlign: frontmatter.textAlign, // Text alignment: "left", "center", "right"
     };
   } catch (error) {
     console.error(`Error parsing page ${filePath}:`, error);

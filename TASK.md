@@ -7,9 +7,18 @@
 
 ## Current Status
 
-v1.39.0 ready. HTTP-based MCP (Model Context Protocol) server deployed on Netlify Edge Functions. Accessible 24/7 at /mcp endpoint with public access (50 req/min) and optional API key authentication (1000 req/min). Seven tools available: list_posts, get_post, list_pages, get_page, get_homepage, search_content, export_all. Blog post "How to Use the MCP Server" includes setup instructions for forks.
+v1.41.0 ready. Blog heading styles added to home intro content. Headings in `content/pages/home.md` now use same styling as blog posts (blog-h1 through blog-h6) with clickable anchor links. Home intro content matches blog post typography and spacing.
 
 ## Completed
+
+- [x] Blog heading styles for home intro content
+  - [x] Added generateSlug, getTextContent, HeadingAnchor helper functions to Home.tsx
+  - [x] Updated ReactMarkdown components to include h1-h6 with blog-h* classes
+  - [x] Added clickable anchor links (#) that appear on hover for each heading
+  - [x] Automatic ID generation from heading text for anchor navigation
+  - [x] Added blog styling for lists (blog-ul, blog-ol, blog-li), blockquotes (blog-blockquote), horizontal rules (blog-hr), and links (blog-link)
+  - [x] Updated files.md, changelog.md, changelog-page.md, TASK.md with feature documentation
+  - [x] Home intro headings now match blog post typography and spacing
 
 - [x] HTTP-based MCP Server on Netlify
   - [x] Created netlify/edge-functions/mcp.ts with JSON-RPC 2.0 implementation

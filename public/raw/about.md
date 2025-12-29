@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2025-12-28
+Date: 2025-12-29
 ---
 
 An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs.. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.

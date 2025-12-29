@@ -9,6 +9,21 @@ layout: "sidebar"
 All notable changes to this project.
 ![](https://img.shields.io/badge/License-MIT-yellow.svg)
 
+## v1.41.0
+
+Released December 28, 2025
+
+**Blog heading styles for home intro content**
+
+- Headings (h1-h6) in `content/pages/home.md` now use same styling as blog posts
+- Classes: `blog-h1`, `blog-h2`, `blog-h3`, `blog-h4`, `blog-h5`, `blog-h6`
+- Clickable anchor links (#) appear on hover for each heading
+- Automatic ID generation from heading text for anchor navigation
+- Additional blog styling for lists, blockquotes, horizontal rules, and links
+- Home intro headings now match blog post typography and spacing
+
+Updated files: `src/pages/Home.tsx`
+
 ## v1.39.0
 
 Released December 28, 2025

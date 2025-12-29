@@ -11,13 +11,16 @@ import NewsletterSignup from "./NewsletterSignup";
 import ContactForm from "./ContactForm";
 import siteConfig from "../config/siteConfig";
 
-// Sanitize schema that allows collapsible sections (details/summary)
+// Sanitize schema that allows collapsible sections (details/summary) and inline styles for lists
 const sanitizeSchema = {
   ...defaultSchema,
   tagNames: [...(defaultSchema.tagNames || []), "details", "summary"],
   attributes: {
     ...defaultSchema.attributes,
     details: ["open"], // Allow the 'open' attribute for expanded by default
+    ul: ["style"], // Allow inline styles on ul for list-style control
+    ol: ["style"], // Allow inline styles on ol for list-style control
+    li: ["style"], // Allow inline styles on li elements
   },
 };
 
@@ -274,6 +277,31 @@ type ContentSegment =
   | { type: "newsletter" }
   | { type: "contactform" };
 
+// Strip HTML comments from content, preserving special placeholders
+// Removes <!-- ... --> but keeps <!-- newsletter --> and <!-- contactform -->
+function stripHtmlComments(content: string): string {
+  // First, temporarily replace special placeholders with markers
+  const markers = {
+    newsletter: "___NEWSLETTER_PLACEHOLDER___",
+    contactform: "___CONTACTFORM_PLACEHOLDER___",
+  };
+  
+  let processed = content;
+  
+  // Replace special placeholders with markers
+  processed = processed.replace(/<!--\s*newsletter\s*-->/gi, markers.newsletter);
+  processed = processed.replace(/<!--\s*contactform\s*-->/gi, markers.contactform);
+  
+  // Remove all remaining HTML comments (including multi-line)
+  processed = processed.replace(/<!--[\s\S]*?-->/g, "");
+  
+  // Restore special placeholders
+  processed = processed.replace(markers.newsletter, "<!-- newsletter -->");
+  processed = processed.replace(markers.contactform, "<!-- contactform -->");
+  
+  return processed;
+}
+
 // Parse content for inline embed placeholders
 // Supports: <!-- newsletter --> and <!-- contactform -->
 function parseContentForEmbeds(content: string): ContentSegment[] {
@@ -382,8 +410,11 @@ export default function BlogPost({ content, slug, pageType = "post" }: BlogPostP
     }
   };
 
+  // Strip HTML comments (except special placeholders) before processing
+  const cleanedContent = stripHtmlComments(content);
+  
   // Parse content for inline embeds
-  const segments = parseContentForEmbeds(content);
+  const segments = parseContentForEmbeds(cleanedContent);
   const hasInlineEmbeds = segments.some((s) => s.type !== "content");
 
   // Helper to render a single markdown segment
@@ -792,7 +823,7 @@ export default function BlogPost({ content, slug, pageType = "post" }: BlogPostP
           },
         }}
       >
-        {content}
+        {cleanedContent}
       </ReactMarkdown>
     </article>
   );

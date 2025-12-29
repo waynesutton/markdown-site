@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2025-12-28
+Date: 2025-12-29
 ---
 
 ## Getting Started
@@ -994,15 +994,15 @@ The site includes an HTTP-based Model Context Protocol (MCP) server for AI tool 
 
 **Available tools:**
 
-| Tool | Description |
-|------|-------------|
-| `list_posts` | Get all published blog posts with metadata |
-| `get_post` | Get a single post by slug with full content |
-| `list_pages` | Get all published pages |
-| `get_page` | Get a single page by slug with full content |
-| `get_homepage` | Get homepage data with featured and recent posts |
-| `search_content` | Full text search across posts and pages |
-| `export_all` | Batch export all content |
+| Tool             | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| `list_posts`     | Get all published blog posts with metadata       |
+| `get_post`       | Get a single post by slug with full content      |
+| `list_pages`     | Get all published pages                          |
+| `get_page`       | Get a single page by slug with full content      |
+| `get_homepage`   | Get homepage data with featured and recent posts |
+| `search_content` | Full text search across posts and pages          |
+| `export_all`     | Batch export all content                         |
 
 **Cursor configuration:**
 
