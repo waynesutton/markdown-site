@@ -61,7 +61,10 @@ function App() {
               element={<Home />}
             />
           )}
-          <Route path="/stats" element={<Stats />} />
+          {/* Stats page route - only enabled when statsPage.enabled is true */}
+          {siteConfig.statsPage?.enabled && (
+            <Route path="/stats" element={<Stats />} />
+          )}
           {/* Unsubscribe route for newsletter */}
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           {/* Blog page route - only enabled when blogPage.enabled is true */}

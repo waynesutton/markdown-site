@@ -154,6 +154,13 @@ export interface NewsletterAdminConfig {
   showInNav: boolean; // Show link in navigation (hidden by default for security)
 }
 
+// Stats page configuration
+// Controls access to the /stats route for viewing site analytics
+export interface StatsPageConfig {
+  enabled: boolean; // Global toggle for stats page
+  showInNav: boolean; // Show link in navigation (controlled via hardcodedNavItems)
+}
+
 // Newsletter notifications configuration
 // Sends developer notifications for subscriber events
 // Uses AGENTMAIL_CONTACT_EMAIL or AGENTMAIL_INBOX as recipient
@@ -283,6 +290,9 @@ export interface SiteConfig {
 
   // Newsletter admin configuration (optional)
   newsletterAdmin?: NewsletterAdminConfig;
+
+  // Stats page configuration (optional)
+  statsPage?: StatsPageConfig;
 
   // Newsletter notifications configuration (optional)
   newsletterNotifications?: NewsletterNotificationsConfig;
@@ -556,6 +566,14 @@ Created by [Wayne](https://x.com/waynesutton) with Convex, Cursor, and Claude Op
   newsletterAdmin: {
     enabled: false, // Global toggle for admin UI
     showInNav: false, // Hide from navigation for security
+  },
+
+  // Stats page configuration
+  // Controls access to the /stats route for viewing site analytics
+  // Set enabled: false to make stats page private (route still accessible but shows disabled message)
+  statsPage: {
+    enabled: true, // Global toggle for stats page
+    showInNav: true, // Show link in navigation (also controlled via hardcodedNavItems)
   },
 
   // Newsletter notifications configuration

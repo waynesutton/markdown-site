@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import {
   ArrowLeft,
@@ -36,6 +36,42 @@ function formatTrackingDate(timestamp: number | null): string {
 export default function Stats() {
   const navigate = useNavigate();
   const stats = useQuery(api.stats.getStats);
+
+  // Check if stats page is enabled
+  if (!siteConfig.statsPage?.enabled) {
+    return (
+      <div className="stats-page-wide">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "60vh",
+            gap: "1rem",
+            padding: "2rem",
+            textAlign: "center",
+          }}
+        >
+          <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+            Site Statistics
+          </h1>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>
+            Stats page is disabled in site configuration.
+          </p>
+          <Link
+            to="/"
+            style={{
+              color: "var(--link-color)",
+              textDecoration: "underline",
+            }}
+          >
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // GitHub stars state
   const [githubStars, setGithubStars] = useState<number | null>(null);

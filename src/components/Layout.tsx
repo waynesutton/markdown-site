@@ -104,6 +104,10 @@ export default function Layout({ children }: LayoutProps) {
   // Add hardcoded nav items (React routes like /stats, /write)
   if (siteConfig.hardcodedNavItems && siteConfig.hardcodedNavItems.length > 0) {
     siteConfig.hardcodedNavItems.forEach((item) => {
+      // Skip stats nav item if stats page is disabled
+      if (item.slug === "stats" && !siteConfig.statsPage?.enabled) {
+        return;
+      }
       // Only add if showInNav is true (defaults to true)
       if (item.showInNav !== false) {
         navItems.push({
