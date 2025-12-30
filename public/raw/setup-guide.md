@@ -345,6 +345,7 @@ Your markdown content here...
 | `authorName`    | No       | Author display name shown next to date                                        |
 | `authorImage`   | No       | Round author avatar image URL                                                 |
 | `rightSidebar`  | No       | Enable right sidebar with CopyPageDropdown (opt-in, requires explicit `true`) |
+| `unlisted`      | No       | Hide from listings but allow direct access via slug. Set `true` to hide from blog listings, featured sections, tag pages, search results, and related posts. Post remains accessible via direct link. |
 
 ### How Frontmatter Works
 

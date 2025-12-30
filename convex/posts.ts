@@ -383,6 +383,7 @@ export const syncPosts = internalMutation({
         blogFeatured: v.optional(v.boolean()),
         newsletter: v.optional(v.boolean()),
         contactForm: v.optional(v.boolean()),
+        unlisted: v.optional(v.boolean()),
       }),
     ),
   },
@@ -433,6 +434,7 @@ export const syncPosts = internalMutation({
           blogFeatured: post.blogFeatured,
           newsletter: post.newsletter,
           contactForm: post.contactForm,
+          unlisted: post.unlisted,
           lastSyncedAt: now,
         });
         updated++;
@@ -487,6 +489,7 @@ export const syncPostsPublic = mutation({
         blogFeatured: v.optional(v.boolean()),
         newsletter: v.optional(v.boolean()),
         contactForm: v.optional(v.boolean()),
+        unlisted: v.optional(v.boolean()),
       }),
     ),
   },
@@ -537,6 +540,7 @@ export const syncPostsPublic = mutation({
           blogFeatured: post.blogFeatured,
           newsletter: post.newsletter,
           contactForm: post.contactForm,
+          unlisted: post.unlisted,
           lastSyncedAt: now,
         });
         updated++;

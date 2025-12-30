@@ -125,6 +125,7 @@ Content here...
 | `blogFeatured`     | No       | Show as featured on blog page (first becomes hero, rest in 2-column row)                                                                                                                               |
 | `newsletter`       | No       | Override newsletter signup display (`true` to show, `false` to hide)                                                                                                                                   |
 | `contactForm`      | No       | Enable contact form on this post                                                                                                                                                                       |
+| `unlisted`         | No       | Hide from listings but allow direct access via slug. Set `true` to hide from blog listings, featured sections, tag pages, search results, and related posts. Post remains accessible via direct link.  |
 | `showImageAtTop`   | No       | Set `true` to display the `image` field at the top of the post above the header (default: `false`)                                                                                                     |
 
 ### Static pages
@@ -168,6 +169,8 @@ Content here...
 | `textAlign`        | No       | Text alignment: "left" (default), "center", or "right". Used by `home.md` for home intro alignment                                                                                                     |
 
 **Hide pages from navigation:** Set `showInNav: false` to keep a page published and accessible via direct URL, but hidden from the navigation menu. Pages with `showInNav: false` remain searchable and available via API endpoints. Useful for pages you want to link directly but not show in the main nav.
+
+**Unlisted posts:** Set `unlisted: true` to hide a blog post from all listings while keeping it accessible via direct link. Unlisted posts are excluded from: blog listings (`/blog` page), featured sections (homepage), tag pages (`/tags/[tag]`), search results (Command+K), and related posts. The post remains accessible via direct URL (e.g., `/blog/post-slug`). Useful for draft posts, private content, or posts you want to share via direct link only. Note: `unlisted` only works for blog posts, not pages.
 
 **Show image at top:** Add `showImageAtTop: true` to display the `image` field at the top of the post/page above the header. Default behavior: if `showImageAtTop` is not set or `false`, image only used for Open Graph previews and featured card thumbnails.
 

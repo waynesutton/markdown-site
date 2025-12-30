@@ -27,14 +27,26 @@ Released December 30, 2025
 - Automated CLAUDE.md updates via sync-discovery-files.ts
   - CLAUDE.md status comment updated during `npm run sync:discovery`
   - Includes current site name, post count, page count, and last updated timestamp
+- Unlisted posts feature
+  - New `unlisted` frontmatter field for blog posts
+  - Set `unlisted: true` to hide posts from listings while keeping them accessible via direct link
+  - Unlisted posts are excluded from: blog listings, featured sections, tag pages, search results, and related posts
+  - Posts remain accessible via direct URL (e.g., `/blog/post-slug`)
+  - Useful for draft posts, private content, or posts you want to share via direct link only
 
 **Technical details:**
 
 - New file: `CLAUDE.md` in project root
 - New directory: `.claude/skills/` with three markdown files
 - Updated: `scripts/sync-discovery-files.ts` to update CLAUDE.md alongside AGENTS.md and llms.txt
+- Updated: `convex/schema.ts` - Added `unlisted` optional boolean field to posts table
+- Updated: `convex/posts.ts` - All listing queries filter out unlisted posts
+- Updated: `convex/search.ts` - Search excludes unlisted posts from results
+- Updated: `scripts/sync-posts.ts` - Added `unlisted` to interfaces and parsing logic
+- Updated: `src/pages/Write.tsx` - Added `unlisted` to POST_FIELDS frontmatter reference
+- Updated documentation: `.claude/skills/frontmatter.md`, `content/pages/docs.md`, `content/blog/setup-guide.md`, `files.md`
 
-Updated files: `CLAUDE.md`, `.claude/skills/frontmatter.md`, `.claude/skills/convex.md`, `.claude/skills/sync.md`, `scripts/sync-discovery-files.ts`, `files.md`, `changelog.md`, `TASK.md`
+Updated files: `CLAUDE.md`, `.claude/skills/frontmatter.md`, `.claude/skills/convex.md`, `.claude/skills/sync.md`, `scripts/sync-discovery-files.ts`, `convex/schema.ts`, `convex/posts.ts`, `convex/search.ts`, `scripts/sync-posts.ts`, `src/pages/Write.tsx`, `files.md`, `changelog.md`, `content/pages/changelog-page.md`
 
 ## v2.0.0
 
