@@ -3,7 +3,7 @@ title: "Changelog"
 slug: "changelog"
 published: true
 order: 5
-rightSidebar: true
+rightSidebar: false
 layout: "sidebar"
 ---
 
