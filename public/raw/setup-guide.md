@@ -56,6 +56,7 @@ This guide walks you through forking [this markdown framework](https://github.co
     - [Visitor Map](#visitor-map)
     - [Logo Gallery](#logo-gallery)
     - [Blog page](#blog-page)
+    - [Homepage Post Limit](#homepage-post-limit)
     - [Hardcoded Navigation Items](#hardcoded-navigation-items)
     - [Scroll-to-top button](#scroll-to-top-button)
     - [Change the Default Theme](#change-the-default-theme)
@@ -64,10 +65,15 @@ This guide walks you through forking [this markdown framework](https://github.co
     - [Add Static Pages (Optional)](#add-static-pages-optional)
     - [Update SEO Meta Tags](#update-seo-meta-tags)
     - [Update llms.txt and robots.txt](#update-llmstxt-and-robotstxt)
+  - [Tag Pages and Related Posts](#tag-pages-and-related-posts)
   - [Search](#search)
     - [Using Search](#using-search)
     - [How It Works](#how-it-works)
   - [Real-time Stats](#real-time-stats)
+  - [Footer Configuration](#footer-configuration)
+  - [Social Footer Configuration](#social-footer-configuration)
+  - [Right Sidebar Configuration](#right-sidebar-configuration)
+  - [Contact Form Configuration](#contact-form-configuration)
   - [Newsletter Admin](#newsletter-admin)
   - [Mobile Navigation](#mobile-navigation)
   - [Copy Page Dropdown](#copy-page-dropdown)
@@ -80,7 +86,9 @@ This guide walks you through forking [this markdown framework](https://github.co
   - [Project Structure](#project-structure)
   - [Write Page](#write-page)
   - [AI Agent chat](#ai-agent-chat)
+  - [Dashboard](#dashboard)
   - [Next Steps](#next-steps)
+  - [MCP Server](#mcp-server)
 
 ## Prerequisites
 
@@ -329,23 +337,28 @@ Your markdown content here...
 
 ### Frontmatter Fields
 
-| Field           | Required | Description                                                                   |
-| --------------- | -------- | ----------------------------------------------------------------------------- |
-| `title`         | Yes      | Post title                                                                    |
-| `description`   | Yes      | Short description for SEO                                                     |
-| `date`          | Yes      | Publication date (YYYY-MM-DD)                                                 |
-| `slug`          | Yes      | URL path (must be unique)                                                     |
-| `published`     | Yes      | Set to `true` to publish                                                      |
-| `tags`          | Yes      | Array of topic tags                                                           |
-| `readTime`      | No       | Estimated reading time                                                        |
-| `image`         | No       | Header/Open Graph image URL                                                   |
-| `excerpt`       | No       | Short excerpt for card view                                                   |
-| `featured`      | No       | Set `true` to show in featured section                                        |
-| `featuredOrder` | No       | Order in featured section (lower = first)                                     |
-| `authorName`    | No       | Author display name shown next to date                                        |
-| `authorImage`   | No       | Round author avatar image URL                                                 |
-| `rightSidebar`  | No       | Enable right sidebar with CopyPageDropdown (opt-in, requires explicit `true`) |
+| Field           | Required | Description                                                                                                                                                                                           |
+| --------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`         | Yes      | Post title                                                                                                                                                                                            |
+| `description`   | Yes      | Short description for SEO                                                                                                                                                                             |
+| `date`          | Yes      | Publication date (YYYY-MM-DD)                                                                                                                                                                         |
+| `slug`          | Yes      | URL path (must be unique)                                                                                                                                                                             |
+| `published`     | Yes      | Set to `true` to publish                                                                                                                                                                              |
+| `tags`          | Yes      | Array of topic tags                                                                                                                                                                                   |
+| `readTime`      | No       | Estimated reading time                                                                                                                                                                                |
+| `image`         | No       | Header/Open Graph image URL                                                                                                                                                                           |
+| `excerpt`       | No       | Short excerpt for card view                                                                                                                                                                           |
+| `featured`      | No       | Set `true` to show in featured section                                                                                                                                                                |
+| `featuredOrder` | No       | Order in featured section (lower = first)                                                                                                                                                             |
+| `authorName`    | No       | Author display name shown next to date                                                                                                                                                                |
+| `authorImage`   | No       | Round author avatar image URL                                                                                                                                                                         |
+| `rightSidebar`  | No       | Enable right sidebar with CopyPageDropdown (opt-in, requires explicit `true`)                                                                                                                         |
 | `unlisted`      | No       | Hide from listings but allow direct access via slug. Set `true` to hide from blog listings, featured sections, tag pages, search results, and related posts. Post remains accessible via direct link. |
+| `docsSection`   | No       | Include in docs sidebar. Set `true` to show in the docs section navigation. |
+| `docsSectionGroup` | No    | Group name for docs sidebar. Posts with the same group name appear together. |
+| `docsSectionOrder` | No    | Order within docs group. Lower numbers appear first within the group. |
+| `docsSectionGroupOrder` | No | Order of the group in docs sidebar. Lower numbers make the group appear first. Groups without this field sort alphabetically. |
+| `docsSectionGroupIcon` | No | Phosphor icon name for docs sidebar group (e.g., "Rocket", "Book", "PuzzlePiece"). Icon appears left of the group title. See [Phosphor Icons](https://phosphoricons.com) for available icons. |
 
 ### How Frontmatter Works
 
@@ -1584,11 +1597,11 @@ The Dashboard includes a dedicated AI Agent section with a tab-based UI for Chat
 
 Agent requires API keys for the providers you want to use. Set these in Convex environment variables:
 
-| Variable | Provider | Features |
-| --- | --- | --- |
-| `ANTHROPIC_API_KEY` | Anthropic | Claude Sonnet 4 chat |
-| `OPENAI_API_KEY` | OpenAI | GPT-4o chat |
-| `GOOGLE_AI_API_KEY` | Google | Gemini 2.0 Flash chat + image generation |
+| Variable            | Provider  | Features                                 |
+| ------------------- | --------- | ---------------------------------------- |
+| `ANTHROPIC_API_KEY` | Anthropic | Claude Sonnet 4 chat                     |
+| `OPENAI_API_KEY`    | OpenAI    | GPT-4o chat                              |
+| `GOOGLE_AI_API_KEY` | Google    | Gemini 2.0 Flash chat + image generation |
 
 **Optional system prompt variables:**
 
@@ -1673,6 +1686,7 @@ npm run sync-server
 ```
 
 This starts a local HTTP server on `localhost:3001` that:
+
 - Executes sync commands when requested from the dashboard
 - Streams output in real-time to the dashboard terminal view
 - Shows server status (online/offline) in the dashboard

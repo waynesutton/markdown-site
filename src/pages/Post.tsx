@@ -5,6 +5,11 @@ import BlogPost from "../components/BlogPost";
 import CopyPageDropdown from "../components/CopyPageDropdown";
 import PageSidebar from "../components/PageSidebar";
 import RightSidebar from "../components/RightSidebar";
+import DocsLayout from "../components/DocsLayout";
+import Footer from "../components/Footer";
+import SocialFooter from "../components/SocialFooter";
+import NewsletterSignup from "../components/NewsletterSignup";
+import ContactForm from "../components/ContactForm";
 import { extractHeadings } from "../utils/extractHeadings";
 import { useSidebar } from "../context/SidebarContext";
 import { format, parseISO } from "date-fns";
@@ -36,10 +41,9 @@ export default function Post({
   // Use prop slug if provided (for homepage), otherwise use route slug
   const slug = propSlug || routeSlug;
 
-  // Check for page first, then post, then comparable
+  // Check for page first, then post
   const page = useQuery(api.pages.getPageBySlug, slug ? { slug } : "skip");
   const post = useQuery(api.posts.getPostBySlug, slug ? { slug } : "skip");
-  const comparable = useQuery(api.comparables.getComparableBySlug, slug ? { slug } : "skip");
 
   // Fetch related posts based on current post's tags (only for blog posts, not pages)
   const relatedPosts = useQuery(
@@ -49,20 +53,12 @@ export default function Post({
       : "skip",
   );
 
-  // Fetch related comparables based on current comparable's tags
-  const relatedComparables = useQuery(
-    api.comparables.getRelatedComparables,
-    comparable && !page && !post
-      ? { currentSlug: comparable.slug, tags: comparable.tags, limit: 3 }
-      : "skip",
-  );
-
   const [copied, setCopied] = useState(false);
 
   // Scroll to hash anchor after content loads
   useEffect(() => {
     if (!location.hash) return;
-    if (page === undefined && post === undefined && comparable === undefined) return;
+    if (page === undefined && post === undefined) return;
 
     // Small delay to ensure content is rendered
     const timer = setTimeout(() => {
@@ -74,7 +70,7 @@ export default function Post({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [location.hash, page, post, comparable]);
+  }, [location.hash, page, post]);
 
   // Update sidebar context with headings for mobile menu
   useEffect(() => {
@@ -90,14 +86,8 @@ export default function Post({
       setHeadings(postHeadings);
       setActiveId(location.hash.slice(1) || undefined);
     }
-    // Extract headings for comparables with sidebar layout
-    else if (comparable && comparable.layout === "sidebar") {
-      const comparableHeadings = extractHeadings(comparable.content);
-      setHeadings(comparableHeadings);
-      setActiveId(location.hash.slice(1) || undefined);
-    }
     // Clear headings when no sidebar
-    else if (page !== undefined || post !== undefined || comparable !== undefined) {
+    else if (page !== undefined || post !== undefined) {
       setHeadings([]);
       setActiveId(undefined);
     }
@@ -107,7 +97,7 @@ export default function Post({
       setHeadings([]);
       setActiveId(undefined);
     };
-  }, [page, post, comparable, location.hash, setHeadings, setActiveId]);
+  }, [page, post, location.hash, setHeadings, setActiveId]);
 
   // Update page title for static pages
   useEffect(() => {
@@ -120,7 +110,7 @@ export default function Post({
 
   // Inject JSON-LD structured data and Open Graph meta tags for blog posts
   useEffect(() => {
-    if (!post || page || comparable) return; // Skip if it's a page or comparable
+    if (!post || page) return; // Skip if it's a page
 
     const postUrl = `${SITE_URL}/${post.slug}`;
     const ogImage = post.image
@@ -205,15 +195,81 @@ export default function Post({
       const scriptEl = document.getElementById("json-ld-article");
       if (scriptEl) scriptEl.remove();
     };
-  }, [post, page, comparable]);
+  }, [post, page]);
+
+  // Check if we're loading a docs page - keep layout mounted to prevent flash
+  const isDocsRoute = siteConfig.docsSection?.enabled && slug;
 
   // Return null during initial load to avoid flash (Convex data arrives quickly)
-  if (page === undefined || post === undefined || comparable === undefined) {
+  // But for docs pages, show skeleton within DocsLayout to prevent sidebar flash
+  if (page === undefined || post === undefined) {
+    if (isDocsRoute) {
+      // Keep DocsLayout mounted during loading to prevent sidebar flash
+      return (
+        <DocsLayout headings={[]} currentSlug={slug || ""}>
+          <article className="docs-article">
+            <div className="docs-article-loading">
+              <div className="docs-loading-skeleton docs-loading-title" />
+              <div className="docs-loading-skeleton docs-loading-text" />
+              <div className="docs-loading-skeleton docs-loading-text" />
+              <div className="docs-loading-skeleton docs-loading-text-short" />
+            </div>
+          </article>
+        </DocsLayout>
+      );
+    }
     return null;
   }
 
   // If it's a static page, render simplified view
   if (page) {
+    // Check if this page should use docs layout
+    if (page.docsSection && siteConfig.docsSection?.enabled) {
+      const docsHeadings = extractHeadings(page.content);
+      return (
+        <DocsLayout
+          headings={docsHeadings}
+          currentSlug={page.slug}
+          aiChatEnabled={page.aiChat}
+          pageContent={page.content}
+        >
+          <article className="docs-article">
+            <div className="docs-article-actions">
+              <CopyPageDropdown
+                title={page.title}
+                content={page.content}
+                url={`${SITE_URL}/${page.slug}`}
+                slug={page.slug}
+                description={page.excerpt}
+              />
+            </div>
+            {page.showImageAtTop && page.image && (
+              <div className="post-header-image">
+                <img
+                  src={page.image}
+                  alt={page.title}
+                  className="post-header-image-img"
+                />
+              </div>
+            )}
+            <header className="docs-article-header">
+              <h1 className="docs-article-title">{page.title}</h1>
+              {page.excerpt && (
+                <p className="docs-article-description">{page.excerpt}</p>
+              )}
+            </header>
+            <BlogPost content={page.content} slug={page.slug} pageType="page" />
+            {siteConfig.footer.enabled &&
+              (page.showFooter !== undefined
+                ? page.showFooter
+                : siteConfig.footer.showOnPages) && (
+                <Footer content={page.footer} />
+              )}
+          </article>
+        </DocsLayout>
+      );
+    }
+
     // Extract headings for sidebar TOC (only for pages with layout: "sidebar")
     const headings =
       page.layout === "sidebar" ? extractHeadings(page.content) : [];
@@ -319,6 +375,36 @@ export default function Post({
             </header>
 
             <BlogPost content={page.content} slug={page.slug} pageType="page" />
+
+            {/* Contact form - shown when contactForm: true in frontmatter (only if not inline) */}
+            {siteConfig.contactForm?.enabled &&
+              page.contactForm &&
+              !page.content.includes("<!-- contactform -->") && (
+                <ContactForm source={`page:${page.slug}`} />
+              )}
+
+            {/* Newsletter signup - respects frontmatter override (only if not inline) */}
+            {siteConfig.newsletter?.enabled &&
+              (page.newsletter !== undefined
+                ? page.newsletter
+                : siteConfig.newsletter.signup.posts.enabled) &&
+              !page.content.includes("<!-- newsletter -->") && (
+                <NewsletterSignup source="post" postSlug={page.slug} />
+              )}
+
+            {/* Footer - shown inside article at bottom for pages */}
+            {siteConfig.footer.enabled &&
+              (page.showFooter !== undefined
+                ? page.showFooter
+                : siteConfig.footer.showOnPages) && (
+                <Footer content={page.footer} />
+              )}
+
+            {/* Social footer - shown inside article at bottom for pages */}
+            {siteConfig.socialFooter?.enabled &&
+              (page.showSocialFooter !== undefined
+                ? page.showSocialFooter
+                : siteConfig.socialFooter.showOnPages) && <SocialFooter />}
           </article>
 
           {/* Right sidebar - with optional AI chat support */}
@@ -334,171 +420,8 @@ export default function Post({
     );
   }
 
-  // If it's a comparable, render it like a blog post
-  if (comparable) {
-    // Extract headings for sidebar TOC (only for comparables with layout: "sidebar")
-    const headings =
-      comparable?.layout === "sidebar" ? extractHeadings(comparable.content) : [];
-    const hasLeftSidebar = headings.length > 0;
-    // Check if right sidebar is enabled
-    const hasRightSidebar =
-      siteConfig.rightSidebar.enabled && comparable.rightSidebar !== false;
-    const comparableAiChatEnabled = comparable.aiChat !== false;
-    const hasAnySidebar = hasLeftSidebar || hasRightSidebar;
-    const hasOnlyRightSidebar = hasRightSidebar && !hasLeftSidebar;
-
-    // Render comparable with full metadata
-    return (
-      <div
-        className={`post-page ${hasAnySidebar ? "post-page-with-sidebar" : ""}`}
-      >
-        <nav
-          className={`post-nav ${hasAnySidebar ? "post-nav-with-sidebar" : ""}`}
-        >
-          {!hasAnySidebar && !isHomepage && (
-            <button onClick={() => navigate("/")} className="back-button">
-              <ArrowLeft size={16} />
-              <span>Back</span>
-            </button>
-          )}
-          {!hasAnySidebar && (
-            <CopyPageDropdown
-              title={comparable.title}
-              content={comparable.content}
-              url={window.location.href}
-              slug={comparable.slug}
-              description={comparable.excerpt || comparable.description}
-            />
-          )}
-        </nav>
-
-        <div
-          className={`${hasAnySidebar ? "post-content-with-sidebar" : ""} ${hasOnlyRightSidebar ? "post-content-right-sidebar-only" : ""}`}
-        >
-          {hasLeftSidebar && (
-            <aside className="post-sidebar-wrapper post-sidebar-left">
-              <PageSidebar
-                headings={headings}
-                activeId={location.hash.slice(1)}
-              />
-            </aside>
-          )}
-
-          <article
-            className={`post-article ${hasAnySidebar ? "post-article-with-sidebar" : ""} ${hasOnlyRightSidebar ? "post-article-centered" : ""}`}
-          >
-            {comparable.showImageAtTop && comparable.image && (
-              <div className="post-header-image">
-                <img
-                  src={comparable.image}
-                  alt={comparable.title}
-                  className="post-header-image-img"
-                />
-              </div>
-            )}
-            <header className="post-header">
-              <div className="post-title-row">
-                <h1 className="post-title">{comparable.title}</h1>
-                {hasAnySidebar && (
-                  <div className="post-header-actions">
-                    <CopyPageDropdown
-                      title={comparable.title}
-                      content={comparable.content}
-                      url={window.location.href}
-                      slug={comparable.slug}
-                      description={comparable.excerpt || comparable.description}
-                    />
-                  </div>
-                )}
-              </div>
-              {comparable.authorName && (
-                <div className="post-meta">
-                  <div className="post-author">
-                    {comparable.authorImage && (
-                      <img
-                        src={comparable.authorImage}
-                        alt={comparable.authorName}
-                        className="post-author-image"
-                      />
-                    )}
-                    {comparable.authorName && (
-                      <Link
-                        to={`/author/${comparable.authorName.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="post-author-name post-author-link"
-                      >
-                        {comparable.authorName}
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              )}
-              <div className="post-meta">
-                <time className="post-date">
-                  {format(parseISO(comparable.date), "MMMM d, yyyy")}
-                </time>
-                {comparable.readTime && (
-                  <span className="post-read-time">{comparable.readTime}</span>
-                )}
-              </div>
-            </header>
-
-            <BlogPost content={comparable.content} slug={comparable.slug} pageType="post" />
-
-            {comparable.tags && comparable.tags.length > 0 && (
-              <div className="post-tags">
-                <div className="post-tags-list">
-                  {comparable.tags.map((tag: string) => (
-                    <Link
-                      key={tag}
-                      to={`/tags/${tag.toLowerCase()}`}
-                      className="post-tag"
-                    >
-                      <Tag size={12} />
-                      <span>{tag}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {relatedComparables && relatedComparables.length > 0 && (
-              <div className="related-posts">
-                <h2>Related Comparables</h2>
-                <div className="related-posts-list">
-                  {relatedComparables.map((relatedComparable) => (
-                    <Link
-                      key={relatedComparable._id}
-                      to={`/${relatedComparable.slug}`}
-                      className="related-post-card"
-                    >
-                      <h3 className="related-post-title">
-                        {relatedComparable.title}
-                      </h3>
-                      <p className="related-post-meta">
-                        {format(parseISO(relatedComparable.date), "MMM d, yyyy")}
-                        {relatedComparable.readTime && ` · ${relatedComparable.readTime}`}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </article>
-
-          {hasRightSidebar && (
-            <RightSidebar
-              aiChatEnabled={comparableAiChatEnabled}
-              pageContent={comparable.content}
-              slug={comparable.slug}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Handle not found (no page, post, or comparable)
-  if (post === null && comparable === null) {
+  // Handle not found (neither page nor post)
+  if (post === null) {
     return (
       <div className="post-page">
         <div className="post-not-found">
@@ -529,16 +452,62 @@ export default function Post({
     );
   };
 
+  // Check if this post should use docs layout
+  if (post.docsSection && siteConfig.docsSection?.enabled) {
+    const docsHeadings = extractHeadings(post.content);
+    return (
+      <DocsLayout
+        headings={docsHeadings}
+        currentSlug={post.slug}
+        aiChatEnabled={post.aiChat}
+        pageContent={post.content}
+      >
+        <article className="docs-article">
+          <div className="docs-article-actions">
+            <CopyPageDropdown
+              title={post.title}
+              content={post.content}
+              url={`${SITE_URL}/${post.slug}`}
+              slug={post.slug}
+              description={post.description}
+              date={post.date}
+              tags={post.tags}
+            />
+          </div>
+          {post.showImageAtTop && post.image && (
+            <div className="post-header-image">
+              <img
+                src={post.image}
+                alt={post.title}
+                className="post-header-image-img"
+              />
+            </div>
+          )}
+          <header className="docs-article-header">
+            <h1 className="docs-article-title">{post.title}</h1>
+            {post.description && (
+              <p className="docs-article-description">{post.description}</p>
+            )}
+          </header>
+          <BlogPost content={post.content} slug={post.slug} pageType="post" />
+          {siteConfig.footer.enabled &&
+            (post.showFooter !== undefined
+              ? post.showFooter
+              : siteConfig.footer.showOnPosts) && (
+              <Footer content={post.footer} />
+            )}
+        </article>
+      </DocsLayout>
+    );
+  }
+
   // Extract headings for sidebar TOC (only for posts with layout: "sidebar")
   const headings =
     post?.layout === "sidebar" ? extractHeadings(post.content) : [];
   const hasLeftSidebar = headings.length > 0;
-  // Check if right sidebar is enabled
-  // For blog posts: enabled by default unless explicitly disabled (rightSidebar: false)
+  // Check if right sidebar is enabled (only when explicitly set in frontmatter)
   const hasRightSidebar =
-    siteConfig.rightSidebar.enabled && post.rightSidebar !== false;
-  // AI chat is enabled by default for blog posts unless explicitly disabled (aiChat: false)
-  const postAiChatEnabled = post.aiChat !== false;
+    siteConfig.rightSidebar.enabled && post.rightSidebar === true;
   const hasAnySidebar = hasLeftSidebar || hasRightSidebar;
   // Track if only right sidebar is enabled (for centering article)
   const hasOnlyRightSidebar = hasRightSidebar && !hasLeftSidebar;
@@ -727,13 +696,43 @@ export default function Post({
                 </ul>
               </div>
             )}
+
+            {/* Newsletter signup - respects frontmatter override (only if not inline) */}
+            {siteConfig.newsletter?.enabled &&
+              (post.newsletter !== undefined
+                ? post.newsletter
+                : siteConfig.newsletter.signup.posts.enabled) &&
+              !post.content.includes("<!-- newsletter -->") && (
+                <NewsletterSignup source="post" postSlug={post.slug} />
+              )}
+
+            {/* Contact form - shown when contactForm: true in frontmatter (only if not inline) */}
+            {siteConfig.contactForm?.enabled &&
+              post.contactForm &&
+              !post.content.includes("<!-- contactform -->") && (
+                <ContactForm source={`post:${post.slug}`} />
+              )}
           </footer>
+
+          {/* Footer - shown inside article at bottom for posts */}
+          {siteConfig.footer.enabled &&
+            (post.showFooter !== undefined
+              ? post.showFooter
+              : siteConfig.footer.showOnPosts) && (
+              <Footer content={post.footer} />
+            )}
+
+          {/* Social footer - shown inside article at bottom for posts */}
+          {siteConfig.socialFooter?.enabled &&
+            (post.showSocialFooter !== undefined
+              ? post.showSocialFooter
+              : siteConfig.socialFooter.showOnPosts) && <SocialFooter />}
         </article>
 
-        {/* Right sidebar - with AI chat enabled by default for blog posts */}
+        {/* Right sidebar - with optional AI chat support */}
         {hasRightSidebar && (
           <RightSidebar
-            aiChatEnabled={postAiChatEnabled}
+            aiChatEnabled={post.aiChat}
             pageContent={post.content}
             slug={post.slug}
           />

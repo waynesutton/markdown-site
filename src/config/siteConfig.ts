@@ -189,6 +189,18 @@ export interface StatsPageConfig {
   showInNav: boolean; // Show link in navigation (controlled via hardcodedNavItems)
 }
 
+// Docs section configuration
+// Creates a Starlight-style documentation layout with left sidebar and right TOC
+// Pages/posts with docsSection: true in frontmatter appear in docs navigation
+export interface DocsSectionConfig {
+  enabled: boolean; // Global toggle for docs section
+  slug: string; // Base URL path (e.g., "docs" for /docs)
+  title: string; // Page title for docs landing
+  showInNav: boolean; // Show "Docs" link in navigation
+  order?: number; // Nav order (lower = first)
+  defaultExpanded: boolean; // Expand all sidebar groups by default
+}
+
 // Newsletter notifications configuration
 // Sends developer notifications for subscriber events
 // Uses AGENTMAIL_CONTACT_EMAIL or AGENTMAIL_INBOX as recipient
@@ -339,6 +351,9 @@ export interface SiteConfig {
 
   // Stats page configuration (optional)
   statsPage?: StatsPageConfig;
+
+  // Docs section configuration (optional)
+  docsSection?: DocsSectionConfig;
 
   // Newsletter notifications configuration (optional)
   newsletterNotifications?: NewsletterNotificationsConfig;
@@ -618,6 +633,19 @@ export const siteConfig: SiteConfig = {
   statsPage: {
     enabled: false, // Global toggle for stats page
     showInNav: false, // Show link in navigation (also controlled via hardcodedNavItems)
+  },
+
+  // Docs section configuration
+  // Creates a Starlight-style documentation layout with left sidebar navigation and right TOC
+  // Add docsSection: true to page/post frontmatter to include in docs navigation
+  // Set docsLanding: true on one page to make it the /docs landing page
+  docsSection: {
+    enabled: true, // Global toggle for docs section
+    slug: "docs", // Base URL: /docs
+    title: "Docs", // Page title
+    showInNav: true, // Show "Docs" link in navigation
+    order: 1, // Nav order (lower = first)
+    defaultExpanded: true, // Expand all sidebar groups by default
   },
 
   // Newsletter notifications configuration

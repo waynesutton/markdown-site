@@ -8,6 +8,10 @@ featured: true
 featuredOrder: 6
 image: /images/firecrwall-blog.png
 tags: ["tutorial", "firecrawl", "import"]
+docsSection: true
+docsSectionOrder: 2
+docsSectionGroup: "Components"
+docsLanding: true
 ---
 
 # How to use Firecrawl

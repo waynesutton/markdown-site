@@ -13,6 +13,10 @@ authorName: "Markdown"
 authorImage: "/images/authors/markdown.png"
 image: "/images/forkconfig.png"
 excerpt: "Set up your forked site with npm run configure or follow the manual FORK_CONFIG.md guide."
+docsSection: true
+docsSectionGroup: "Setup"
+docsSectionGroupOrder: 1
+docsSectionOrder: 1
 ---
 
 # Configure your fork in one command
@@ -97,19 +101,19 @@ If you prefer to update files manually, follow the guide in `FORK_CONFIG.md`. It
 
 The configuration script updates these files:
 
-| File                                | What changes                                                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| File                                | What changes                                                                                                                                                                                                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `src/config/siteConfig.ts`          | Site name, bio, GitHub username, gitHubRepo config, features (logo gallery, GitHub contributions, visitor map, blog page, posts display, homepage, right sidebar, footer, social footer, AI chat, newsletter, contact form, newsletter admin, stats page, MCP server, dashboard, image lightbox) |
-| `src/pages/Home.tsx`                | Intro paragraph, footer links                                                                                      |
-| `src/pages/Post.tsx`                | SITE_URL, SITE_NAME constants                                                                                      |
-| `convex/http.ts`                    | SITE_URL, SITE_NAME constants                                                                                      |
-| `convex/rss.ts`                     | SITE_URL, SITE_TITLE, SITE_DESCRIPTION                                                                             |
-| `index.html`                        | Meta tags, JSON-LD, page title                                                                                     |
-| `public/llms.txt`                   | Site info, GitHub link                                                                                             |
-| `public/robots.txt`                 | Sitemap URL                                                                                                        |
-| `public/openapi.yaml`               | Server URL, site name                                                                                              |
-| `public/.well-known/ai-plugin.json` | Plugin metadata                                                                                                    |
-| `src/context/ThemeContext.tsx`      | Default theme                                                                                                      |
+| `src/pages/Home.tsx`                | Intro paragraph, footer links                                                                                                                                                                                                                                                                    |
+| `src/pages/Post.tsx`                | SITE_URL, SITE_NAME constants                                                                                                                                                                                                                                                                    |
+| `convex/http.ts`                    | SITE_URL, SITE_NAME constants                                                                                                                                                                                                                                                                    |
+| `convex/rss.ts`                     | SITE_URL, SITE_TITLE, SITE_DESCRIPTION                                                                                                                                                                                                                                                           |
+| `index.html`                        | Meta tags, JSON-LD, page title                                                                                                                                                                                                                                                                   |
+| `public/llms.txt`                   | Site info, GitHub link                                                                                                                                                                                                                                                                           |
+| `public/robots.txt`                 | Sitemap URL                                                                                                                                                                                                                                                                                      |
+| `public/openapi.yaml`               | Server URL, site name                                                                                                                                                                                                                                                                            |
+| `public/.well-known/ai-plugin.json` | Plugin metadata                                                                                                                                                                                                                                                                                  |
+| `src/context/ThemeContext.tsx`      | Default theme                                                                                                                                                                                                                                                                                    |
 
 ## Optional settings
 

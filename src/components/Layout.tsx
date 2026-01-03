@@ -35,6 +35,23 @@ export default function Layout({ children }: LayoutProps) {
   // Check if we're on the blog page
   const isBlogPage = location.pathname === "/blog";
 
+  // Fetch docs pages and posts for detecting if current page is in docs section
+  const docsPages = useQuery(
+    siteConfig.docsSection?.enabled ? api.pages.getDocsPages : "skip"
+  );
+  const docsPosts = useQuery(
+    siteConfig.docsSection?.enabled ? api.posts.getDocsPosts : "skip"
+  );
+
+  // Check if current page is a docs page
+  const currentSlug = location.pathname.replace(/^\//, "");
+  const docsSlug = siteConfig.docsSection?.slug || "docs";
+  const isDocsLanding = currentSlug === docsSlug;
+  const isDocsPage =
+    isDocsLanding ||
+    (docsPages?.some((p) => p.slug === currentSlug) ?? false) ||
+    (docsPosts?.some((p) => p.slug === currentSlug) ?? false);
+
   // Get sidebar headings from context (if available)
   const sidebarContext = useSidebarOptional();
   const sidebarHeadings = sidebarContext?.headings || [];
@@ -100,7 +117,7 @@ export default function Layout({ children }: LayoutProps) {
   const showComparablesInNav =
     siteConfig.comparablesPage.enabled && siteConfig.comparablesPage.showInNav;
 
-  // Combine Blog link, Comparables link, hardcoded nav items, and pages, then sort by order
+  // Combine Blog link, Comparables link, Docs link, hardcoded nav items, and pages, then sort by order
   // This allows all nav items to be positioned anywhere via order field
   type NavItem = {
     slug: string;
@@ -129,6 +146,15 @@ export default function Layout({ children }: LayoutProps) {
       title: siteConfig.comparablesPage.title,
       order: siteConfig.comparablesPage.order ?? 1,
       isComparables: true,
+    });
+  }
+
+  // Add Docs link if enabled
+  if (siteConfig.docsSection?.enabled && siteConfig.docsSection?.showInNav) {
+    navItems.push({
+      slug: siteConfig.docsSection.slug,
+      title: siteConfig.docsSection.title,
+      order: siteConfig.docsSection.order ?? 1,
     });
   }
 
@@ -245,6 +271,8 @@ export default function Layout({ children }: LayoutProps) {
         sidebarHeadings={sidebarHeadings}
         sidebarActiveId={sidebarActiveId}
         blogPosts={blogPostsForMobile}
+        showDocsNav={isDocsPage}
+        currentDocsSlug={currentSlug}
       >
         {/* Page navigation links in mobile menu (same order as desktop) */}
         <nav className="mobile-nav-links">

@@ -11,6 +11,10 @@ featured: false
 layout: "sidebar"
 newsletter: true
 excerpt: "Learn how teams use git for markdown version control, sync to Convex deployments, and automate production workflows."
+docsSection: true
+docsSectionOrder: 1
+docsSectionGroup: "Setup"
+docsLanding: true
 ---
 
 # Team Workflows with Git Version Control

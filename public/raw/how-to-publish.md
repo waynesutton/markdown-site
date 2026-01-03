@@ -9,6 +9,8 @@ Reading time: 3 min read
 Tags: tutorial, markdown, cursor, IDE, publishing
 ---
 
+---
+
 # How to Publish a Blog Post
 
 ![nature](/images/matthew-smith-Rfflri94rs8-unsplash.jpg)

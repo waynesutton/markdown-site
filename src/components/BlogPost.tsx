@@ -7,6 +7,8 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { Copy, Check, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import NewsletterSignup from "./NewsletterSignup";
+import ContactForm from "./ContactForm";
 import siteConfig from "../config/siteConfig";
 
 // Whitelisted domains for iframe embeds (YouTube and Twitter/X only)
@@ -32,11 +34,17 @@ const sanitizeSchema = {
     div: ["style"], // Allow inline styles on div for grid layouts
     p: ["style"], // Allow inline styles on p elements
     a: ["style", "href", "target", "rel"], // Allow inline styles on links
-    img: [
-      ...(defaultSchema.attributes?.img || []),
+    img: [...(defaultSchema.attributes?.img || []), "style"], // Allow inline styles on images
+    iframe: [
+      "src",
+      "width",
+      "height",
+      "allow",
+      "allowfullscreen",
+      "frameborder",
+      "title",
       "style",
-    ], // Allow inline styles on images
-    iframe: ["src", "width", "height", "allow", "allowfullscreen", "frameborder", "title", "style"], // Allow iframe with specific attributes
+    ], // Allow iframe with specific attributes
   },
 };
 
@@ -334,6 +342,90 @@ interface BlogPostProps {
   pageType?: "post" | "page"; // Type of content (for tracking)
 }
 
+// Content segment types for inline embeds
+type ContentSegment =
+  | { type: "content"; value: string }
+  | { type: "newsletter" }
+  | { type: "contactform" };
+
+// Strip HTML comments from content, preserving special placeholders
+// Removes <!-- ... --> but keeps <!-- newsletter --> and <!-- contactform -->
+function stripHtmlComments(content: string): string {
+  // First, temporarily replace special placeholders with markers
+  const markers = {
+    newsletter: "___NEWSLETTER_PLACEHOLDER___",
+    contactform: "___CONTACTFORM_PLACEHOLDER___",
+  };
+
+  let processed = content;
+
+  // Replace special placeholders with markers
+  processed = processed.replace(
+    /<!--\s*newsletter\s*-->/gi,
+    markers.newsletter,
+  );
+  processed = processed.replace(
+    /<!--\s*contactform\s*-->/gi,
+    markers.contactform,
+  );
+
+  // Remove all remaining HTML comments (including multi-line)
+  processed = processed.replace(/<!--[\s\S]*?-->/g, "");
+
+  // Restore special placeholders
+  processed = processed.replace(markers.newsletter, "<!-- newsletter -->");
+  processed = processed.replace(markers.contactform, "<!-- contactform -->");
+
+  return processed;
+}
+
+// Parse content for inline embed placeholders
+// Supports: <!-- newsletter --> and <!-- contactform -->
+function parseContentForEmbeds(content: string): ContentSegment[] {
+  const segments: ContentSegment[] = [];
+
+  // Pattern matches <!-- newsletter --> or <!-- contactform --> (case insensitive)
+  const pattern = /<!--\s*(newsletter|contactform)\s*-->/gi;
+
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(content)) !== null) {
+    // Add content before the placeholder
+    if (match.index > lastIndex) {
+      const textBefore = content.slice(lastIndex, match.index);
+      if (textBefore.trim()) {
+        segments.push({ type: "content", value: textBefore });
+      }
+    }
+
+    // Add the embed placeholder
+    const embedType = match[1].toLowerCase();
+    if (embedType === "newsletter") {
+      segments.push({ type: "newsletter" });
+    } else if (embedType === "contactform") {
+      segments.push({ type: "contactform" });
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining content after last placeholder
+  if (lastIndex < content.length) {
+    const remaining = content.slice(lastIndex);
+    if (remaining.trim()) {
+      segments.push({ type: "content", value: remaining });
+    }
+  }
+
+  // If no placeholders found, return single content segment
+  if (segments.length === 0) {
+    segments.push({ type: "content", value: content });
+  }
+
+  return segments;
+}
+
 // Generate slug from heading text for anchor links
 function generateSlug(text: string): string {
   return text
@@ -379,9 +471,16 @@ function HeadingAnchor({ id }: { id: string }) {
   );
 }
 
-export default function BlogPost({ content, slug, pageType = "post" }: BlogPostProps) {
+export default function BlogPost({
+  content,
+  slug,
+  pageType = "post",
+}: BlogPostProps) {
   const { theme } = useTheme();
-  const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
   const isLightboxEnabled = siteConfig.imageLightbox?.enabled !== false;
 
   const getCodeTheme = () => {
@@ -397,6 +496,285 @@ export default function BlogPost({ content, slug, pageType = "post" }: BlogPostP
     }
   };
 
+  // Strip HTML comments (except special placeholders) before processing
+  const cleanedContent = stripHtmlComments(content);
+
+  // Parse content for inline embeds
+  const segments = parseContentForEmbeds(cleanedContent);
+  const hasInlineEmbeds = segments.some((s) => s.type !== "content");
+
+  // Helper to render a single markdown segment
+  const renderMarkdown = (markdownContent: string, key?: number) => (
+    <ReactMarkdown
+      key={key}
+      remarkPlugins={[remarkGfm, remarkBreaks]}
+      rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
+      components={{
+        code(codeProps) {
+          const { className, children, node, style, ...restProps } =
+            codeProps as {
+              className?: string;
+              children?: React.ReactNode;
+              node?: {
+                tagName?: string;
+                properties?: { className?: string[] };
+              };
+              style?: React.CSSProperties;
+              inline?: boolean;
+            };
+          const match = /language-(\w+)/.exec(className || "");
+
+          // Detect inline code: no language class AND content is short without newlines
+          const codeContent = String(children);
+          const hasNewlines = codeContent.includes("\n");
+          const isShort = codeContent.length < 80;
+          const hasLanguage = !!match || !!className;
+
+          // It's inline only if: no language, short content, no newlines
+          const isInline = !hasLanguage && isShort && !hasNewlines;
+
+          if (isInline) {
+            return (
+              <code className="inline-code" style={style} {...restProps}>
+                {children}
+              </code>
+            );
+          }
+
+          const codeString = String(children).replace(/\n$/, "");
+          const language = match ? match[1] : "text";
+          const isTextBlock = language === "text";
+
+          // Custom styles for text blocks to enable wrapping
+          const textBlockStyle = isTextBlock
+            ? {
+                whiteSpace: "pre-wrap" as const,
+                wordWrap: "break-word" as const,
+                overflowWrap: "break-word" as const,
+              }
+            : {};
+
+          return (
+            <div
+              className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}
+            >
+              {match && <span className="code-language">{match[1]}</span>}
+              <CodeCopyButton code={codeString} />
+              <SyntaxHighlighter
+                style={getCodeTheme()}
+                language={language}
+                PreTag="div"
+                customStyle={textBlockStyle}
+                codeTagProps={
+                  isTextBlock ? { style: textBlockStyle } : undefined
+                }
+              >
+                {codeString}
+              </SyntaxHighlighter>
+            </div>
+          );
+        },
+        img({ src, alt }) {
+          const handleImageClick = () => {
+            if (isLightboxEnabled && src) {
+              setLightboxImage({ src, alt: alt || "" });
+            }
+          };
+          return (
+            <span className="blog-image-wrapper">
+              <img
+                src={src}
+                alt={alt || ""}
+                className={`blog-image ${isLightboxEnabled ? "blog-image-clickable" : ""}`}
+                loading="lazy"
+                onClick={isLightboxEnabled ? handleImageClick : undefined}
+                style={isLightboxEnabled ? { cursor: "pointer" } : undefined}
+              />
+              {alt && <span className="blog-image-caption">{alt}</span>}
+            </span>
+          );
+        },
+        a({ href, children }) {
+          const isExternal = href?.startsWith("http");
+          return (
+            <a
+              href={href}
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noopener noreferrer" : undefined}
+              className="blog-link"
+            >
+              {children}
+            </a>
+          );
+        },
+        blockquote({ children }) {
+          return (
+            <blockquote className="blog-blockquote">{children}</blockquote>
+          );
+        },
+        h1({ children }) {
+          const id = generateSlug(getTextContent(children));
+          return (
+            <h1 id={id} className="blog-h1">
+              <HeadingAnchor id={id} />
+              {children}
+            </h1>
+          );
+        },
+        h2({ children }) {
+          const id = generateSlug(getTextContent(children));
+          return (
+            <h2 id={id} className="blog-h2">
+              <HeadingAnchor id={id} />
+              {children}
+            </h2>
+          );
+        },
+        h3({ children }) {
+          const id = generateSlug(getTextContent(children));
+          return (
+            <h3 id={id} className="blog-h3">
+              <HeadingAnchor id={id} />
+              {children}
+            </h3>
+          );
+        },
+        h4({ children }) {
+          const id = generateSlug(getTextContent(children));
+          return (
+            <h4 id={id} className="blog-h4">
+              <HeadingAnchor id={id} />
+              {children}
+            </h4>
+          );
+        },
+        h5({ children }) {
+          const id = generateSlug(getTextContent(children));
+          return (
+            <h5 id={id} className="blog-h5">
+              <HeadingAnchor id={id} />
+              {children}
+            </h5>
+          );
+        },
+        h6({ children }) {
+          const id = generateSlug(getTextContent(children));
+          return (
+            <h6 id={id} className="blog-h6">
+              <HeadingAnchor id={id} />
+              {children}
+            </h6>
+          );
+        },
+        ul({ children }) {
+          return <ul className="blog-ul">{children}</ul>;
+        },
+        ol({ children }) {
+          return <ol className="blog-ol">{children}</ol>;
+        },
+        li({ children }) {
+          return <li className="blog-li">{children}</li>;
+        },
+        hr() {
+          return <hr className="blog-hr" />;
+        },
+        // Table components for GitHub-style tables
+        table({ children }) {
+          return (
+            <div className="blog-table-wrapper">
+              <table className="blog-table">{children}</table>
+            </div>
+          );
+        },
+        thead({ children }) {
+          return <thead className="blog-thead">{children}</thead>;
+        },
+        tbody({ children }) {
+          return <tbody className="blog-tbody">{children}</tbody>;
+        },
+        tr({ children }) {
+          return <tr className="blog-tr">{children}</tr>;
+        },
+        th({ children }) {
+          return <th className="blog-th">{children}</th>;
+        },
+        td({ children }) {
+          return <td className="blog-td">{children}</td>;
+        },
+        // Iframe component with domain whitelisting for YouTube and Twitter/X
+        iframe(props) {
+          const src = props.src as string;
+          if (!src) return null;
+
+          try {
+            const url = new URL(src);
+            const isAllowed = ALLOWED_IFRAME_DOMAINS.some(
+              (domain) =>
+                url.hostname === domain || url.hostname.endsWith("." + domain),
+            );
+            if (!isAllowed) return null;
+
+            return (
+              <div className="embed-container">
+                <iframe
+                  {...props}
+                  sandbox="allow-scripts allow-same-origin allow-popups"
+                  loading="lazy"
+                />
+              </div>
+            );
+          } catch {
+            return null;
+          }
+        },
+      }}
+    >
+      {markdownContent}
+    </ReactMarkdown>
+  );
+
+  // Build source string for tracking
+  const sourcePrefix = pageType === "page" ? "page" : "post";
+  const source = slug ? `${sourcePrefix}:${slug}` : sourcePrefix;
+
+  // Render with inline embeds if placeholders exist
+  if (hasInlineEmbeds) {
+    return (
+      <>
+        <article className="blog-post-content">
+          {segments.map((segment, index) => {
+            if (segment.type === "newsletter") {
+              // Newsletter signup inline
+              return siteConfig.newsletter?.enabled ? (
+                <NewsletterSignup
+                  key={`newsletter-${index}`}
+                  source={pageType === "page" ? "post" : "post"}
+                  postSlug={slug}
+                />
+              ) : null;
+            }
+            if (segment.type === "contactform") {
+              // Contact form inline
+              return siteConfig.contactForm?.enabled ? (
+                <ContactForm key={`contactform-${index}`} source={source} />
+              ) : null;
+            }
+            // Markdown content segment
+            return renderMarkdown(segment.value, index);
+          })}
+        </article>
+        {lightboxImage && (
+          <ImageLightbox
+            src={lightboxImage.src}
+            alt={lightboxImage.alt}
+            onClose={() => setLightboxImage(null)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // No inline embeds, render content normally
   return (
     <>
       <article className="blog-post-content">
@@ -404,217 +782,230 @@ export default function BlogPost({ content, slug, pageType = "post" }: BlogPostP
           remarkPlugins={[remarkGfm, remarkBreaks]}
           rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
           components={{
-          code(codeProps) {
-            const { className, children, node, style, ...restProps } = codeProps as {
-              className?: string;
-              children?: React.ReactNode;
-              node?: { tagName?: string; properties?: { className?: string[] } };
-              style?: React.CSSProperties;
-              inline?: boolean;
-            };
-            const match = /language-(\w+)/.exec(className || "");
-            
-            // Detect inline code: no language class AND content is short without newlines
-            // Fenced code blocks (even without language) are longer or have structure
-            const codeContent = String(children);
-            const hasNewlines = codeContent.includes('\n');
-            const isShort = codeContent.length < 80;
-            const hasLanguage = !!match || !!className;
-            
-            // It's inline only if: no language, short content, no newlines
-            const isInline = !hasLanguage && isShort && !hasNewlines;
+            code(codeProps) {
+              const { className, children, node, style, ...restProps } =
+                codeProps as {
+                  className?: string;
+                  children?: React.ReactNode;
+                  node?: {
+                    tagName?: string;
+                    properties?: { className?: string[] };
+                  };
+                  style?: React.CSSProperties;
+                  inline?: boolean;
+                };
+              const match = /language-(\w+)/.exec(className || "");
 
-            if (isInline) {
-              return (
-                <code className="inline-code" style={style} {...restProps}>
-                  {children}
-                </code>
-              );
-            }
+              // Detect inline code: no language class AND content is short without newlines
+              // Fenced code blocks (even without language) are longer or have structure
+              const codeContent = String(children);
+              const hasNewlines = codeContent.includes("\n");
+              const isShort = codeContent.length < 80;
+              const hasLanguage = !!match || !!className;
 
-            const codeString = String(children).replace(/\n$/, "");
-            const language = match ? match[1] : "text";
-            const isTextBlock = language === "text";
-            
-            // Custom styles for text blocks to enable wrapping
-            const textBlockStyle = isTextBlock ? {
-              whiteSpace: "pre-wrap" as const,
-              wordWrap: "break-word" as const,
-              overflowWrap: "break-word" as const,
-            } : {};
-            
-            return (
-              <div className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}>
-                {match && <span className="code-language">{match[1]}</span>}
-                <CodeCopyButton code={codeString} />
-                <SyntaxHighlighter
-                  style={getCodeTheme()}
-                  language={language}
-                  PreTag="div"
-                  customStyle={textBlockStyle}
-                  codeTagProps={isTextBlock ? { style: textBlockStyle } : undefined}
-                >
-                  {codeString}
-                </SyntaxHighlighter>
-              </div>
-            );
-          },
-          img({ src, alt }) {
-            const handleImageClick = () => {
-              if (isLightboxEnabled && src) {
-                setLightboxImage({ src, alt: alt || "" });
+              // It's inline only if: no language, short content, no newlines
+              const isInline = !hasLanguage && isShort && !hasNewlines;
+
+              if (isInline) {
+                return (
+                  <code className="inline-code" style={style} {...restProps}>
+                    {children}
+                  </code>
+                );
               }
-            };
-            return (
-              <span className="blog-image-wrapper">
-                <img
-                  src={src}
-                  alt={alt || ""}
-                  className={`blog-image ${isLightboxEnabled ? "blog-image-clickable" : ""}`}
-                  loading="lazy"
-                  onClick={isLightboxEnabled ? handleImageClick : undefined}
-                  style={isLightboxEnabled ? { cursor: "pointer" } : undefined}
-                />
-                {alt && <span className="blog-image-caption">{alt}</span>}
-              </span>
-            );
-          },
-          a({ href, children }) {
-            const isExternal = href?.startsWith("http");
-            return (
-              <a
-                href={href}
-                target={isExternal ? "_blank" : undefined}
-                rel={isExternal ? "noopener noreferrer" : undefined}
-                className="blog-link"
-              >
-                {children}
-              </a>
-            );
-          },
-          blockquote({ children }) {
-            return (
-              <blockquote className="blog-blockquote">{children}</blockquote>
-            );
-          },
-          h1({ children }) {
-            const id = generateSlug(getTextContent(children));
-            return (
-              <h1 id={id} className="blog-h1">
-                <HeadingAnchor id={id} />
-                {children}
-              </h1>
-            );
-          },
-          h2({ children }) {
-            const id = generateSlug(getTextContent(children));
-            return (
-              <h2 id={id} className="blog-h2">
-                <HeadingAnchor id={id} />
-                {children}
-              </h2>
-            );
-          },
-          h3({ children }) {
-            const id = generateSlug(getTextContent(children));
-            return (
-              <h3 id={id} className="blog-h3">
-                <HeadingAnchor id={id} />
-                {children}
-              </h3>
-            );
-          },
-          h4({ children }) {
-            const id = generateSlug(getTextContent(children));
-            return (
-              <h4 id={id} className="blog-h4">
-                <HeadingAnchor id={id} />
-                {children}
-              </h4>
-            );
-          },
-          h5({ children }) {
-            const id = generateSlug(getTextContent(children));
-            return (
-              <h5 id={id} className="blog-h5">
-                <HeadingAnchor id={id} />
-                {children}
-              </h5>
-            );
-          },
-          h6({ children }) {
-            const id = generateSlug(getTextContent(children));
-            return (
-              <h6 id={id} className="blog-h6">
-                <HeadingAnchor id={id} />
-                {children}
-              </h6>
-            );
-          },
-          ul({ children }) {
-            return <ul className="blog-ul">{children}</ul>;
-          },
-          ol({ children }) {
-            return <ol className="blog-ol">{children}</ol>;
-          },
-          li({ children }) {
-            return <li className="blog-li">{children}</li>;
-          },
-          hr() {
-            return <hr className="blog-hr" />;
-          },
-          // Table components for GitHub-style tables
-          table({ children }) {
-            return (
-              <div className="blog-table-wrapper">
-                <table className="blog-table">{children}</table>
-              </div>
-            );
-          },
-          thead({ children }) {
-            return <thead className="blog-thead">{children}</thead>;
-          },
-          tbody({ children }) {
-            return <tbody className="blog-tbody">{children}</tbody>;
-          },
-          tr({ children }) {
-            return <tr className="blog-tr">{children}</tr>;
-          },
-          th({ children }) {
-            return <th className="blog-th">{children}</th>;
-          },
-          td({ children }) {
-            return <td className="blog-td">{children}</td>;
-          },
-          // Iframe component with domain whitelisting for YouTube and Twitter/X
-          iframe(props) {
-            const src = props.src as string;
-            if (!src) return null;
 
-            try {
-              const url = new URL(src);
-              const isAllowed = ALLOWED_IFRAME_DOMAINS.some(
-                (domain) =>
-                  url.hostname === domain || url.hostname.endsWith("." + domain)
-              );
-              if (!isAllowed) return null;
+              const codeString = String(children).replace(/\n$/, "");
+              const language = match ? match[1] : "text";
+              const isTextBlock = language === "text";
+
+              // Custom styles for text blocks to enable wrapping
+              const textBlockStyle = isTextBlock
+                ? {
+                    whiteSpace: "pre-wrap" as const,
+                    wordWrap: "break-word" as const,
+                    overflowWrap: "break-word" as const,
+                  }
+                : {};
 
               return (
-                <div className="embed-container">
-                  <iframe
-                    {...props}
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                    loading="lazy"
-                  />
+                <div
+                  className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}
+                >
+                  {match && <span className="code-language">{match[1]}</span>}
+                  <CodeCopyButton code={codeString} />
+                  <SyntaxHighlighter
+                    style={getCodeTheme()}
+                    language={language}
+                    PreTag="div"
+                    customStyle={textBlockStyle}
+                    codeTagProps={
+                      isTextBlock ? { style: textBlockStyle } : undefined
+                    }
+                  >
+                    {codeString}
+                  </SyntaxHighlighter>
                 </div>
               );
-            } catch {
-              return null;
-            }
-          },
+            },
+            img({ src, alt }) {
+              const handleImageClick = () => {
+                if (isLightboxEnabled && src) {
+                  setLightboxImage({ src, alt: alt || "" });
+                }
+              };
+              return (
+                <span className="blog-image-wrapper">
+                  <img
+                    src={src}
+                    alt={alt || ""}
+                    className={`blog-image ${isLightboxEnabled ? "blog-image-clickable" : ""}`}
+                    loading="lazy"
+                    onClick={isLightboxEnabled ? handleImageClick : undefined}
+                    style={
+                      isLightboxEnabled ? { cursor: "pointer" } : undefined
+                    }
+                  />
+                  {alt && <span className="blog-image-caption">{alt}</span>}
+                </span>
+              );
+            },
+            a({ href, children }) {
+              const isExternal = href?.startsWith("http");
+              return (
+                <a
+                  href={href}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                  className="blog-link"
+                >
+                  {children}
+                </a>
+              );
+            },
+            blockquote({ children }) {
+              return (
+                <blockquote className="blog-blockquote">{children}</blockquote>
+              );
+            },
+            h1({ children }) {
+              const id = generateSlug(getTextContent(children));
+              return (
+                <h1 id={id} className="blog-h1">
+                  <HeadingAnchor id={id} />
+                  {children}
+                </h1>
+              );
+            },
+            h2({ children }) {
+              const id = generateSlug(getTextContent(children));
+              return (
+                <h2 id={id} className="blog-h2">
+                  <HeadingAnchor id={id} />
+                  {children}
+                </h2>
+              );
+            },
+            h3({ children }) {
+              const id = generateSlug(getTextContent(children));
+              return (
+                <h3 id={id} className="blog-h3">
+                  <HeadingAnchor id={id} />
+                  {children}
+                </h3>
+              );
+            },
+            h4({ children }) {
+              const id = generateSlug(getTextContent(children));
+              return (
+                <h4 id={id} className="blog-h4">
+                  <HeadingAnchor id={id} />
+                  {children}
+                </h4>
+              );
+            },
+            h5({ children }) {
+              const id = generateSlug(getTextContent(children));
+              return (
+                <h5 id={id} className="blog-h5">
+                  <HeadingAnchor id={id} />
+                  {children}
+                </h5>
+              );
+            },
+            h6({ children }) {
+              const id = generateSlug(getTextContent(children));
+              return (
+                <h6 id={id} className="blog-h6">
+                  <HeadingAnchor id={id} />
+                  {children}
+                </h6>
+              );
+            },
+            ul({ children }) {
+              return <ul className="blog-ul">{children}</ul>;
+            },
+            ol({ children }) {
+              return <ol className="blog-ol">{children}</ol>;
+            },
+            li({ children }) {
+              return <li className="blog-li">{children}</li>;
+            },
+            hr() {
+              return <hr className="blog-hr" />;
+            },
+            // Table components for GitHub-style tables
+            table({ children }) {
+              return (
+                <div className="blog-table-wrapper">
+                  <table className="blog-table">{children}</table>
+                </div>
+              );
+            },
+            thead({ children }) {
+              return <thead className="blog-thead">{children}</thead>;
+            },
+            tbody({ children }) {
+              return <tbody className="blog-tbody">{children}</tbody>;
+            },
+            tr({ children }) {
+              return <tr className="blog-tr">{children}</tr>;
+            },
+            th({ children }) {
+              return <th className="blog-th">{children}</th>;
+            },
+            td({ children }) {
+              return <td className="blog-td">{children}</td>;
+            },
+            // Iframe component with domain whitelisting for YouTube and Twitter/X
+            iframe(props) {
+              const src = props.src as string;
+              if (!src) return null;
+
+              try {
+                const url = new URL(src);
+                const isAllowed = ALLOWED_IFRAME_DOMAINS.some(
+                  (domain) =>
+                    url.hostname === domain ||
+                    url.hostname.endsWith("." + domain),
+                );
+                if (!isAllowed) return null;
+
+                return (
+                  <div className="embed-container">
+                    <iframe
+                      {...props}
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                      loading="lazy"
+                    />
+                  </div>
+                );
+              } catch {
+                return null;
+              }
+            },
           }}
         >
-          {content}
+          {cleanedContent}
         </ReactMarkdown>
       </article>
       {lightboxImage && (

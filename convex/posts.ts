@@ -238,6 +238,7 @@ export const getPostBySlug = query({
       aiChat: v.optional(v.boolean()),
       newsletter: v.optional(v.boolean()),
       contactForm: v.optional(v.boolean()),
+      docsSection: v.optional(v.boolean()),
     }),
     v.null(),
   ),
@@ -277,6 +278,7 @@ export const getPostBySlug = query({
       aiChat: post.aiChat,
       newsletter: post.newsletter,
       contactForm: post.contactForm,
+      docsSection: post.docsSection,
     };
   },
 });
@@ -384,6 +386,12 @@ export const syncPosts = internalMutation({
         newsletter: v.optional(v.boolean()),
         contactForm: v.optional(v.boolean()),
         unlisted: v.optional(v.boolean()),
+        docsSection: v.optional(v.boolean()),
+        docsSectionGroup: v.optional(v.string()),
+        docsSectionOrder: v.optional(v.number()),
+        docsSectionGroupOrder: v.optional(v.number()),
+        docsSectionGroupIcon: v.optional(v.string()),
+        docsLanding: v.optional(v.boolean()),
       }),
     ),
   },
@@ -435,6 +443,12 @@ export const syncPosts = internalMutation({
           newsletter: post.newsletter,
           contactForm: post.contactForm,
           unlisted: post.unlisted,
+          docsSection: post.docsSection,
+          docsSectionGroup: post.docsSectionGroup,
+          docsSectionOrder: post.docsSectionOrder,
+          docsSectionGroupOrder: post.docsSectionGroupOrder,
+          docsSectionGroupIcon: post.docsSectionGroupIcon,
+          docsLanding: post.docsLanding,
           lastSyncedAt: now,
         });
         updated++;
@@ -490,6 +504,12 @@ export const syncPostsPublic = mutation({
         newsletter: v.optional(v.boolean()),
         contactForm: v.optional(v.boolean()),
         unlisted: v.optional(v.boolean()),
+        docsSection: v.optional(v.boolean()),
+        docsSectionGroup: v.optional(v.string()),
+        docsSectionOrder: v.optional(v.number()),
+        docsSectionGroupOrder: v.optional(v.number()),
+        docsSectionGroupIcon: v.optional(v.string()),
+        docsLanding: v.optional(v.boolean()),
       }),
     ),
   },
@@ -541,6 +561,12 @@ export const syncPostsPublic = mutation({
           newsletter: post.newsletter,
           contactForm: post.contactForm,
           unlisted: post.unlisted,
+          docsSection: post.docsSection,
+          docsSectionGroup: post.docsSectionGroup,
+          docsSectionOrder: post.docsSectionOrder,
+          docsSectionGroupOrder: post.docsSectionGroupOrder,
+          docsSectionGroupIcon: post.docsSectionGroupIcon,
+          docsLanding: post.docsLanding,
           lastSyncedAt: now,
         });
         updated++;
@@ -872,5 +898,102 @@ export const getPostsByAuthor = query({
       authorName: post.authorName,
       authorImage: post.authorImage,
     }));
+  },
+});
+
+// Get all posts marked for docs section navigation
+// Used by DocsSidebar to build the left navigation
+export const getDocsPosts = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("posts"),
+      slug: v.string(),
+      title: v.string(),
+      docsSectionGroup: v.optional(v.string()),
+      docsSectionOrder: v.optional(v.number()),
+      docsSectionGroupOrder: v.optional(v.number()),
+      docsSectionGroupIcon: v.optional(v.string()),
+    }),
+  ),
+  handler: async (ctx) => {
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_docsSection", (q) => q.eq("docsSection", true))
+      .collect();
+
+    // Filter to only published posts
+    const publishedDocs = posts.filter((p) => p.published);
+
+    // Sort by docsSectionOrder, then by title
+    const sortedDocs = publishedDocs.sort((a, b) => {
+      const orderA = a.docsSectionOrder ?? 999;
+      const orderB = b.docsSectionOrder ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.title.localeCompare(b.title);
+    });
+
+    return sortedDocs.map((post) => ({
+      _id: post._id,
+      slug: post.slug,
+      title: post.title,
+      docsSectionGroup: post.docsSectionGroup,
+      docsSectionOrder: post.docsSectionOrder,
+      docsSectionGroupOrder: post.docsSectionGroupOrder,
+      docsSectionGroupIcon: post.docsSectionGroupIcon,
+    }));
+  },
+});
+
+// Get the docs landing page (post with docsLanding: true)
+// Returns null if no landing page is set
+export const getDocsLandingPost = query({
+  args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id("posts"),
+      slug: v.string(),
+      title: v.string(),
+      description: v.string(),
+      content: v.string(),
+      date: v.string(),
+      tags: v.array(v.string()),
+      readTime: v.optional(v.string()),
+      image: v.optional(v.string()),
+      showImageAtTop: v.optional(v.boolean()),
+      authorName: v.optional(v.string()),
+      authorImage: v.optional(v.string()),
+      docsSectionGroup: v.optional(v.string()),
+      docsSectionOrder: v.optional(v.number()),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx) => {
+    // Get all docs posts and find one with docsLanding: true
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_docsSection", (q) => q.eq("docsSection", true))
+      .collect();
+
+    const landing = posts.find((p) => p.published && p.docsLanding);
+
+    if (!landing) return null;
+
+    return {
+      _id: landing._id,
+      slug: landing.slug,
+      title: landing.title,
+      description: landing.description,
+      content: landing.content,
+      date: landing.date,
+      tags: landing.tags,
+      readTime: landing.readTime,
+      image: landing.image,
+      showImageAtTop: landing.showImageAtTop,
+      authorName: landing.authorName,
+      authorImage: landing.authorImage,
+      docsSectionGroup: landing.docsSectionGroup,
+      docsSectionOrder: landing.docsSectionOrder,
+    };
   },
 });

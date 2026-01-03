@@ -2,12 +2,8 @@ import { ReactNode, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Heading } from "../utils/extractHeadings";
-
-interface BlogPost {
-  slug: string;
-  title: string;
-  date: string;
-}
+import DocsSidebar from "./DocsSidebar";
+import siteConfig from "../config/siteConfig";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -15,7 +11,8 @@ interface MobileMenuProps {
   children: ReactNode;
   sidebarHeadings?: Heading[];
   sidebarActiveId?: string;
-  blogPosts?: BlogPost[];
+  showDocsNav?: boolean;
+  currentDocsSlug?: string;
 }
 
 /**
@@ -29,11 +26,12 @@ export default function MobileMenu({
   children,
   sidebarHeadings = [],
   sidebarActiveId,
-  blogPosts = [],
+  showDocsNav = false,
+  currentDocsSlug,
 }: MobileMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const hasSidebar = sidebarHeadings.length > 0;
-  const hasBlogPosts = blogPosts.length > 0;
+  const showDocsSection = showDocsNav && siteConfig.docsSection?.enabled;
 
   // Handle escape key to close menu
   useEffect(() => {
@@ -145,6 +143,13 @@ export default function MobileMenu({
         <div className="mobile-menu-content">
           {children}
 
+          {/* Docs sidebar navigation (when on a docs page) */}
+          {showDocsSection && (
+            <div className="mobile-menu-docs">
+              <DocsSidebar currentSlug={currentDocsSlug} isMobile={true} />
+            </div>
+          )}
+
           {/* Table of contents from sidebar (if page has sidebar) */}
           {hasSidebar && (
             <div className="mobile-menu-toc">
@@ -161,26 +166,6 @@ export default function MobileMenu({
                     <ChevronRight size={12} className="mobile-menu-toc-icon" />
                     {heading.text}
                   </button>
-                ))}
-              </nav>
-            </div>
-          )}
-
-          {/* Blog posts navigation (if on blog page) */}
-          {hasBlogPosts && (
-            <div className="mobile-menu-toc">
-              <div className="mobile-menu-toc-title">Blog Posts</div>
-              <nav className="mobile-menu-toc-links">
-                {blogPosts.map((post) => (
-                  <Link
-                    key={post.slug}
-                    to={`/${post.slug}`}
-                    className="mobile-menu-toc-link"
-                    onClick={onClose}
-                  >
-                    <ChevronRight size={12} className="mobile-menu-toc-icon" />
-                    {post.title}
-                  </Link>
                 ))}
               </nav>
             </div>

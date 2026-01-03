@@ -164,6 +164,43 @@ showFooter: true
 footer: "Custom footer text in **markdown**"
 ```
 
+## Docs section navigation
+
+Posts and pages can appear in the docs sidebar navigation using these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| docsSection | boolean | Include in docs navigation |
+| docsSectionGroup | string | Sidebar group name |
+| docsSectionOrder | number | Order within group (lower = first) |
+| docsSectionGroupOrder | number | Order of group itself (lower = first) |
+| docsSectionGroupIcon | string | Phosphor icon name for group (e.g., "Rocket", "Book") |
+| docsLanding | boolean | Use as /docs landing page |
+
+### Example docs post
+
+```yaml
+---
+title: "Getting Started"
+slug: "getting-started"
+published: true
+docsSection: true
+docsSectionGroup: "Quick Start"
+docsSectionOrder: 1
+docsSectionGroupOrder: 1
+docsSectionGroupIcon: "Rocket"
+layout: "sidebar"
+---
+```
+
+### Supported icons
+
+The following Phosphor icon names are supported for `docsSectionGroupIcon`:
+
+House, Book, Gear, Folder, Code, FileText, Question, Lightbulb, Rocket, Star, Heart, Bell, Calendar, User, ArrowRight, Check, Warning, Info, Lightning, Database, Globe, Lock, Key, Shield, Terminal, Package, PuzzlePiece, Flag, Target, Compass, MapPin, Bookmark, Tag, Hash, Link, At, Play, Pause, Plus, Minus, X, List, MagnifyingGlass, FunnelSimple, SortAscending, Download, Upload, Share, Copy, Clipboard, PencilSimple, Trash, Archive, Eye, EyeClosed
+
+Only one item per group needs to specify the icon. If multiple items in a group have different icons, the first one found will be used.
+
 ## Validation
 
 The sync script validates:

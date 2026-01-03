@@ -14,6 +14,14 @@ blogFeatured: true
 authorImage: "/images/authors/markdown.png"
 image: "/images/matthew-smith-Rfflri94rs8-unsplash.jpg"
 excerpt: "Quick guide to writing and publishing markdown posts with npm run sync."
+aiChat: true
+docsSection: true
+docsSectionGroup: "Publishing"
+docsSectionGroupIcon: "User"
+docsSectionOrder: 3
+docsSectionGroupOrder: 3
+---
+
 ---
 
 # How to Publish a Blog Post

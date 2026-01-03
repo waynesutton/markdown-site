@@ -14,6 +14,10 @@ showImageAtTop: true
 authorName: "Markdown"
 authorImage: "/images/authors/markdown.png"
 image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=630&fit=crop"
+docsSection: true
+docsSectionOrder: 3
+docsSectionGroup: "Publishing"
+docsLanding: true
 ---
 
 # Using Images in Blog Posts

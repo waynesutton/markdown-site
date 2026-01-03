@@ -4,13 +4,27 @@
 
 - [ ] docs pages
 - [ ] fix site confg link
+
 - [ ] npm package
 
 ## Current Status
 
-v2.6.0 ready. Multi-model AI chat and image generation in Dashboard.
+v2.8.0 ready. Docs sidebar group icons via frontmatter.
 
 ## Completed
+
+- [x] Docs sidebar group icons via frontmatter
+  - [x] Added `docsSectionGroupIcon` frontmatter field for posts and pages
+  - [x] Icon appears left of the group title expand/collapse chevron
+  - [x] Uses Phosphor Icons (55 supported icon names)
+  - [x] Icon weight: regular, size: 16px
+  - [x] Only one item per group needs to specify the icon
+  - [x] Graceful fallback if icon name not recognized
+  - [x] Updated sync-posts.ts, schema.ts, posts.ts, pages.ts
+  - [x] Updated DocsSidebar.tsx with icon mapping and rendering
+  - [x] Added CSS styles for group icons
+  - [x] Updated frontmatter.md skill with icon documentation
+  - [x] Updated docs.md, files.md, setup-guide.md with new field
 
 - [x] Multi-model AI chat and image generation in Dashboard
   - [x] AI Agent section with tab-based UI (Chat and Image Generation tabs)

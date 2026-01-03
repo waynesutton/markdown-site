@@ -8,6 +8,11 @@ published: true
 blogFeatured: true
 layout: "sidebar"
 tags: ["mcp", "cursor", "ai", "tutorial", "netlify"]
+docsSection: true
+docsSectionOrder: 2
+docsSectionGroup: "Components"
+docsSectionGroupIcon: "PuzzlePiece"
+docsLanding: true
 ---
 
 This site includes an HTTP-based Model Context Protocol (MCP) server that allows AI tools like Cursor, Claude Desktop, and other MCP-compatible clients to access blog content programmatically.

@@ -11,6 +11,10 @@ layout: "sidebar"
 featuredOrder: 2
 image: /images/dashboard.png
 excerpt: "A complete guide to using the dashboard for managing your markdown blog without leaving your browser."
+docsSection: true
+docsSectionOrder: 2
+docsSectionGroup: "Components"
+docsLanding: true
 ---
 
 # How to use the Markdown sync dashboard

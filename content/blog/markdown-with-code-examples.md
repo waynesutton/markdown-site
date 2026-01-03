@@ -12,6 +12,10 @@ featured: false
 layout: "sidebar"
 featuredOrder: 5
 image: "/images/markdown.png"
+docsSection: true
+docsSectionOrder: 3
+docsSectionGroup: "Publishing"
+docsLanding: true
 ---
 
 # Writing Markdown with Code Examples
@@ -346,7 +350,8 @@ Embed a YouTube video using an iframe:
   height="315"
   src="https://www.youtube.com/embed/dQw4w9WgXcQ"
   title="YouTube video"
-  allowfullscreen>
+  allowfullscreen
+>
 </iframe>
 ```
 
@@ -362,7 +367,8 @@ Embed a tweet using the Twitter embed URL:
 <iframe
   src="https://platform.twitter.com/embed/Tweet.html?id=20"
   width="550"
-  height="250">
+  height="250"
+>
 </iframe>
 ```
 
@@ -380,7 +386,8 @@ Use `youtube-nocookie.com` for privacy-enhanced embeds:
   height="315"
   src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
   title="YouTube video"
-  allowfullscreen>
+  allowfullscreen
+>
 </iframe>
 ```
 

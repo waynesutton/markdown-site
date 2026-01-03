@@ -10,6 +10,10 @@ layout: "sidebar"
 blogFeatured: true
 image: /images/agentmail-blog.png
 tags: ["agentmail", "newsletter", "email", "setup"]
+docsSection: true
+docsSectionOrder: 2
+docsSectionGroup: "Components"
+docsLanding: true
 ---
 
 AgentMail provides email infrastructure for your markdown blog, enabling newsletter subscriptions, contact forms, and automated email notifications. This guide covers setup, configuration, and usage.

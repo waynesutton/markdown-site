@@ -11,6 +11,11 @@ featuredOrder: 4
 layout: "sidebar"
 image: /images/workos.png
 excerpt: "Complete guide to setting up WorkOS AuthKit authentication for your dashboard. WorkOS is optional and can be configured in siteConfig.ts."
+docsSection: true
+docsSectionOrder: 2
+docsSectionGroup: "Components"
+docsSectionGroupIcon: "PuzzlePiece"
+docsLanding: true
 ---
 
 # How to setup WorkOS

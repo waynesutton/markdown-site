@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.8.0] - 2026-01-03
+
+### Added
+
+- `docsSectionGroupIcon` frontmatter field for docs sidebar group icons
+  - Display Phosphor icons next to docs sidebar group titles
+  - Icon appears left of the expand/collapse chevron
+  - 55 supported icon names (Rocket, Book, PuzzlePiece, Gear, Code, etc.)
+  - Icon weight: regular, size: 16px
+  - Only one item per group needs to specify the icon
+  - Graceful fallback if icon name not recognized
+
+### Technical
+
+- Updated `convex/schema.ts` to include `docsSectionGroupIcon` field in posts and pages tables
+- Updated `convex/posts.ts` and `convex/pages.ts` queries and mutations to handle `docsSectionGroupIcon`
+- Updated `scripts/sync-posts.ts` to parse `docsSectionGroupIcon` from frontmatter
+- Updated `src/components/DocsSidebar.tsx` with Phosphor icon imports and rendering
+- Added CSS styles for `.docs-sidebar-group-icon` in `src/styles/global.css`
+- Updated `.claude/skills/frontmatter.md` with icon documentation and supported icon list
+
+## [2.7.0] - 2026-01-02
+
+### Added
+
+- `docsSectionGroupOrder` frontmatter field for controlling docs sidebar group order
+  - Groups are sorted by the minimum `docsSectionGroupOrder` value among items in each group
+  - Lower numbers appear first, groups without this field sort alphabetically
+  - Works alongside `docsSection`, `docsSectionGroup`, and `docsSectionOrder` fields
+
+### Technical
+
+- Updated `convex/schema.ts` to include `docsSectionGroupOrder` field in posts and pages tables
+- Updated `convex/posts.ts` and `convex/pages.ts` queries and mutations to handle `docsSectionGroupOrder`
+- Updated `scripts/sync-posts.ts` to parse `docsSectionGroupOrder` from frontmatter
+- Updated `src/components/DocsSidebar.tsx` to sort groups by `docsSectionGroupOrder`
+
 ## [2.6.0] - 2026-01-01
 
 ### Added

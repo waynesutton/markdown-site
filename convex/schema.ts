@@ -29,6 +29,12 @@ export default defineSchema({
     newsletter: v.optional(v.boolean()), // Override newsletter signup display (true/false)
     contactForm: v.optional(v.boolean()), // Enable contact form on this post
     unlisted: v.optional(v.boolean()), // Hide from listings but allow direct access via slug
+    docsSection: v.optional(v.boolean()), // Include in docs navigation
+    docsSectionGroup: v.optional(v.string()), // Sidebar group name in docs
+    docsSectionOrder: v.optional(v.number()), // Order within group (lower = first)
+    docsSectionGroupOrder: v.optional(v.number()), // Order of group itself (lower = first)
+    docsSectionGroupIcon: v.optional(v.string()), // Phosphor icon name for sidebar group
+    docsLanding: v.optional(v.boolean()), // Use as /docs landing page
     lastSyncedAt: v.number(),
   })
     .index("by_slug", ["slug"])
@@ -37,6 +43,7 @@ export default defineSchema({
     .index("by_featured", ["featured"])
     .index("by_blogFeatured", ["blogFeatured"])
     .index("by_authorName", ["authorName"])
+    .index("by_docsSection", ["docsSection"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["published"],
@@ -114,11 +121,18 @@ export default defineSchema({
     contactForm: v.optional(v.boolean()), // Enable contact form on this page
     newsletter: v.optional(v.boolean()), // Override newsletter signup display (true/false)
     textAlign: v.optional(v.string()), // Text alignment: "left", "center", "right" (default: "left")
+    docsSection: v.optional(v.boolean()), // Include in docs navigation
+    docsSectionGroup: v.optional(v.string()), // Sidebar group name in docs
+    docsSectionOrder: v.optional(v.number()), // Order within group (lower = first)
+    docsSectionGroupOrder: v.optional(v.number()), // Order of group itself (lower = first)
+    docsSectionGroupIcon: v.optional(v.string()), // Phosphor icon name for sidebar group
+    docsLanding: v.optional(v.boolean()), // Use as /docs landing page
     lastSyncedAt: v.number(),
   })
   .index("by_slug", ["slug"])
   .index("by_published", ["published"])
   .index("by_featured", ["featured"])
+  .index("by_docsSection", ["docsSection"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["published"],
