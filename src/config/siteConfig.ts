@@ -440,10 +440,10 @@ export const siteConfig: SiteConfig = {
   },
 
   // Blog page configuration
-  // Set enabled to true to create a dedicated /blog page
+  // Blog is now the homepage, so disabled as a separate route
   blogPage: {
-    enabled: true, // Enable the /blog route
-    showInNav: true, // Show "Blog" link in navigation
+    enabled: false, // Disabled - blog is now the homepage
+    showInNav: false, // No separate Blog link needed
     title: "Blog", // Page title
     description: "All posts from the blog, sorted by date.", // Optional description
     order: 2, // Nav order (lower = first, e.g., 0 = first, 5 = after pages with order 0-4)
@@ -566,28 +566,18 @@ export const siteConfig: SiteConfig = {
   },
 
   // Social footer configuration
-  // Displays social icons on left and copyright on right
-  // Can work with or without the main footer
-  // Use showSocialFooter: false in frontmatter to hide on specific posts/pages
+  // Disabled - no social media links
   socialFooter: {
-    enabled: true, // Global toggle for social footer
-    showOnHomepage: true, // Show social footer on homepage
-    showOnPosts: true, // Default: show social footer on blog posts
-    showOnPages: true, // Default: show social footer on static pages
-    showOnBlogPage: true, // Show social footer on /blog page
-    showInHeader: true, // Show social icons in header (left of search icon)
-    socialLinks: [
-      {
-        platform: "github",
-        url: "https://github.com/waynesutton/markdown-site",
-      },
-      { platform: "twitter", url: "https://x.com/waynesutton" },
-      { platform: "linkedin", url: "https://www.linkedin.com/in/waynesutton/" },
-      { platform: "discord", url: "https://www.convex.dev/community/" },
-    ],
+    enabled: false, // Disabled
+    showOnHomepage: false,
+    showOnPosts: false,
+    showOnPages: false,
+    showOnBlogPage: false,
+    showInHeader: false,
+    socialLinks: [],
     copyright: {
-      siteName: "MarkDown Sync is open-source", // Update with your site/company name
-      showYear: true, // Auto-updates to current year
+      siteName: "",
+      showYear: false,
     },
   },
 
