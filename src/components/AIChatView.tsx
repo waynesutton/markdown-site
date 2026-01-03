@@ -10,7 +10,6 @@ import {
   Check,
   Stop,
   Trash,
-  FileText,
   SpinnerGap,
   Image,
   Link,
@@ -378,13 +377,15 @@ export default function AIChatView({
     setTimeout(() => setCopiedMessageIndex(null), 2000);
   };
 
-  // Handle load page context
-  const handleLoadContext = async () => {
-    if (!chatId || !pageContent) return;
-
-    await setPageContext({ chatId, pageContext: pageContent });
-    setHasLoadedContext(true);
-  };
+  // Auto-load page context on startup when chat is ready
+  useEffect(() => {
+    const loadContext = async () => {
+      if (!chatId || !pageContent || hasLoadedContext) return;
+      await setPageContext({ chatId, pageContext: pageContent });
+      setHasLoadedContext(true);
+    };
+    loadContext();
+  }, [chatId, pageContent, hasLoadedContext, setPageContext]);
 
   // Handle clear chat
   const handleClear = async () => {
@@ -418,16 +419,6 @@ export default function AIChatView({
       <div className="ai-chat-header">
         <span className="ai-chat-title">Agent</span>
         <div className="ai-chat-header-actions">
-          {pageContent && !hasLoadedContext && (
-            <button
-              className="ai-chat-load-context-button"
-              onClick={handleLoadContext}
-              title="Load page content as context"
-            >
-              <FileText size={16} weight="bold" />
-              <span>Load Page</span>
-            </button>
-          )}
           {pageContent && hasLoadedContext && (
             <span className="ai-chat-context-loaded">
               <Check size={14} weight="bold" />
