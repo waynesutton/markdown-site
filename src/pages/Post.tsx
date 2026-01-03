@@ -371,9 +371,12 @@ export default function Post({
   const headings =
     post?.layout === "sidebar" ? extractHeadings(post.content) : [];
   const hasLeftSidebar = headings.length > 0;
-  // Check if right sidebar is enabled (only when explicitly set in frontmatter)
+  // Check if right sidebar is enabled
+  // For blog posts: enabled by default unless explicitly disabled (rightSidebar: false)
   const hasRightSidebar =
-    siteConfig.rightSidebar.enabled && post.rightSidebar === true;
+    siteConfig.rightSidebar.enabled && post.rightSidebar !== false;
+  // AI chat is enabled by default for blog posts unless explicitly disabled (aiChat: false)
+  const postAiChatEnabled = post.aiChat !== false;
   const hasAnySidebar = hasLeftSidebar || hasRightSidebar;
   // Track if only right sidebar is enabled (for centering article)
   const hasOnlyRightSidebar = hasRightSidebar && !hasLeftSidebar;
@@ -579,10 +582,10 @@ export default function Post({
               : siteConfig.socialFooter.showOnPosts) && <SocialFooter />}
         </article>
 
-        {/* Right sidebar - with optional AI chat support */}
+        {/* Right sidebar - with AI chat enabled by default for blog posts */}
         {hasRightSidebar && (
           <RightSidebar
-            aiChatEnabled={post.aiChat}
+            aiChatEnabled={postAiChatEnabled}
             pageContent={post.content}
             slug={post.slug}
           />

@@ -3,12 +3,19 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Heading } from "../utils/extractHeadings";
 
+interface BlogPost {
+  slug: string;
+  title: string;
+  date: string;
+}
+
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
   sidebarHeadings?: Heading[];
   sidebarActiveId?: string;
+  blogPosts?: BlogPost[];
 }
 
 /**
@@ -22,9 +29,11 @@ export default function MobileMenu({
   children,
   sidebarHeadings = [],
   sidebarActiveId,
+  blogPosts = [],
 }: MobileMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const hasSidebar = sidebarHeadings.length > 0;
+  const hasBlogPosts = blogPosts.length > 0;
 
   // Handle escape key to close menu
   useEffect(() => {
@@ -152,6 +161,26 @@ export default function MobileMenu({
                     <ChevronRight size={12} className="mobile-menu-toc-icon" />
                     {heading.text}
                   </button>
+                ))}
+              </nav>
+            </div>
+          )}
+
+          {/* Blog posts navigation (if on blog page) */}
+          {hasBlogPosts && (
+            <div className="mobile-menu-toc">
+              <div className="mobile-menu-toc-title">Blog Posts</div>
+              <nav className="mobile-menu-toc-links">
+                {blogPosts.map((post) => (
+                  <Link
+                    key={post.slug}
+                    to={`/${post.slug}`}
+                    className="mobile-menu-toc-link"
+                    onClick={onClose}
+                  >
+                    <ChevronRight size={12} className="mobile-menu-toc-icon" />
+                    {post.title}
+                  </Link>
                 ))}
               </nav>
             </div>

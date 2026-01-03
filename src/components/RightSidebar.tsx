@@ -17,12 +17,11 @@ export default function RightSidebar({
   // Check if AI chat should be shown
   // Requires:
   // 1. Global config enabled (siteConfig.aiChat.enabledOnContent)
-  // 2. Frontmatter explicitly enabled (aiChat: true)
+  // 2. aiChatEnabled is true (passed from parent component)
   // 3. Slug exists for context ID
-  // If aiChat: false is set in frontmatter, chat will be hidden even if global config is enabled
   const showAIChat =
     siteConfig.aiChat.enabledOnContent &&
-    aiChatEnabled === true &&
+    aiChatEnabled &&
     slug;
 
   if (showAIChat) {

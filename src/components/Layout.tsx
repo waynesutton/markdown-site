@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useCallback } from "react";
+import { ReactNode, useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -27,14 +27,29 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   // Fetch published pages for navigation
   const pages = useQuery(api.pages.getAllPages);
+  // Fetch all posts for mobile menu blog navigation (only used on /blog page)
+  const posts = useQuery(api.posts.getAllPosts);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  // Check if we're on the blog page
+  const isBlogPage = location.pathname === "/blog";
 
   // Get sidebar headings from context (if available)
   const sidebarContext = useSidebarOptional();
   const sidebarHeadings = sidebarContext?.headings || [];
   const sidebarActiveId = sidebarContext?.activeId;
+
+  // Transform posts for mobile menu (only when on blog page)
+  const blogPostsForMobile = useMemo(() => {
+    if (!isBlogPage || !posts) return [];
+    return posts.map((post) => ({
+      slug: post.slug,
+      title: post.title,
+      date: post.date,
+    }));
+  }, [isBlogPage, posts]);
 
   // Open search modal
   const openSearch = useCallback(() => {
@@ -236,6 +251,7 @@ export default function Layout({ children }: LayoutProps) {
         onClose={closeMobileMenu}
         sidebarHeadings={sidebarHeadings}
         sidebarActiveId={sidebarActiveId}
+        blogPosts={blogPostsForMobile}
       >
         {/* Page navigation links in mobile menu (same order as desktop) */}
         <nav className="mobile-nav-links">
@@ -252,10 +268,10 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
       </MobileMenu>
 
-      {/* Use wider layout for stats and blog pages, normal layout for other pages */}
+      {/* Use wider layout for stats page, normal layout for other pages */}
       <main
         className={
-          location.pathname === "/stats" || location.pathname === "/blog"
+          location.pathname === "/stats"
             ? "main-content-wide"
             : "main-content"
         }
