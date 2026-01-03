@@ -10,7 +10,6 @@ import MobileMenu, { HamburgerButton } from "./MobileMenu";
 import ScrollToTop, { ScrollToTopConfig } from "./ScrollToTop";
 import { useSidebarOptional } from "../context/SidebarContext";
 import siteConfig from "../config/siteConfig";
-import { platformIcons } from "./SocialFooter";
 
 // Scroll-to-top configuration - enabled by default
 // Customize threshold (pixels) to control when button appears
@@ -206,27 +205,6 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Desktop search and theme (visible on desktop only) */}
         <div className="desktop-controls desktop-only">
-          {/* Social icons in header (if enabled) */}
-          {siteConfig.socialFooter?.enabled &&
-            siteConfig.socialFooter?.showInHeader && (
-              <div className="header-social-links">
-                {siteConfig.socialFooter.socialLinks.map((link) => {
-                  const IconComponent = platformIcons[link.platform];
-                  return (
-                    <a
-                      key={link.platform}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="header-social-link"
-                      aria-label={`Follow on ${link.platform}`}
-                    >
-                      <IconComponent size={18} weight="regular" />
-                    </a>
-                  );
-                })}
-              </div>
-            )}
           {/* Search button with icon */}
           <button
             onClick={openSearch}

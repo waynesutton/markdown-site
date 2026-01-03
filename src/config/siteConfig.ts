@@ -498,15 +498,13 @@ export const siteConfig: SiteConfig = {
   },
 
   // Footer configuration
-  // Footer content is loaded from content/pages/footer.md (synced via npm run sync)
-  // Use showFooter: false in frontmatter to hide footer on specific posts/pages
+  // Disabled - no footer
   footer: {
-    enabled: true, // Global toggle for footer
-    showOnHomepage: true, // Show footer on homepage
-    showOnPosts: true, // Default: show footer on blog posts (override with frontmatter)
-    showOnPages: true, // Default: show footer on static pages (override with frontmatter)
-    showOnBlogPage: true, // Show footer on /blog page
-    // Default footer markdown (fallback if footer.md doesn't exist - edit content/pages/footer.md instead)
+    enabled: false,
+    showOnHomepage: false,
+    showOnPosts: false,
+    showOnPages: false,
+    showOnBlogPage: false,
     defaultContent: undefined,
   },
 
