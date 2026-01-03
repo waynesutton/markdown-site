@@ -11,12 +11,14 @@
 import type * as aiChatActions from "../aiChatActions.js";
 import type * as aiChats from "../aiChats.js";
 import type * as aiImageGeneration from "../aiImageGeneration.js";
+import type * as comparables from "../comparables.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as pages from "../pages.js";
 import type * as posts from "../posts.js";
 import type * as rss from "../rss.js";
 import type * as search from "../search.js";
+import type * as stats from "../stats.js";
 
 import type {
   ApiFromModules,
@@ -28,12 +30,14 @@ declare const fullApi: ApiFromModules<{
   aiChatActions: typeof aiChatActions;
   aiChats: typeof aiChats;
   aiImageGeneration: typeof aiImageGeneration;
+  comparables: typeof comparables;
   crons: typeof crons;
   http: typeof http;
   pages: typeof pages;
   posts: typeof posts;
   rss: typeof rss;
   search: typeof search;
+  stats: typeof stats;
 }>;
 
 /**

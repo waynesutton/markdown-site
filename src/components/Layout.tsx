@@ -96,13 +96,18 @@ export default function Layout({ children }: LayoutProps) {
   const showBlogInNav =
     siteConfig.blogPage.enabled && siteConfig.blogPage.showInNav;
 
-  // Combine Blog link, hardcoded nav items, and pages, then sort by order
+  // Check if Comparables link should be shown in nav
+  const showComparablesInNav =
+    siteConfig.comparablesPage.enabled && siteConfig.comparablesPage.showInNav;
+
+  // Combine Blog link, Comparables link, hardcoded nav items, and pages, then sort by order
   // This allows all nav items to be positioned anywhere via order field
   type NavItem = {
     slug: string;
     title: string;
     order: number;
     isBlog?: boolean;
+    isComparables?: boolean;
   };
 
   const navItems: NavItem[] = [];
@@ -114,6 +119,16 @@ export default function Layout({ children }: LayoutProps) {
       title: siteConfig.blogPage.title,
       order: siteConfig.blogPage.order ?? 0,
       isBlog: true,
+    });
+  }
+
+  // Add Comparables link if enabled
+  if (showComparablesInNav) {
+    navItems.push({
+      slug: "comparables",
+      title: siteConfig.comparablesPage.title,
+      order: siteConfig.comparablesPage.order ?? 1,
+      isComparables: true,
     });
   }
 

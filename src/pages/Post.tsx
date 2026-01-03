@@ -36,9 +36,10 @@ export default function Post({
   // Use prop slug if provided (for homepage), otherwise use route slug
   const slug = propSlug || routeSlug;
 
-  // Check for page first, then post
+  // Check for page first, then post, then comparable
   const page = useQuery(api.pages.getPageBySlug, slug ? { slug } : "skip");
   const post = useQuery(api.posts.getPostBySlug, slug ? { slug } : "skip");
+  const comparable = useQuery(api.comparables.getComparableBySlug, slug ? { slug } : "skip");
 
   // Fetch related posts based on current post's tags (only for blog posts, not pages)
   const relatedPosts = useQuery(
@@ -48,12 +49,20 @@ export default function Post({
       : "skip",
   );
 
+  // Fetch related comparables based on current comparable's tags
+  const relatedComparables = useQuery(
+    api.comparables.getRelatedComparables,
+    comparable && !page && !post
+      ? { currentSlug: comparable.slug, tags: comparable.tags, limit: 3 }
+      : "skip",
+  );
+
   const [copied, setCopied] = useState(false);
 
   // Scroll to hash anchor after content loads
   useEffect(() => {
     if (!location.hash) return;
-    if (page === undefined && post === undefined) return;
+    if (page === undefined && post === undefined && comparable === undefined) return;
 
     // Small delay to ensure content is rendered
     const timer = setTimeout(() => {
@@ -65,7 +74,7 @@ export default function Post({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [location.hash, page, post]);
+  }, [location.hash, page, post, comparable]);
 
   // Update sidebar context with headings for mobile menu
   useEffect(() => {
@@ -81,8 +90,14 @@ export default function Post({
       setHeadings(postHeadings);
       setActiveId(location.hash.slice(1) || undefined);
     }
+    // Extract headings for comparables with sidebar layout
+    else if (comparable && comparable.layout === "sidebar") {
+      const comparableHeadings = extractHeadings(comparable.content);
+      setHeadings(comparableHeadings);
+      setActiveId(location.hash.slice(1) || undefined);
+    }
     // Clear headings when no sidebar
-    else if (page !== undefined || post !== undefined) {
+    else if (page !== undefined || post !== undefined || comparable !== undefined) {
       setHeadings([]);
       setActiveId(undefined);
     }
@@ -92,7 +107,7 @@ export default function Post({
       setHeadings([]);
       setActiveId(undefined);
     };
-  }, [page, post, location.hash, setHeadings, setActiveId]);
+  }, [page, post, comparable, location.hash, setHeadings, setActiveId]);
 
   // Update page title for static pages
   useEffect(() => {
@@ -105,7 +120,7 @@ export default function Post({
 
   // Inject JSON-LD structured data and Open Graph meta tags for blog posts
   useEffect(() => {
-    if (!post || page) return; // Skip if it's a page
+    if (!post || page || comparable) return; // Skip if it's a page or comparable
 
     const postUrl = `${SITE_URL}/${post.slug}`;
     const ogImage = post.image
@@ -190,10 +205,10 @@ export default function Post({
       const scriptEl = document.getElementById("json-ld-article");
       if (scriptEl) scriptEl.remove();
     };
-  }, [post, page]);
+  }, [post, page, comparable]);
 
   // Return null during initial load to avoid flash (Convex data arrives quickly)
-  if (page === undefined || post === undefined) {
+  if (page === undefined || post === undefined || comparable === undefined) {
     return null;
   }
 
@@ -319,8 +334,171 @@ export default function Post({
     );
   }
 
-  // Handle not found (neither page nor post)
-  if (post === null) {
+  // If it's a comparable, render it like a blog post
+  if (comparable) {
+    // Extract headings for sidebar TOC (only for comparables with layout: "sidebar")
+    const headings =
+      comparable?.layout === "sidebar" ? extractHeadings(comparable.content) : [];
+    const hasLeftSidebar = headings.length > 0;
+    // Check if right sidebar is enabled
+    const hasRightSidebar =
+      siteConfig.rightSidebar.enabled && comparable.rightSidebar !== false;
+    const comparableAiChatEnabled = comparable.aiChat !== false;
+    const hasAnySidebar = hasLeftSidebar || hasRightSidebar;
+    const hasOnlyRightSidebar = hasRightSidebar && !hasLeftSidebar;
+
+    // Render comparable with full metadata
+    return (
+      <div
+        className={`post-page ${hasAnySidebar ? "post-page-with-sidebar" : ""}`}
+      >
+        <nav
+          className={`post-nav ${hasAnySidebar ? "post-nav-with-sidebar" : ""}`}
+        >
+          {!hasAnySidebar && !isHomepage && (
+            <button onClick={() => navigate("/")} className="back-button">
+              <ArrowLeft size={16} />
+              <span>Back</span>
+            </button>
+          )}
+          {!hasAnySidebar && (
+            <CopyPageDropdown
+              title={comparable.title}
+              content={comparable.content}
+              url={window.location.href}
+              slug={comparable.slug}
+              description={comparable.excerpt || comparable.description}
+            />
+          )}
+        </nav>
+
+        <div
+          className={`${hasAnySidebar ? "post-content-with-sidebar" : ""} ${hasOnlyRightSidebar ? "post-content-right-sidebar-only" : ""}`}
+        >
+          {hasLeftSidebar && (
+            <aside className="post-sidebar-wrapper post-sidebar-left">
+              <PageSidebar
+                headings={headings}
+                activeId={location.hash.slice(1)}
+              />
+            </aside>
+          )}
+
+          <article
+            className={`post-article ${hasAnySidebar ? "post-article-with-sidebar" : ""} ${hasOnlyRightSidebar ? "post-article-centered" : ""}`}
+          >
+            {comparable.showImageAtTop && comparable.image && (
+              <div className="post-header-image">
+                <img
+                  src={comparable.image}
+                  alt={comparable.title}
+                  className="post-header-image-img"
+                />
+              </div>
+            )}
+            <header className="post-header">
+              <div className="post-title-row">
+                <h1 className="post-title">{comparable.title}</h1>
+                {hasAnySidebar && (
+                  <div className="post-header-actions">
+                    <CopyPageDropdown
+                      title={comparable.title}
+                      content={comparable.content}
+                      url={window.location.href}
+                      slug={comparable.slug}
+                      description={comparable.excerpt || comparable.description}
+                    />
+                  </div>
+                )}
+              </div>
+              {comparable.authorName && (
+                <div className="post-meta">
+                  <div className="post-author">
+                    {comparable.authorImage && (
+                      <img
+                        src={comparable.authorImage}
+                        alt={comparable.authorName}
+                        className="post-author-image"
+                      />
+                    )}
+                    {comparable.authorName && (
+                      <Link
+                        to={`/author/${comparable.authorName.toLowerCase().replace(/\s+/g, "-")}`}
+                        className="post-author-name post-author-link"
+                      >
+                        {comparable.authorName}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div className="post-meta">
+                <time className="post-date">
+                  {format(parseISO(comparable.date), "MMMM d, yyyy")}
+                </time>
+                {comparable.readTime && (
+                  <span className="post-read-time">{comparable.readTime}</span>
+                )}
+              </div>
+            </header>
+
+            <BlogPost content={comparable.content} slug={comparable.slug} pageType="post" />
+
+            {comparable.tags && comparable.tags.length > 0 && (
+              <div className="post-tags">
+                <div className="post-tags-list">
+                  {comparable.tags.map((tag: string) => (
+                    <Link
+                      key={tag}
+                      to={`/tags/${tag.toLowerCase()}`}
+                      className="post-tag"
+                    >
+                      <Tag size={12} />
+                      <span>{tag}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {relatedComparables && relatedComparables.length > 0 && (
+              <div className="related-posts">
+                <h2>Related Comparables</h2>
+                <div className="related-posts-list">
+                  {relatedComparables.map((relatedComparable) => (
+                    <Link
+                      key={relatedComparable._id}
+                      to={`/${relatedComparable.slug}`}
+                      className="related-post-card"
+                    >
+                      <h3 className="related-post-title">
+                        {relatedComparable.title}
+                      </h3>
+                      <p className="related-post-meta">
+                        {format(parseISO(relatedComparable.date), "MMM d, yyyy")}
+                        {relatedComparable.readTime && ` · ${relatedComparable.readTime}`}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </article>
+
+          {hasRightSidebar && (
+            <RightSidebar
+              aiChatEnabled={comparableAiChatEnabled}
+              pageContent={comparable.content}
+              slug={comparable.slug}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Handle not found (no page, post, or comparable)
+  if (post === null && comparable === null) {
     return (
       <div className="post-page">
         <div className="post-not-found">

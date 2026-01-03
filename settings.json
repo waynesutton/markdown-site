@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Read",
+      "MultiEdit",
+      "Write",
+      "Update",
+      "WebSearch",
+      "WebFetch",
+      "Bash",
+      "Skill",
+      "Task"
+    ],
+    "deny": [],
+    "ask": [
+      "Bash(rm:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+  }
+}

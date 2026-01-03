@@ -46,6 +46,50 @@ export default defineSchema({
       filterFields: ["published"],
     }),
 
+  // Comparables table
+  comparables: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    description: v.string(),
+    content: v.string(),
+    date: v.string(),
+    published: v.boolean(),
+    tags: v.array(v.string()),
+    readTime: v.optional(v.string()),
+    image: v.optional(v.string()), // Header/OG image URL
+    showImageAtTop: v.optional(v.boolean()), // Display image at top of post (default: false)
+    excerpt: v.optional(v.string()), // Short excerpt for card view
+    featured: v.optional(v.boolean()), // Show in featured section
+    featuredOrder: v.optional(v.number()), // Order in featured section (lower = first)
+    authorName: v.optional(v.string()), // Author display name
+    authorImage: v.optional(v.string()), // Author avatar image URL (round)
+    layout: v.optional(v.string()), // Layout type: "sidebar" for docs-style layout
+    rightSidebar: v.optional(v.boolean()), // Enable right sidebar with CopyPageDropdown
+    showFooter: v.optional(v.boolean()), // Show footer on this post (overrides siteConfig default)
+    footer: v.optional(v.string()), // Footer markdown content (overrides siteConfig defaultContent)
+    showSocialFooter: v.optional(v.boolean()), // Show social footer on this post (overrides siteConfig default)
+    aiChat: v.optional(v.boolean()), // Enable AI chat in right sidebar
+    blogFeatured: v.optional(v.boolean()), // Show as hero featured post on /blog page
+    newsletter: v.optional(v.boolean()), // Override newsletter signup display (true/false)
+    contactForm: v.optional(v.boolean()), // Enable contact form on this post
+    unlisted: v.optional(v.boolean()), // Hide from listings but allow direct access via slug
+    lastSyncedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_date", ["date"])
+    .index("by_published", ["published"])
+    .index("by_featured", ["featured"])
+    .index("by_blogFeatured", ["blogFeatured"])
+    .index("by_authorName", ["authorName"])
+    .searchIndex("search_content", {
+      searchField: "content",
+      filterFields: ["published"],
+    })
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["published"],
+    }),
+
   // Static pages (about, projects, contact, etc.)
   pages: defineTable({
     slug: v.string(),

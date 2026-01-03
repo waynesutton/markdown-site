@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import Post from "./pages/Post";
 import Blog from "./pages/Blog";
+import Comparables from "./pages/Comparables";
 import TagPage from "./pages/TagPage";
 import AuthorPage from "./pages/AuthorPage";
 import Callback from "./pages/Callback";
@@ -26,6 +27,10 @@ function App() {
         <Routes>
           {/* Homepage is the Blog page */}
           <Route path="/" element={<Blog />} />
+          {/* Blog page route */}
+          <Route path="/blog" element={<Blog />} />
+          {/* Comparables page route */}
+          <Route path="/comparables" element={<Comparables />} />
           {/* Tag page route - displays posts filtered by tag */}
           <Route path="/tags/:tag" element={<TagPage />} />
           {/* Author page route - displays posts by a specific author */}
