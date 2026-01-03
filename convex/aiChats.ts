@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 
 // Get or create an AI chat session
 export const getOrCreateAIChat = mutation({
@@ -112,8 +113,11 @@ export const generateUploadUrl = mutation(async (ctx) => {
 });
 
 // Get URL for a stored file
-export const getStorageUrl = query(async (ctx, { storageId }: { storageId: v.Id<"_storage"> }) => {
-  return await ctx.storage.getUrl(storageId);
+export const getStorageUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, { storageId }) => {
+    return await ctx.storage.getUrl(storageId);
+  },
 });
 
 // Clear all messages from a chat
@@ -175,4 +179,40 @@ export const updateAssistantMessage = mutation({
             })
         }
     }
+});
+
+// Internal mutation to save generated image metadata
+export const saveGeneratedImage = internalMutation({
+  args: {
+    sessionId: v.string(),
+    prompt: v.string(),
+    model: v.string(),
+    storageId: v.id("_storage"),
+    mimeType: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("aiGeneratedImages", {
+      sessionId: args.sessionId,
+      prompt: args.prompt,
+      model: args.model,
+      storageId: args.storageId,
+      mimeType: args.mimeType,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+// Internal query to get recent images for a session
+export const getRecentImagesInternal = internalQuery({
+  args: {
+    sessionId: v.string(),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("aiGeneratedImages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .order("desc")
+      .take(args.limit);
+  },
 });
