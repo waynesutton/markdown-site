@@ -1,12 +1,12 @@
 # llms.txt - Information for AI assistants and LLMs
 # Learn more: https://llmstxt.org/
-# Last updated: 2025-12-31T01:30:04.563Z
+# Last updated: 2026-01-04T04:52:17.081Z
 
 > Your content is instantly available to browsers, LLMs, and AI agents.
 
 # Site Information
 - Name: markdown 
-- URL: https://markdown.fast
+- URL: https://yoursite.example.com
 - Description: Your content is instantly available to browsers, LLMs, and AI agents. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
 - Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source, AI, LLM, AEO, GEO
 - Total Posts: 17

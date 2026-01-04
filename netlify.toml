@@ -105,7 +105,7 @@
 [[headers]]
   for = "/raw/*"
   [headers.values]
-    Content-Type = "text/markdown; charset=utf-8"
+    Content-Type = "text/plain; charset=utf-8"
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=3600"
     # Removed X-Robots-Tag = "noindex" - AI crawlers need to index raw content
