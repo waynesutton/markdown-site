@@ -1,4 +1,4 @@
-# Team Workflows with Git Version Control
+# Team Workflows
 
 > How teams collaborate on markdown content using git, sync to shared Convex deployments, and automate production syncs with CI/CD.
 

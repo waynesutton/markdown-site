@@ -20,6 +20,7 @@ export const listAll = query({
       featuredOrder: v.optional(v.number()),
       authorName: v.optional(v.string()),
       authorImage: v.optional(v.string()),
+      source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))),
     }),
   ),
   handler: async (ctx) => {
@@ -48,6 +49,7 @@ export const listAll = query({
       featuredOrder: page.featuredOrder,
       authorName: page.authorName,
       authorImage: page.authorImage,
+      source: page.source,
     }));
   },
 });
@@ -317,6 +319,7 @@ export const getDocsLandingPage = query({
 });
 
 // Public mutation for syncing pages from markdown files
+// Respects source field: only syncs pages where source !== "dashboard"
 export const syncPagesPublic = mutation({
   args: {
     pages: v.array(
@@ -356,11 +359,13 @@ export const syncPagesPublic = mutation({
     created: v.number(),
     updated: v.number(),
     deleted: v.number(),
+    skipped: v.number(),
   }),
   handler: async (ctx, args) => {
     let created = 0;
     let updated = 0;
     let deleted = 0;
+    let skipped = 0;
 
     const now = Date.now();
     const incomingSlugs = new Set(args.pages.map((p) => p.slug));
@@ -369,12 +374,17 @@ export const syncPagesPublic = mutation({
     const existingPages = await ctx.db.query("pages").collect();
     const existingBySlug = new Map(existingPages.map((p) => [p.slug, p]));
 
-    // Upsert incoming pages
+    // Upsert incoming pages (only if source !== "dashboard")
     for (const page of args.pages) {
       const existing = existingBySlug.get(page.slug);
 
       if (existing) {
-        // Update existing page
+        // Skip dashboard-created pages - don't overwrite them
+        if (existing.source === "dashboard") {
+          skipped++;
+          continue;
+        }
+        // Update existing sync page
         await ctx.db.patch(existing._id, {
           title: page.title,
           content: page.content,
@@ -403,27 +413,29 @@ export const syncPagesPublic = mutation({
           docsSectionGroupOrder: page.docsSectionGroupOrder,
           docsSectionGroupIcon: page.docsSectionGroupIcon,
           docsLanding: page.docsLanding,
+          source: "sync",
           lastSyncedAt: now,
         });
         updated++;
       } else {
-        // Create new page
+        // Create new page with source: "sync"
         await ctx.db.insert("pages", {
           ...page,
+          source: "sync",
           lastSyncedAt: now,
         });
         created++;
       }
     }
 
-    // Delete pages that no longer exist in the repo
+    // Delete pages that no longer exist in the repo (but not dashboard pages)
     for (const existing of existingPages) {
-      if (!incomingSlugs.has(existing.slug)) {
+      if (!incomingSlugs.has(existing.slug) && existing.source !== "dashboard") {
         await ctx.db.delete(existing._id);
         deleted++;
       }
     }
 
-    return { created, updated, deleted };
+    return { created, updated, deleted, skipped };
   },
 });

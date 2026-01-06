@@ -24,6 +24,8 @@ agents. -->
 
 **Sync Commands** - Sync discovery commands to update AGENTS.md, CLAUDE.md, and llms.txt
 
+**Semantic search** - Find content by meaning, not just keywords, using vector embeddings.
+
 ---
 
 ## Blog Posts (18)
@@ -34,7 +36,7 @@ agents. -->
   - Date: 2025-12-29 | Reading time: 10 min read | Tags: workos, authentication, tutorial, dashboard
 - **[How to use the Markdown sync dashboard](/raw/how-to-use-the-markdown-sync-dashboard.md)** - Learn how to use the dashboard at /dashboard to manage content, configure your site, and sync markdown files without leaving your browser.
   - Date: 2025-12-29 | Reading time: 8 min read | Tags: dashboard, tutorial, content-management
-- **[Team Workflows with Git Version Control](/raw/team-workflows-git-version-control.md)** - How teams collaborate on markdown content using git, sync to shared Convex deployments, and automate production syncs with CI/CD.
+- **[Team Workflows](/raw/team-workflows-git-version-control.md)** - How teams collaborate on markdown content using git, sync to shared Convex deployments, and automate production syncs with CI/CD.
   - Date: 2025-12-29 | Reading time: 6 min read | Tags: git, convex, ci-cd, collaboration, workflow
 - **[How to Use the MCP Server with MarkDown Sync](/raw/how-to-use-mcp-server.md)** - Guide to using the HTTP-based Model Context Protocol(MCP) server at www.markdown.fast/mcp with Cursor and other AI tools
   - Date: 2025-12-28 | Reading time: 5 min read | Tags: mcp, cursor, ai, tutorial, netlify
@@ -58,27 +60,34 @@ agents. -->
   - Date: 2025-12-14 | Reading time: 3 min read | Tags: tutorial, markdown, cursor, IDE, publishing
 - **[Writing Markdown with Code Examples](/raw/markdown-with-code-examples.md)** - A complete reference for writing markdown with links, code blocks, images, tables, and formatting. Copy examples directly into your posts.
   - Date: 2025-12-14 | Reading time: 5 min read | Tags: markdown, tutorial, code
-- **[Netlify edge functions blocking AI crawlers from static files](/raw/netlify-edge-excludedpath-ai-crawlers.md)** - Why excludedPath in netlify.toml isn't preventing edge functions from intercepting /raw/* requests, and how ChatGPT and Perplexity get blocked while Claude works.
-  - Date: 2025-12-14 | Reading time: 5 min read | Tags: netlify, edge-functions, ai, troubleshooting, help
-- **[Setup Guide - Fork and Deploy Your Own Markdown Framework](/raw/setup-guide.md)** - Step-by-step guide to fork this markdown sync framework, set up Convex backend, and deploy to Netlify in under 10 minutes.
+- **[How we fixed AI crawlers blocked by Netlify edge functions](/raw/netlify-edge-excludedpath-ai-crawlers.md)** - ChatGPT and Perplexity couldn't fetch /raw/*.md files on Netlify. The fix: Content-Type headers. Here's what we tried and what actually worked.
+  - Date: 2025-12-14 | Reading time: 5 min read | Tags: netlify, edge-functions, ai, troubleshooting
+- **[Setup Guide](/raw/setup-guide.md)** - Step-by-step guide to fork this markdown sync framework, set up Convex backend, and deploy to Netlify in under 10 minutes.
   - Date: 2025-12-14 | Reading time: 8 min read | Tags: convex, netlify, tutorial, deployment
 - **[Using Images in Blog Posts](/raw/using-images-in-posts.md)** - Learn how to add header images, inline images, and Open Graph images to your markdown posts.
   - Date: 2025-12-14 | Reading time: 4 min read | Tags: images, tutorial, markdown, open-graph
 
-## Pages (8)
+## Pages (15)
 
 - **[Footer](/raw/footer.md)**
 - **[Home Intro](/raw/home-intro.md)**
 - **[Documentation](/raw/documentation.md)**
 - **[About](/raw/about.md)** - An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs.
+- **[Content](/raw/docs-content.md)**
+- **[Search](/raw/docs-search.md)**
+- **[Semantic Search](/raw/docs-semantic-search.md)**
+- **[Frontmatter](/raw/docs-frontmatter.md)**
 - **[Projects](/raw/projects.md)**
 - **[Contact](/raw/contact.md)**
+- **[Configuration](/raw/docs-configuration.md)**
 - **[Changelog](/raw/changelog.md)**
+- **[Dashboard](/raw/docs-dashboard.md)**
+- **[Deployment](/raw/docs-deployment.md)**
 - **[Newsletter](/raw/newsletter.md)**
 
 ---
 
-**Total Content:** 18 posts, 8 pages
+**Total Content:** 18 posts, 15 pages
 
 All content is available as raw markdown files at `/raw/{slug}.md`
 

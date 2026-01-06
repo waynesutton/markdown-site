@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-01-04
+Date: 2026-01-06
 ---
 
 An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
@@ -82,7 +82,9 @@ It's a hybrid: developer workflow for publishing + real-time delivery like a dyn
 
 **Search and discovery:**
 
-- Full text search with Command+K shortcut
+- Dual search modes: Keyword (exact match) and Semantic (meaning-based) with Cmd+K toggle
+- Semantic search uses OpenAI embeddings for finding conceptually similar content
+- Full text search with Command+K shortcut and result highlighting
 - Static raw markdown files at `/raw/{slug}.md`
 - RSS feeds (`/rss.xml` and `/rss-full.xml`) and sitemap for SEO
 - API endpoints for AI/LLM access (`/api/posts`, `/api/export`)

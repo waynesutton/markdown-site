@@ -2,10 +2,140 @@
 
 ---
 Type: page
-Date: 2026-01-04
+Date: 2026-01-06
 ---
 
 All notable changes to this project.
+
+## v2.10.0
+
+Released January 5, 2026
+
+**Semantic search with vector embeddings**
+
+Search now supports two modes accessible via Cmd+K:
+
+- **Keyword search** (existing) - Matches exact words using Convex full-text search. Instant, free, supports highlighting.
+- **Semantic search** (new) - Finds content by meaning using OpenAI embeddings. Toggle to "Semantic" mode in search modal.
+
+**How semantic search works:**
+
+1. Your query is converted to a 1536-dimension vector using OpenAI text-embedding-ada-002
+2. Convex compares this vector to stored embeddings for all posts and pages
+3. Results ranked by similarity score (displayed as percentage)
+4. Top 15 results returned
+
+**When to use each mode:**
+
+| Use Case | Mode |
+|----------|------|
+| Specific code, commands, exact phrases | Keyword |
+| Conceptual questions ("how do I deploy?") | Semantic |
+| Need to highlight matches on page | Keyword |
+| Not sure of exact terminology | Semantic |
+
+**Configuration:**
+
+Semantic search requires an OpenAI API key:
+
+```bash
+npx convex env set OPENAI_API_KEY sk-your-key-here
+npm run sync  # Generates embeddings for all content
+```
+
+If OPENAI_API_KEY is not configured, semantic search returns empty results and keyword search continues to work normally.
+
+**Technical details:**
+
+- New files: `convex/embeddings.ts`, `convex/embeddingsQueries.ts`, `convex/semanticSearch.ts`, `convex/semanticSearchQueries.ts`
+- Added `embedding` field and `by_embedding` vector index to posts and pages tables
+- SearchModal.tsx updated with Keyword/Semantic toggle (TextAa and Brain icons)
+- Embeddings generated automatically during `npm run sync`
+- Cost: ~$0.0001 per search query (embedding generation)
+
+Updated files: `convex/schema.ts`, `convex/embeddings.ts`, `convex/embeddingsQueries.ts`, `convex/semanticSearch.ts`, `convex/semanticSearchQueries.ts`, `src/components/SearchModal.tsx`, `scripts/sync-posts.ts`, `src/styles/global.css`, `content/pages/docs-search.md`, `content/pages/docs-semantic-search.md`
+
+## v2.9.0
+
+Released January 4, 2026
+
+**Dashboard Cloud CMS Features**
+
+The Dashboard now functions as a WordPress-style cloud CMS, allowing content creation and editing directly in the database without requiring the markdown file sync workflow.
+
+**Dual Source Architecture:**
+
+- Dashboard-created content marked with `source: "dashboard"`
+- Markdown-synced content marked with `source: "sync"`
+- Both coexist independently in the database
+- Sync operations only affect synced content (dashboard content protected)
+- Source badges in Posts and Pages list views (blue "Dashboard", gray "Synced")
+
+**Direct Database Operations:**
+
+- "Save to DB" button in Write Post/Page sections saves directly to database
+- "Save Changes" button in Post/Page editor updates content immediately
+- Delete button for dashboard-created content (synced content protected)
+- Changes appear instantly without requiring sync
+
+**Delete Confirmation Modal:**
+
+- Warning modal displayed before deleting posts or pages
+- Shows item name and type being deleted
+- Themed to match dashboard UI with danger button styling
+- Backdrop click and Escape key to cancel
+
+**Rich Text Editor:**
+
+- Three editing modes: Markdown (default), Rich Text (Quill WYSIWYG), Preview
+- Quill-based editor with formatting toolbar
+- Toolbar: headers (H1-H3), bold, italic, strikethrough, blockquote, code, lists, links
+- Automatic HTML-to-Markdown conversion when switching modes
+- Theme-aware styling using CSS variables
+
+**Server-Side URL Import:**
+
+- Direct database import via Firecrawl (no file sync needed)
+- Enter URL in Import section, content is scraped and saved to database
+- Optional "Publish immediately" checkbox
+- Imported posts tagged with `imported` by default
+- Requires `FIRECRAWL_API_KEY` in Convex environment variables
+
+**Export to Markdown:**
+
+- Export any post/page to `.md` file with complete frontmatter
+- Bulk export script: `npm run export:db` (dev) or `npm run export:db:prod` (prod)
+- Use for backup or converting dashboard content to file-based workflow
+
+**Technical details:**
+
+- New file: `convex/cms.ts` with CRUD mutations
+- New file: `convex/importAction.ts` with Firecrawl server-side action
+- New file: `scripts/export-db-posts.ts` for bulk markdown export
+- Added `source` field and `by_source` index to posts and pages tables
+- Added ConfirmDeleteModal component to Dashboard.tsx
+- Fixed list row grid layout for proper source badge display
+
+Updated files: `convex/schema.ts`, `convex/posts.ts`, `convex/pages.ts`, `convex/cms.ts`, `convex/importAction.ts`, `scripts/export-db-posts.ts`, `src/pages/Dashboard.tsx`, `src/styles/global.css`, `package.json`, `content/pages/docs-dashboard.md`
+
+## v2.8.7
+
+Released January 4, 2026
+
+**Write page frontmatter sidebar toggle fix**
+
+- Frontmatter sidebar toggle now works outside focus mode
+  - Grid layout adjusts properly when frontmatter sidebar is collapsed
+  - Previously only worked in focus mode due to missing CSS rules
+  - Both sidebars can now be collapsed independently or together
+
+**Technical details:**
+
+- Added `.write-layout.frontmatter-collapsed` CSS rule (grid-template-columns: 220px 1fr 56px)
+- Added `.write-layout.sidebar-collapsed.frontmatter-collapsed` CSS rule for both sidebars collapsed
+- Added responsive tablet styles for frontmatter collapsed state
+
+Updated files: `src/styles/global.css`
 
 ## v2.8.6
 

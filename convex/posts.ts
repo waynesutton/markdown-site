@@ -22,6 +22,7 @@ export const listAll = query({
       featuredOrder: v.optional(v.number()),
       authorName: v.optional(v.string()),
       authorImage: v.optional(v.string()),
+      source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))),
     }),
   ),
   handler: async (ctx) => {
@@ -49,6 +50,7 @@ export const listAll = query({
       featuredOrder: post.featuredOrder,
       authorName: post.authorName,
       authorImage: post.authorImage,
+      source: post.source,
     }));
   },
 });
@@ -475,6 +477,7 @@ export const syncPosts = internalMutation({
 });
 
 // Public mutation wrapper for sync script (no auth required for build-time sync)
+// Respects source field: only syncs posts where source !== "dashboard"
 export const syncPostsPublic = mutation({
   args: {
     posts: v.array(
@@ -517,11 +520,13 @@ export const syncPostsPublic = mutation({
     created: v.number(),
     updated: v.number(),
     deleted: v.number(),
+    skipped: v.number(),
   }),
   handler: async (ctx, args) => {
     let created = 0;
     let updated = 0;
     let deleted = 0;
+    let skipped = 0;
 
     const now = Date.now();
     const incomingSlugs = new Set(args.posts.map((p) => p.slug));
@@ -530,12 +535,17 @@ export const syncPostsPublic = mutation({
     const existingPosts = await ctx.db.query("posts").collect();
     const existingBySlug = new Map(existingPosts.map((p) => [p.slug, p]));
 
-    // Upsert incoming posts
+    // Upsert incoming posts (only if source !== "dashboard")
     for (const post of args.posts) {
       const existing = existingBySlug.get(post.slug);
 
       if (existing) {
-        // Update existing post
+        // Skip dashboard-created posts - don't overwrite them
+        if (existing.source === "dashboard") {
+          skipped++;
+          continue;
+        }
+        // Update existing sync post
         await ctx.db.patch(existing._id, {
           title: post.title,
           description: post.description,
@@ -567,28 +577,30 @@ export const syncPostsPublic = mutation({
           docsSectionGroupOrder: post.docsSectionGroupOrder,
           docsSectionGroupIcon: post.docsSectionGroupIcon,
           docsLanding: post.docsLanding,
+          source: "sync",
           lastSyncedAt: now,
         });
         updated++;
       } else {
-        // Create new post
+        // Create new post with source: "sync"
         await ctx.db.insert("posts", {
           ...post,
+          source: "sync",
           lastSyncedAt: now,
         });
         created++;
       }
     }
 
-    // Delete posts that no longer exist in the repo
+    // Delete posts that no longer exist in the repo (but not dashboard posts)
     for (const existing of existingPosts) {
-      if (!incomingSlugs.has(existing.slug)) {
+      if (!incomingSlugs.has(existing.slug) && existing.source !== "dashboard") {
         await ctx.db.delete(existing._id);
         deleted++;
       }
     }
 
-    return { created, updated, deleted };
+    return { created, updated, deleted, skipped };
   },
 });
 

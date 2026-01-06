@@ -30,3 +30,5 @@ agents. -->
 **Real-time team sync** — Multiple developers run npm run sync from different machines.
 
 **Sync Commands** - Sync discovery commands to update AGENTS.md, CLAUDE.md, and llms.txt
+
+**Semantic search** - Find content by meaning, not just keywords, using vector embeddings.

@@ -1,5 +1,5 @@
 ---
-title: "Team Workflows with Git Version Control"
+title: "Team Workflows"
 description: "How teams collaborate on markdown content using git, sync to shared Convex deployments, and automate production syncs with CI/CD."
 date: "2025-12-29"
 slug: "team-workflows-git-version-control"

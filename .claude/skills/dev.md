@@ -31,6 +31,7 @@ Expert full-stack and AI developer specializing in React, Vite, Bun, Clerk, Work
 - Auth functions: https://docs.convex.dev/auth/functions-auth
 - File storage: https://docs.convex.dev/file-storage/upload-files
 - Vector search: https://docs.convex.dev/search/vector-search
+- frontmatter: https://frontmatter.codes/docs
 
 ## Authentication
 

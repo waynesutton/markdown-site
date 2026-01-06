@@ -1,4 +1,4 @@
-# Setup Guide - Fork and Deploy Your Own Markdown Framework
+# Setup Guide
 
 > Step-by-step guide to fork this markdown sync framework, set up Convex backend, and deploy to Netlify in under 10 minutes.
 
@@ -337,29 +337,29 @@ Your markdown content here...
 
 ### Frontmatter Fields
 
-| Field           | Required | Description                                                                                                                                                                                           |
-| --------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `title`         | Yes      | Post title                                                                                                                                                                                            |
-| `description`   | Yes      | Short description for SEO                                                                                                                                                                             |
-| `date`          | Yes      | Publication date (YYYY-MM-DD)                                                                                                                                                                         |
-| `slug`          | Yes      | URL path (must be unique)                                                                                                                                                                             |
-| `published`     | Yes      | Set to `true` to publish                                                                                                                                                                              |
-| `tags`          | Yes      | Array of topic tags                                                                                                                                                                                   |
-| `readTime`      | No       | Estimated reading time                                                                                                                                                                                |
-| `image`         | No       | Header/Open Graph image URL                                                                                                                                                                           |
-| `excerpt`       | No       | Short excerpt for card view                                                                                                                                                                           |
-| `featured`      | No       | Set `true` to show in featured section                                                                                                                                                                |
-| `featuredOrder` | No       | Order in featured section (lower = first)                                                                                                                                                             |
-| `authorName`    | No       | Author display name shown next to date                                                                                                                                                                |
-| `authorImage`   | No       | Round author avatar image URL                                                                                                                                                                         |
-| `rightSidebar`  | No       | Enable right sidebar with CopyPageDropdown (opt-in, requires explicit `true`)                                                                                                                         |
-| `unlisted`      | No       | Hide from listings but allow direct access via slug. Set `true` to hide from blog listings, featured sections, tag pages, search results, and related posts. Post remains accessible via direct link. |
-| `docsSection`   | No       | Include in docs sidebar. Set `true` to show in the docs section navigation. |
-| `docsSectionGroup` | No    | Group name for docs sidebar. Posts with the same group name appear together. |
-| `docsSectionOrder` | No    | Order within docs group. Lower numbers appear first within the group. |
-| `docsSectionGroupOrder` | No | Order of the group in docs sidebar. Lower numbers make the group appear first. Groups without this field sort alphabetically. |
-| `docsSectionGroupIcon` | No | Phosphor icon name for docs sidebar group (e.g., "Rocket", "Book", "PuzzlePiece"). Icon appears left of the group title. See [Phosphor Icons](https://phosphoricons.com) for available icons. |
-| `docsLanding` | No | Set `true` to use as the docs landing page (shown when navigating to `/docs`). |
+| Field                   | Required | Description                                                                                                                                                                                           |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`                 | Yes      | Post title                                                                                                                                                                                            |
+| `description`           | Yes      | Short description for SEO                                                                                                                                                                             |
+| `date`                  | Yes      | Publication date (YYYY-MM-DD)                                                                                                                                                                         |
+| `slug`                  | Yes      | URL path (must be unique)                                                                                                                                                                             |
+| `published`             | Yes      | Set to `true` to publish                                                                                                                                                                              |
+| `tags`                  | Yes      | Array of topic tags                                                                                                                                                                                   |
+| `readTime`              | No       | Estimated reading time                                                                                                                                                                                |
+| `image`                 | No       | Header/Open Graph image URL                                                                                                                                                                           |
+| `excerpt`               | No       | Short excerpt for card view                                                                                                                                                                           |
+| `featured`              | No       | Set `true` to show in featured section                                                                                                                                                                |
+| `featuredOrder`         | No       | Order in featured section (lower = first)                                                                                                                                                             |
+| `authorName`            | No       | Author display name shown next to date                                                                                                                                                                |
+| `authorImage`           | No       | Round author avatar image URL                                                                                                                                                                         |
+| `rightSidebar`          | No       | Enable right sidebar with CopyPageDropdown (opt-in, requires explicit `true`)                                                                                                                         |
+| `unlisted`              | No       | Hide from listings but allow direct access via slug. Set `true` to hide from blog listings, featured sections, tag pages, search results, and related posts. Post remains accessible via direct link. |
+| `docsSection`           | No       | Include in docs sidebar. Set `true` to show in the docs section navigation.                                                                                                                           |
+| `docsSectionGroup`      | No       | Group name for docs sidebar. Posts with the same group name appear together.                                                                                                                          |
+| `docsSectionOrder`      | No       | Order within docs group. Lower numbers appear first within the group.                                                                                                                                 |
+| `docsSectionGroupOrder` | No       | Order of the group in docs sidebar. Lower numbers make the group appear first. Groups without this field sort alphabetically.                                                                         |
+| `docsSectionGroupIcon`  | No       | Phosphor icon name for docs sidebar group (e.g., "Rocket", "Book", "PuzzlePiece"). Icon appears left of the group title. See [Phosphor Icons](https://phosphoricons.com) for available icons.         |
+| `docsLanding`           | No       | Set `true` to use as the docs landing page (shown when navigating to `/docs`).                                                                                                                        |
 
 ### How Frontmatter Works
 

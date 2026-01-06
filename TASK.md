@@ -4,9 +4,49 @@
 
 ## Current Status
 
-v2.8.7 ready. Write page frontmatter sidebar toggle now works outside focus mode.
+v2.10.0 ready. Semantic search with vector embeddings added to complement keyword search.
 
 ## Completed
+
+- [x] Semantic search with vector embeddings
+  - [x] Dual search modes: Keyword (exact match) and Semantic (meaning-based)
+  - [x] Toggle between modes in search modal (Cmd+K) with TextAa and Brain icons
+  - [x] OpenAI text-embedding-ada-002 for generating 1536-dimension embeddings
+  - [x] Similarity scores displayed as percentages in search results
+  - [x] Graceful fallback when OPENAI_API_KEY not configured
+  - [x] Embeddings generated automatically during `npm run sync`
+  - [x] New `convex/embeddings.ts` with embedding generation actions
+  - [x] New `convex/embeddingsQueries.ts` with queries and mutations for embedding storage
+  - [x] New `convex/semanticSearch.ts` with vector search action
+  - [x] New `convex/semanticSearchQueries.ts` with internal queries
+  - [x] Added `embedding` field and `by_embedding` vector index to posts and pages
+  - [x] Updated SearchModal.tsx with mode toggle and semantic search integration
+  - [x] Documentation pages: `docs-search.md` and `docs-semantic-search.md`
+
+- [x] Dashboard Cloud CMS features
+  - [x] Dual source architecture: `source: "dashboard"` vs `source: "sync"` coexist independently
+  - [x] Direct database operations: "Save to DB" in Write sections, "Save Changes" in editor
+  - [x] Source badges in Posts and Pages list views (blue Dashboard, gray Synced)
+  - [x] Delete button for dashboard-created content only
+  - [x] Delete confirmation modal with warning icon and danger button styling
+  - [x] Server-side URL import via Firecrawl (direct to database)
+  - [x] Export to markdown for backup or file-based workflow conversion
+  - [x] Bulk export script: `npm run export:db` and `npm run export:db:prod`
+  - [x] New `convex/cms.ts` with CRUD mutations
+  - [x] New `convex/importAction.ts` with Firecrawl action
+  - [x] New `scripts/export-db-posts.ts` for bulk export
+  - [x] Updated sync mutations to preserve dashboard content
+
+- [x] Rich Text Editor (Quill) in Dashboard
+  - [x] Three editing modes: Markdown (default), Rich Text (Quill), Preview
+  - [x] Quill toolbar: headers, bold, italic, strikethrough, blockquote, code, lists, links
+  - [x] Automatic HTML-to-Markdown conversion on mode switch
+  - [x] Theme-aware styling using CSS variables
+
+- [x] Dashboard UI fixes
+  - [x] Fixed source badge overlap with edit pencil in list rows
+  - [x] Adjusted grid column widths for proper badge display
+  - [x] Added source-badge CSS styles with proper spacing
 
 - [x] Write page frontmatter sidebar toggle fix
   - [x] Added CSS rules for `.write-layout.frontmatter-collapsed` to adjust grid when sidebar collapsed

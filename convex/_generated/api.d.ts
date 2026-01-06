@@ -11,16 +11,22 @@
 import type * as aiChatActions from "../aiChatActions.js";
 import type * as aiChats from "../aiChats.js";
 import type * as aiImageGeneration from "../aiImageGeneration.js";
+import type * as cms from "../cms.js";
 import type * as contact from "../contact.js";
 import type * as contactActions from "../contactActions.js";
 import type * as crons from "../crons.js";
+import type * as embeddings from "../embeddings.js";
+import type * as embeddingsQueries from "../embeddingsQueries.js";
 import type * as http from "../http.js";
+import type * as importAction from "../importAction.js";
 import type * as newsletter from "../newsletter.js";
 import type * as newsletterActions from "../newsletterActions.js";
 import type * as pages from "../pages.js";
 import type * as posts from "../posts.js";
 import type * as rss from "../rss.js";
 import type * as search from "../search.js";
+import type * as semanticSearch from "../semanticSearch.js";
+import type * as semanticSearchQueries from "../semanticSearchQueries.js";
 import type * as stats from "../stats.js";
 
 import type {
@@ -33,16 +39,22 @@ declare const fullApi: ApiFromModules<{
   aiChatActions: typeof aiChatActions;
   aiChats: typeof aiChats;
   aiImageGeneration: typeof aiImageGeneration;
+  cms: typeof cms;
   contact: typeof contact;
   contactActions: typeof contactActions;
   crons: typeof crons;
+  embeddings: typeof embeddings;
+  embeddingsQueries: typeof embeddingsQueries;
   http: typeof http;
+  importAction: typeof importAction;
   newsletter: typeof newsletter;
   newsletterActions: typeof newsletterActions;
   pages: typeof pages;
   posts: typeof posts;
   rss: typeof rss;
   search: typeof search;
+  semanticSearch: typeof semanticSearch;
+  semanticSearchQueries: typeof semanticSearchQueries;
   stats: typeof stats;
 }>;
 

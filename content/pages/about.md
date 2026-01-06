@@ -83,7 +83,9 @@ It's a hybrid: developer workflow for publishing + real-time delivery like a dyn
 
 **Search and discovery:**
 
-- Full text search with Command+K shortcut
+- Dual search modes: Keyword (exact match) and Semantic (meaning-based) with Cmd+K toggle
+- Semantic search uses OpenAI embeddings for finding conceptually similar content
+- Full text search with Command+K shortcut and result highlighting
 - Static raw markdown files at `/raw/{slug}.md`
 - RSS feeds (`/rss.xml` and `/rss-full.xml`) and sitemap for SEO
 - API endpoints for AI/LLM access (`/api/posts`, `/api/export`)

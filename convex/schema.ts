@@ -36,6 +36,8 @@ export default defineSchema({
     docsSectionGroupIcon: v.optional(v.string()), // Phosphor icon name for sidebar group
     docsLanding: v.optional(v.boolean()), // Use as /docs landing page
     lastSyncedAt: v.number(),
+    source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))), // Content source: "dashboard" (created in UI) or "sync" (from markdown files)
+    embedding: v.optional(v.array(v.float64())), // Vector embedding for semantic search (1536 dimensions, OpenAI text-embedding-ada-002)
   })
     .index("by_slug", ["slug"])
     .index("by_date", ["date"])
@@ -44,12 +46,18 @@ export default defineSchema({
     .index("by_blogFeatured", ["blogFeatured"])
     .index("by_authorName", ["authorName"])
     .index("by_docsSection", ["docsSection"])
+    .index("by_source", ["source"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["published"],
     })
     .searchIndex("search_title", {
       searchField: "title",
+      filterFields: ["published"],
+    })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
       filterFields: ["published"],
     }),
 
@@ -84,17 +92,25 @@ export default defineSchema({
     docsSectionGroupIcon: v.optional(v.string()), // Phosphor icon name for sidebar group
     docsLanding: v.optional(v.boolean()), // Use as /docs landing page
     lastSyncedAt: v.number(),
+    source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))), // Content source: "dashboard" (created in UI) or "sync" (from markdown files)
+    embedding: v.optional(v.array(v.float64())), // Vector embedding for semantic search (1536 dimensions, OpenAI text-embedding-ada-002)
   })
   .index("by_slug", ["slug"])
   .index("by_published", ["published"])
   .index("by_featured", ["featured"])
   .index("by_docsSection", ["docsSection"])
+  .index("by_source", ["source"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["published"],
     })
     .searchIndex("search_title", {
       searchField: "title",
+      filterFields: ["published"],
+    })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
       filterFields: ["published"],
     }),
 

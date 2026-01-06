@@ -10,6 +10,10 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import TurndownService from "turndown";
+import Showdown from "showdown";
 import {
   ArrowLeft,
   Article,
@@ -34,7 +38,6 @@ import {
   Clock,
   Link as LinkIcon,
   Copy,
-  ArrowClockwise,
   Terminal,
   CheckCircle,
   Warning,
@@ -58,6 +61,7 @@ import {
   CaretDown,
   ArrowsOut,
   ArrowsIn,
+  FloppyDisk,
 } from "@phosphor-icons/react";
 import siteConfig from "../config/siteConfig";
 import AIChatView from "../components/AIChatView";
@@ -264,6 +268,110 @@ function CommandModal({
   );
 }
 
+// Confirm Delete modal component
+interface ConfirmDeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  itemName: string;
+  itemType: "post" | "page";
+  isDeleting: boolean;
+}
+
+function ConfirmDeleteModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  itemName,
+  itemType,
+  isDeleting,
+}: ConfirmDeleteModalProps) {
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && !isDeleting) {
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isDeleting) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleEsc);
+    }
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose, isDeleting]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="dashboard-modal-backdrop" onClick={handleBackdropClick}>
+      <div className="dashboard-modal dashboard-modal-delete">
+        <div className="dashboard-modal-header">
+          <div className="dashboard-modal-icon dashboard-modal-icon-warning">
+            <Warning size={24} weight="fill" />
+          </div>
+          <h3 className="dashboard-modal-title">{title}</h3>
+          <button
+            className="dashboard-modal-close"
+            onClick={onClose}
+            disabled={isDeleting}
+          >
+            <X size={18} weight="bold" />
+          </button>
+        </div>
+
+        <div className="dashboard-modal-content">
+          <p className="dashboard-modal-message">
+            Are you sure you want to delete this {itemType}?
+          </p>
+          <div className="dashboard-modal-item-name">
+            <FileText size={18} />
+            <span>{itemName}</span>
+          </div>
+          <p className="dashboard-modal-warning-text">
+            This action cannot be undone. The {itemType} will be permanently
+            removed from the database.
+          </p>
+        </div>
+
+        <div className="dashboard-modal-footer">
+          <div className="dashboard-modal-actions">
+            <button
+              className="dashboard-modal-btn secondary"
+              onClick={onClose}
+              disabled={isDeleting}
+            >
+              Cancel
+            </button>
+            <button
+              className="dashboard-modal-btn danger"
+              onClick={onConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <SpinnerGap size={16} className="animate-spin" />
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                <>
+                  <Trash size={16} />
+                  <span>Delete {itemType}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Dashboard sections
 type DashboardSection =
   | "posts"
@@ -301,6 +409,7 @@ interface ContentItem {
   authorName?: string;
   authorImage?: string;
   order?: number;
+  source?: "dashboard" | "sync";
 }
 
 // Frontmatter fields for posts
@@ -551,6 +660,15 @@ function DashboardContent() {
     description?: string;
   }>({ isOpen: false, title: "", command: "" });
 
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    id: string;
+    title: string;
+    type: "post" | "page";
+  }>({ isOpen: false, id: "", title: "", type: "post" });
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Sync server state
   const [syncOutput, setSyncOutput] = useState<string>("");
   const [syncRunning, setSyncRunning] = useState<string | null>(null); // command id or null
@@ -562,6 +680,12 @@ function DashboardContent() {
   // Convex queries
   const posts = useQuery(api.posts.listAll);
   const pages = useQuery(api.pages.listAll);
+
+  // CMS mutations for CRUD operations
+  const deletePostMutation = useMutation(api.cms.deletePost);
+  const deletePageMutation = useMutation(api.cms.deletePage);
+  const updatePostMutation = useMutation(api.cms.updatePost);
+  const updatePageMutation = useMutation(api.cms.updatePage);
 
   // Add toast notification
   const addToast = useCallback((message: string, type: ToastType = "info") => {
@@ -732,6 +856,123 @@ function DashboardContent() {
     setActiveSection("page-editor");
   }, []);
 
+  // Show delete confirmation modal for a post
+  const handleDeletePost = useCallback(
+    (id: string, title: string) => {
+      setDeleteModal({
+        isOpen: true,
+        id,
+        title,
+        type: "post",
+      });
+    },
+    [],
+  );
+
+  // Show delete confirmation modal for a page
+  const handleDeletePage = useCallback(
+    (id: string, title: string) => {
+      setDeleteModal({
+        isOpen: true,
+        id,
+        title,
+        type: "page",
+      });
+    },
+    [],
+  );
+
+  // Close delete modal
+  const closeDeleteModal = useCallback(() => {
+    if (!isDeleting) {
+      setDeleteModal({ isOpen: false, id: "", title: "", type: "post" });
+    }
+  }, [isDeleting]);
+
+  // Confirm and execute deletion
+  const confirmDelete = useCallback(async () => {
+    setIsDeleting(true);
+    try {
+      if (deleteModal.type === "post") {
+        await deletePostMutation({ id: deleteModal.id as Id<"posts"> });
+        addToast("Post deleted successfully", "success");
+      } else {
+        await deletePageMutation({ id: deleteModal.id as Id<"pages"> });
+        addToast("Page deleted successfully", "success");
+      }
+      setDeleteModal({ isOpen: false, id: "", title: "", type: "post" });
+    } catch (error) {
+      addToast(
+        error instanceof Error ? error.message : `Failed to delete ${deleteModal.type}`,
+        "error",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteModal, deletePostMutation, deletePageMutation, addToast]);
+
+  // Handle saving post changes
+  const handleSavePost = useCallback(
+    async (item: ContentItem) => {
+      try {
+        await updatePostMutation({
+          id: item._id as Id<"posts">,
+          post: {
+            title: item.title,
+            description: item.description,
+            content: item.content,
+            date: item.date,
+            published: item.published,
+            tags: item.tags,
+            excerpt: item.excerpt,
+            image: item.image,
+            featured: item.featured,
+            featuredOrder: item.featuredOrder,
+            authorName: item.authorName,
+            authorImage: item.authorImage,
+          },
+        });
+        addToast("Post saved successfully", "success");
+      } catch (error) {
+        addToast(
+          error instanceof Error ? error.message : "Failed to save post",
+          "error",
+        );
+      }
+    },
+    [updatePostMutation, addToast],
+  );
+
+  // Handle saving page changes
+  const handleSavePage = useCallback(
+    async (item: ContentItem) => {
+      try {
+        await updatePageMutation({
+          id: item._id as Id<"pages">,
+          page: {
+            title: item.title,
+            content: item.content,
+            published: item.published,
+            order: item.order,
+            excerpt: item.excerpt,
+            image: item.image,
+            featured: item.featured,
+            featuredOrder: item.featuredOrder,
+            authorName: item.authorName,
+            authorImage: item.authorImage,
+          },
+        });
+        addToast("Page saved successfully", "success");
+      } catch (error) {
+        addToast(
+          error instanceof Error ? error.message : "Failed to save page",
+          "error",
+        );
+      }
+    },
+    [updatePageMutation, addToast],
+  );
+
   // Generate markdown content from item
   const generateMarkdown = useCallback(
     (item: ContentItem, type: "post" | "page"): string => {
@@ -897,6 +1138,17 @@ function DashboardContent() {
         title={commandModal.title}
         command={commandModal.command}
         description={commandModal.description}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Delete Confirmation"
+        itemName={deleteModal.title}
+        itemType={deleteModal.type}
+        isDeleting={isDeleting}
       />
 
       {/* Left Sidebar */}
@@ -1098,6 +1350,7 @@ function DashboardContent() {
               posts={filteredPosts}
               onEdit={handleEditPost}
               searchQuery={searchQuery}
+              onDelete={handleDeletePost}
             />
           )}
 
@@ -1107,6 +1360,7 @@ function DashboardContent() {
               pages={filteredPages}
               onEdit={handleEditPage}
               searchQuery={searchQuery}
+              onDelete={handleDeletePage}
             />
           )}
 
@@ -1125,6 +1379,9 @@ function DashboardContent() {
                 onBack={() =>
                   setActiveSection(editingType === "post" ? "posts" : "pages")
                 }
+                onSave={
+                  editingType === "post" ? handleSavePost : handleSavePage
+                }
               />
             )}
 
@@ -1134,6 +1391,7 @@ function DashboardContent() {
               contentType="post"
               sidebarCollapsed={sidebarCollapsed}
               setSidebarCollapsed={setSidebarCollapsed}
+              addToast={addToast}
             />
           )}
 
@@ -1143,6 +1401,7 @@ function DashboardContent() {
               contentType="page"
               sidebarCollapsed={sidebarCollapsed}
               setSidebarCollapsed={setSidebarCollapsed}
+              addToast={addToast}
             />
           )}
 
@@ -1172,7 +1431,7 @@ function DashboardContent() {
 
           {/* Import URL */}
           {activeSection === "import" && (
-            <ImportURLSection showCommandModal={showCommandModal} />
+            <ImportURLSection addToast={addToast} />
           )}
 
           {/* Site Config */}
@@ -1214,10 +1473,12 @@ function PostsListView({
   posts,
   onEdit,
   searchQuery,
+  onDelete,
 }: {
   posts: ContentItem[];
   onEdit: (post: ContentItem) => void;
   searchQuery: string;
+  onDelete: (id: string, title: string) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -1339,6 +1600,12 @@ function PostsListView({
                 >
                   {post.published ? "Published" : "Draft"}
                 </span>
+                {post.source === "dashboard" && (
+                  <span className="source-badge dashboard">Dashboard</span>
+                )}
+                {(!post.source || post.source === "sync") && (
+                  <span className="source-badge sync">Synced</span>
+                )}
               </div>
               <div className="col-actions">
                 <button
@@ -1356,6 +1623,15 @@ function PostsListView({
                 >
                   <Eye size={16} />
                 </Link>
+                {post.source === "dashboard" && (
+                  <button
+                    className="action-btn delete"
+                    onClick={() => onDelete(post._id, post.title)}
+                    title="Delete"
+                  >
+                    <Trash size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))
@@ -1392,10 +1668,12 @@ function PagesListView({
   pages,
   onEdit,
   searchQuery,
+  onDelete,
 }: {
   pages: ContentItem[];
   onEdit: (page: ContentItem) => void;
   searchQuery: string;
+  onDelete: (id: string, title: string) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -1515,6 +1793,12 @@ function PagesListView({
                 >
                   {page.published ? "Published" : "Draft"}
                 </span>
+                {page.source === "dashboard" && (
+                  <span className="source-badge dashboard">Dashboard</span>
+                )}
+                {(!page.source || page.source === "sync") && (
+                  <span className="source-badge sync">Synced</span>
+                )}
               </div>
               <div className="col-actions">
                 <button
@@ -1532,6 +1816,15 @@ function PagesListView({
                 >
                   <Eye size={16} />
                 </Link>
+                {page.source === "dashboard" && (
+                  <button
+                    className="action-btn delete"
+                    onClick={() => onDelete(page._id, page.title)}
+                    title="Delete"
+                  >
+                    <Trash size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))
@@ -1573,6 +1866,7 @@ function EditorView({
   onDownload,
   onCopy,
   onBack,
+  onSave,
 }: {
   item: ContentItem;
   type: "post" | "page";
@@ -1582,8 +1876,10 @@ function EditorView({
   onDownload: () => void;
   onCopy: () => void;
   onBack: () => void;
+  onSave: (item: ContentItem) => Promise<void>;
 }) {
   const [copied, setCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem("dashboard-sidebar-width");
     return saved ? Number(saved) : 280;
@@ -1595,6 +1891,15 @@ function EditorView({
     await onCopy();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave(item);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const startXRef = useRef(0);
@@ -1678,6 +1983,19 @@ function EditorView({
           >
             <Download size={16} />
             <span>Download .md</span>
+          </button>
+          <button
+            className="dashboard-action-btn success"
+            onClick={handleSave}
+            disabled={isSaving}
+            title="Save to Database"
+          >
+            {isSaving ? (
+              <SpinnerGap size={16} className="animate-spin" />
+            ) : (
+              <FloppyDisk size={16} />
+            )}
+            <span>{isSaving ? "Saving..." : "Save"}</span>
           </button>
         </div>
       </div>
@@ -2173,12 +2491,18 @@ function WriteSection({
   contentType,
   sidebarCollapsed,
   setSidebarCollapsed,
+  addToast,
 }: {
   contentType: "post" | "page";
   sidebarCollapsed: boolean;
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  addToast: (message: string, type?: ToastType) => void;
 }) {
   const [content, setContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [editorMode, setEditorMode] = useState<"markdown" | "richtext" | "preview">("markdown");
+  const createPostMutation = useMutation(api.cms.createPost);
+  const createPageMutation = useMutation(api.cms.createPage);
   const [copied, setCopied] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [focusMode, setFocusMode] = useState(() => {
@@ -2222,6 +2546,75 @@ function WriteSection({
       return newValue;
     });
   }, []);
+
+  // HTML <-> Markdown converters
+  const turndownService = useMemo(() => {
+    const service = new TurndownService({
+      headingStyle: "atx",
+      codeBlockStyle: "fenced",
+    });
+    return service;
+  }, []);
+
+  const showdownConverter = useMemo(() => {
+    const converter = new Showdown.Converter({
+      tables: true,
+      strikethrough: true,
+      tasklists: true,
+    });
+    return converter;
+  }, []);
+
+  // Convert between modes - extract body content for rich text editing
+  const getBodyContent = useCallback((fullContent: string): string => {
+    const frontmatterMatch = fullContent.match(/^---\n[\s\S]*?\n---\n?([\s\S]*)$/);
+    return frontmatterMatch ? frontmatterMatch[1].trim() : fullContent;
+  }, []);
+
+  const getFrontmatter = useCallback((fullContent: string): string => {
+    const frontmatterMatch = fullContent.match(/^(---\n[\s\S]*?\n---\n?)/);
+    return frontmatterMatch ? frontmatterMatch[1] : "";
+  }, []);
+
+  // State for rich text HTML content
+  const [richTextHtml, setRichTextHtml] = useState("");
+
+  // Handle mode changes with content conversion
+  const handleModeChange = useCallback(
+    (newMode: "markdown" | "richtext" | "preview") => {
+      if (newMode === editorMode) return;
+
+      if (newMode === "richtext" && editorMode === "markdown") {
+        // Converting from markdown to rich text
+        const bodyContent = getBodyContent(content);
+        const html = showdownConverter.makeHtml(bodyContent);
+        setRichTextHtml(html);
+      } else if (newMode === "markdown" && editorMode === "richtext") {
+        // Converting from rich text back to markdown
+        const markdown = turndownService.turndown(richTextHtml);
+        const frontmatter = getFrontmatter(content);
+        setContent(frontmatter + markdown);
+      }
+
+      setEditorMode(newMode);
+    },
+    [editorMode, content, richTextHtml, getBodyContent, getFrontmatter, showdownConverter, turndownService]
+  );
+
+  // Quill modules configuration
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "strike"],
+        ["blockquote", "code-block"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link"],
+        ["clean"],
+      ],
+    }),
+    []
+  );
 
   // Keyboard shortcut: Escape to exit focus mode
   useEffect(() => {
@@ -2362,6 +2755,121 @@ published: false
     URL.revokeObjectURL(url);
   }, [content, contentType]);
 
+  // Parse frontmatter and save to database
+  const handleSaveToDb = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      // Parse frontmatter
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+      if (!frontmatterMatch) {
+        addToast("Content must have valid frontmatter (---)", "error");
+        return;
+      }
+
+      const frontmatterText = frontmatterMatch[1];
+      const bodyContent = frontmatterMatch[2].trim();
+
+      // Parse frontmatter fields
+      const parseValue = (key: string): string | undefined => {
+        const match = frontmatterText.match(new RegExp(`^${key}:\\s*["']?([^"'\\n]+)["']?`, "m"));
+        return match ? match[1].trim() : undefined;
+      };
+
+      const parseBool = (key: string): boolean | undefined => {
+        const match = frontmatterText.match(new RegExp(`^${key}:\\s*(true|false)`, "m"));
+        return match ? match[1] === "true" : undefined;
+      };
+
+      const parseNumber = (key: string): number | undefined => {
+        const match = frontmatterText.match(new RegExp(`^${key}:\\s*(\\d+)`, "m"));
+        return match ? parseInt(match[1], 10) : undefined;
+      };
+
+      const parseTags = (): string[] => {
+        const match = frontmatterText.match(/^tags:\s*\[(.*?)\]/m);
+        if (match) {
+          return match[1].split(",").map((t) => t.trim().replace(/["']/g, "")).filter(Boolean);
+        }
+        return [];
+      };
+
+      const title = parseValue("title");
+      const slug = parseValue("slug");
+
+      if (!title || !slug) {
+        addToast("Frontmatter must include title and slug", "error");
+        return;
+      }
+
+      if (contentType === "post") {
+        const description = parseValue("description") || "";
+        const date = parseValue("date") || new Date().toISOString().split("T")[0];
+        const published = parseBool("published") ?? false;
+        const tags = parseTags();
+        const readTime = parseValue("readTime");
+        const image = parseValue("image");
+        const excerpt = parseValue("excerpt");
+        const featured = parseBool("featured");
+        const featuredOrder = parseNumber("featuredOrder");
+        const authorName = parseValue("authorName");
+        const authorImage = parseValue("authorImage");
+
+        await createPostMutation({
+          post: {
+            slug,
+            title,
+            description,
+            content: bodyContent,
+            date,
+            published,
+            tags,
+            readTime,
+            image,
+            excerpt,
+            featured,
+            featuredOrder,
+            authorName,
+            authorImage,
+          },
+        });
+        addToast(`Post "${title}" saved to database`, "success");
+      } else {
+        const published = parseBool("published") ?? false;
+        const order = parseNumber("order");
+        const showInNav = parseBool("showInNav");
+        const excerpt = parseValue("excerpt");
+        const image = parseValue("image");
+        const featured = parseBool("featured");
+        const featuredOrder = parseNumber("featuredOrder");
+        const authorName = parseValue("authorName");
+        const authorImage = parseValue("authorImage");
+
+        await createPageMutation({
+          page: {
+            slug,
+            title,
+            content: bodyContent,
+            published,
+            order,
+            showInNav,
+            excerpt,
+            image,
+            featured,
+            featuredOrder,
+            authorName,
+            authorImage,
+          },
+        });
+        addToast(`Page "${title}" saved to database`, "success");
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to save";
+      addToast(message, "error");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [content, contentType, createPostMutation, createPageMutation, addToast]);
+
   // Calculate stats
   const lines = content.split("\n").length;
   const characters = content.length;
@@ -2377,6 +2885,26 @@ published: false
       <div className="dashboard-write-header">
         <div className="dashboard-write-title">
           <span>{contentType === "post" ? "Blog Post" : "Page"}</span>
+          <div className="dashboard-editor-mode-toggles">
+            <button
+              className={`dashboard-view-toggle ${editorMode === "markdown" ? "active" : ""}`}
+              onClick={() => handleModeChange("markdown")}
+            >
+              Markdown
+            </button>
+            <button
+              className={`dashboard-view-toggle ${editorMode === "richtext" ? "active" : ""}`}
+              onClick={() => handleModeChange("richtext")}
+            >
+              Rich Text
+            </button>
+            <button
+              className={`dashboard-view-toggle ${editorMode === "preview" ? "active" : ""}`}
+              onClick={() => handleModeChange("preview")}
+            >
+              Preview
+            </button>
+          </div>
         </div>
         <div className="dashboard-write-actions">
           <button
@@ -2407,6 +2935,19 @@ published: false
             <span>Download .md</span>
           </button>
           <button
+            onClick={handleSaveToDb}
+            disabled={isSaving}
+            className="dashboard-action-btn success"
+            title="Save to Database"
+          >
+            {isSaving ? (
+              <SpinnerGap size={16} className="animate-spin" />
+            ) : (
+              <FloppyDisk size={16} />
+            )}
+            <span>{isSaving ? "Saving..." : "Save to DB"}</span>
+          </button>
+          <button
             onClick={toggleFocusMode}
             className={`dashboard-action-btn focus-toggle ${focusMode ? "active" : ""}`}
             title={focusMode ? "Exit focus mode (Esc)" : "Enter focus mode"}
@@ -2423,13 +2964,43 @@ published: false
       <div className="dashboard-write-container">
         {/* Main Writing Area */}
         <div className="dashboard-write-main">
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="dashboard-write-textarea"
-            placeholder="Start writing your markdown..."
-            spellCheck={true}
-          />
+          {editorMode === "markdown" && (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="dashboard-write-textarea"
+              placeholder="Start writing your markdown..."
+              spellCheck={true}
+            />
+          )}
+
+          {editorMode === "richtext" && (
+            <div className="dashboard-quill-container">
+              <ReactQuill
+                theme="snow"
+                value={richTextHtml}
+                onChange={setRichTextHtml}
+                modules={quillModules}
+                placeholder="Start writing..."
+              />
+            </div>
+          )}
+
+          {editorMode === "preview" && (
+            <div className="dashboard-preview">
+              <div className="dashboard-preview-content">
+                <div className="blog-post-content">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
+                  >
+                    {getBodyContent(content)}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="dashboard-write-footer">
             <div className="dashboard-write-stats">
               <span>{words} words</span>
@@ -2439,9 +3010,10 @@ published: false
               <span>{characters} chars</span>
             </div>
             <div className="dashboard-write-hint">
-              Save to{" "}
-              <code>content/{contentType === "post" ? "blog" : "pages"}/</code>{" "}
-              then <code>npm run sync</code>
+              {editorMode === "richtext"
+                ? "Editing body content only (frontmatter preserved)"
+                : <>Save to{" "}<code>content/{contentType === "post" ? "blog" : "pages"}/</code>{" "}then <code>npm run sync</code></>
+              }
             </div>
           </div>
         </div>
@@ -3424,30 +3996,45 @@ function NewsletterStatsSection() {
 }
 
 function ImportURLSection({
-  showCommandModal,
+  addToast,
 }: {
-  showCommandModal: (
-    title: string,
-    command: string,
-    description?: string,
-  ) => void;
+  addToast: (message: string, type?: ToastType) => void;
 }) {
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [publishImmediately, setPublishImmediately] = useState(false);
+  const [lastImported, setLastImported] = useState<{
+    title: string;
+    slug: string;
+  } | null>(null);
+  const importAction = useAction(api.importAction.importFromUrl);
 
   const handleImport = async () => {
     if (!url.trim()) return;
 
     setIsLoading(true);
+    setLastImported(null);
 
-    // Show the command modal with the import command
-    showCommandModal(
-      "Import URL",
-      `npm run import "${url.trim()}"`,
-      "Copy this command and run it in your terminal to import the article",
-    );
+    try {
+      const result = await importAction({
+        url: url.trim(),
+        published: publishImmediately,
+      });
 
-    setIsLoading(false);
+      if (result.success && result.slug && result.title) {
+        setLastImported({ title: result.title, slug: result.slug });
+        addToast(`Imported "${result.title}" successfully`, "success");
+        setUrl("");
+      } else {
+        addToast(result.error || "Failed to import URL", "error");
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to import URL";
+      addToast(message, "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -3455,7 +4042,7 @@ function ImportURLSection({
       <div className="dashboard-import-header">
         <CloudArrowDown size={32} weight="light" />
         <h2>Import from URL</h2>
-        <p>Import articles from external URLs using Firecrawl</p>
+        <p>Import articles directly to the database using Firecrawl</p>
       </div>
 
       <div className="dashboard-import-form">
@@ -3467,8 +4054,21 @@ function ImportURLSection({
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com/article"
             className="dashboard-import-input"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && url.trim() && !isLoading) {
+                handleImport();
+              }
+            }}
           />
         </div>
+        <label className="dashboard-import-checkbox">
+          <input
+            type="checkbox"
+            checked={publishImmediately}
+            onChange={(e) => setPublishImmediately(e.target.checked)}
+          />
+          <span>Publish immediately</span>
+        </label>
         <button
           className="dashboard-import-btn"
           onClick={handleImport}
@@ -3476,27 +4076,42 @@ function ImportURLSection({
         >
           {isLoading ? (
             <>
-              <ArrowClockwise size={16} className="spin" />
+              <SpinnerGap size={16} className="animate-spin" />
               <span>Importing...</span>
             </>
           ) : (
             <>
               <CloudArrowDown size={16} />
-              <span>Import</span>
+              <span>Import to Database</span>
             </>
           )}
         </button>
       </div>
 
+      {lastImported && (
+        <div className="dashboard-import-success">
+          <CheckCircle size={20} weight="fill" />
+          <div>
+            <strong>Successfully imported:</strong> {lastImported.title}
+            <br />
+            <Link to={`/${lastImported.slug}`} className="import-view-link">
+              View post →
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="dashboard-import-info">
         <h3>How it works</h3>
         <ol>
           <li>Enter the URL of an article you want to import</li>
-          <li>Firecrawl will scrape and convert it to markdown</li>
-          <li>A draft post will be created in content/blog/</li>
-          <li>Review, edit, and sync when ready</li>
+          <li>Firecrawl scrapes and converts it to markdown</li>
+          <li>Post is saved directly to the database</li>
+          <li>Edit and publish from the Posts section</li>
         </ol>
-        <p className="note">Requires FIRECRAWL_API_KEY in .env.local</p>
+        <p className="note">
+          Requires FIRECRAWL_API_KEY in Convex environment variables
+        </p>
       </div>
     </div>
   );

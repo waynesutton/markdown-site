@@ -1,17 +1,32 @@
 ---
-title: "Netlify edge functions blocking AI crawlers from static files"
-description: "Why excludedPath in netlify.toml isn't preventing edge functions from intercepting /raw/* requests, and how ChatGPT and Perplexity get blocked while Claude works."
+title: "How we fixed AI crawlers blocked by Netlify edge functions"
+description: "ChatGPT and Perplexity couldn't fetch /raw/*.md files on Netlify. The fix: Content-Type headers. Here's what we tried and what actually worked."
 date: "2025-12-14"
 slug: "netlify-edge-excludedpath-ai-crawlers"
 published: true
-tags: ["netlify", "edge-functions", "ai", "troubleshooting", "help"]
+tags: ["netlify", "edge-functions", "ai", "troubleshooting"]
 readTime: "5 min read"
 featured: false
 ---
 
+## The fix
+
+Add explicit `Content-Type` headers for your raw markdown files in `netlify.toml`:
+
+```toml
+[[headers]]
+  for = "/raw/*"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+```
+
+Thanks to [KP](https://x.com/thisiskp_) for pointing us in the right direction.
+
 ## The problem
 
-AI crawlers cannot access static markdown files at `/raw/*.md` on Netlify, even with `excludedPath` configured. ChatGPT and Perplexity return errors. Claude works.
+AI crawlers could not access static markdown files at `/raw/*.md` on Netlify, even with `excludedPath` configured. ChatGPT and Perplexity returned errors. Claude worked.
 
 ## What we're building
 
@@ -164,15 +179,19 @@ The core issue appears to be how ChatGPT and Perplexity fetch URLs. Their tools 
 2. The edge function exclusions work for browsers but not for AI fetch tools
 3. There may be rate limiting or bot protection enabled by default
 
-## Current workaround
+## Why Content-Type matters
 
-Users can still share content with AI tools by:
+Without an explicit `Content-Type` header, Netlify serves files based on extension. The `.md` extension gets served as `text/markdown` or similar, which AI fetch tools may reject or misinterpret.
 
-1. **Copy page** copies markdown to clipboard, then paste into any AI
-2. **View as Markdown** opens the raw `.md` file in a browser tab for manual copying
-3. **Download as SKILL.md** downloads in Anthropic Agent Skills format
+Setting `Content-Type = "text/plain; charset=utf-8"` tells the CDN and AI crawlers exactly what to expect. The `Access-Control-Allow-Origin = "*"` header ensures cross-origin requests work.
 
-The direct "Open in ChatGPT/Claude/Perplexity" buttons have been disabled since the URLs don't work reliably.
+## What works now
+
+Users can share content with AI tools via:
+
+1. **Copy page** copies markdown to clipboard
+2. **View as Markdown** opens the raw `.md` file in browser
+3. **Open in ChatGPT/Claude/Perplexity** sends the URL directly (now working)
 
 ## Working features
 

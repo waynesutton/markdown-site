@@ -4,6 +4,81 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.10.0] - 2026-01-05
+
+### Added
+
+- Semantic search using vector embeddings to complement existing keyword search
+  - Toggle between "Keyword" and "Semantic" modes in search modal (Cmd+K)
+  - Keyword search: exact word matching via Convex full-text search indexes (instant, free)
+  - Semantic search: finds content by meaning using OpenAI text-embedding-ada-002 embeddings (~300ms, ~$0.0001/query)
+  - Similarity scores displayed as percentages (90%+ = very similar, 70-90% = related)
+  - Graceful fallback: semantic search returns empty results if OPENAI_API_KEY not configured
+- Embedding generation during content sync
+  - Embeddings generated automatically for posts and pages during `npm run sync`
+  - Title and content combined for embedding generation
+  - Content truncated to 8000 characters to stay within token limits
+- New documentation pages
+  - `docs-search.md`: Keyword search implementation with ASCII flowchart
+  - `docs-semantic-search.md`: Semantic search guide with comparison table
+
+### Technical
+
+- New file: `convex/embeddings.ts` - Actions for embedding generation (Node.js runtime)
+- New file: `convex/embeddingsQueries.ts` - Queries and mutations for embedding storage
+- New file: `convex/semanticSearch.ts` - Vector search action with similarity scoring
+- New file: `convex/semanticSearchQueries.ts` - Internal queries for hydrating search results
+- Added `embedding` field (optional float64 array) to posts and pages tables in schema
+- Added `by_embedding` vector index (1536 dimensions, filterFields: ["published"]) to posts and pages
+- Updated `src/components/SearchModal.tsx` with mode toggle (TextAa/Brain icons) and semantic search integration
+- Updated `scripts/sync-posts.ts` to call `generateMissingEmbeddings` after content sync
+- Added search mode toggle CSS styles (.search-mode-toggle, .search-mode-btn)
+
+### Environment Variables
+
+- `OPENAI_API_KEY`: Required for semantic search (set via `npx convex env set OPENAI_API_KEY sk-xxx`)
+
+## [2.9.0] - 2026-01-04
+
+### Added
+
+- Dashboard Cloud CMS features for WordPress-style content management
+  - Dual source architecture: dashboard-created content (`source: "dashboard"`) and synced content (`source: "sync"`) coexist independently
+  - Source badges in Posts and Pages list views (blue "Dashboard", gray "Synced")
+  - Direct database operations: "Save to DB" button in Write sections, "Save Changes" in editor
+  - Delete button for dashboard-created content with confirmation modal
+  - Server-side URL import via Firecrawl (direct to database, no file sync needed)
+  - Export to markdown functionality for backup or converting to file-based workflow
+  - Bulk export script: `npm run export:db` and `npm run export:db:prod`
+- Rich Text Editor in Write Post/Page sections
+  - Three editing modes: Markdown (default), Rich Text (Quill WYSIWYG), Preview
+  - Quill toolbar: headers, bold, italic, strikethrough, blockquote, code, lists, links
+  - Automatic HTML-to-Markdown conversion when switching modes
+  - Theme-aware styling
+- Delete confirmation modal for posts and pages
+  - Warning icon and danger-styled delete button
+  - Shows item name and type being deleted
+  - Backdrop click and Escape key to cancel
+
+### Changed
+
+- Posts and Pages list view grid layout adjusted for source badges
+  - Column widths: title (1fr), date (110px), status (170px), actions (110px)
+  - Added flex-wrap and gap for status column content
+- Sync mutations now preserve dashboard-created content
+  - Only affects content with `source: "sync"` or no source field
+
+### Technical
+
+- New file: `convex/cms.ts` with CRUD mutations for dashboard content
+- New file: `convex/importAction.ts` with Firecrawl server-side action
+- New file: `scripts/export-db-posts.ts` for bulk markdown export
+- Added `source` field (optional union: "dashboard" | "sync") to posts and pages tables
+- Added `by_source` index to posts and pages tables in schema
+- Added ConfirmDeleteModal component with Warning icon from Phosphor
+- Added source-badge CSS styles (.source-badge, .source-badge.dashboard, .source-badge.sync)
+- Added delete modal styles (.dashboard-modal-delete, .dashboard-modal-icon-warning, .dashboard-modal-btn.danger)
+
 ## [2.8.7] - 2026-01-04
 
 ### Fixed
