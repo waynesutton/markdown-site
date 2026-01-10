@@ -5,10 +5,29 @@ interface DocsTOCProps {
   headings: Heading[];
 }
 
-// Get absolute position of element from top of document
-function getElementTop(element: HTMLElement): number {
-  const rect = element.getBoundingClientRect();
-  return rect.top + window.scrollY;
+// Get the scrolling container for docs layout
+function getScrollContainer(): HTMLElement | Window {
+  const docsContent = document.querySelector(".docs-content");
+  return docsContent as HTMLElement || window;
+}
+
+// Get scroll position from the appropriate container
+function getScrollTop(container: HTMLElement | Window): number {
+  if (container === window) {
+    return window.scrollY;
+  }
+  return (container as HTMLElement).scrollTop;
+}
+
+// Get element position relative to the scroll container
+function getElementOffsetTop(element: HTMLElement, container: HTMLElement | Window): number {
+  if (container === window) {
+    return element.getBoundingClientRect().top + window.scrollY;
+  }
+  const containerEl = container as HTMLElement;
+  const containerRect = containerEl.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  return elementRect.top - containerRect.top + containerEl.scrollTop;
 }
 
 export default function DocsTOC({ headings }: DocsTOCProps) {
@@ -19,18 +38,20 @@ export default function DocsTOC({ headings }: DocsTOCProps) {
   useEffect(() => {
     if (headings.length === 0) return;
 
+    const container = getScrollContainer();
+
     const handleScroll = () => {
       // Skip during programmatic navigation
       if (isNavigatingRef.current) return;
 
-      const scrollPosition = window.scrollY + 120; // Header offset
+      const scrollPosition = getScrollTop(container) + 120; // Header offset
 
       // Find the heading that's currently in view
       let currentId = "";
       for (const heading of headings) {
         const element = document.getElementById(heading.id);
         if (element) {
-          const top = getElementTop(element);
+          const top = getElementOffsetTop(element, container);
           if (scrollPosition >= top) {
             currentId = heading.id;
           } else {
@@ -45,8 +66,9 @@ export default function DocsTOC({ headings }: DocsTOCProps) {
     // Initial check
     handleScroll();
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const scrollTarget = container === window ? window : container;
+    scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollTarget.removeEventListener("scroll", handleScroll);
   }, [headings]);
 
   // Navigate to heading
@@ -54,18 +76,27 @@ export default function DocsTOC({ headings }: DocsTOCProps) {
     const element = document.getElementById(id);
     if (!element) return;
 
+    const container = getScrollContainer();
+
     isNavigatingRef.current = true;
     setActiveId(id);
 
     // Scroll with header offset
     const headerOffset = 80;
-    const elementTop = getElementTop(element);
+    const elementTop = getElementOffsetTop(element, container);
     const targetPosition = elementTop - headerOffset;
 
-    window.scrollTo({
-      top: Math.max(0, targetPosition),
-      behavior: "smooth",
-    });
+    if (container === window) {
+      window.scrollTo({
+        top: Math.max(0, targetPosition),
+        behavior: "smooth",
+      });
+    } else {
+      (container as HTMLElement).scrollTo({
+        top: Math.max(0, targetPosition),
+        behavior: "smooth",
+      });
+    }
 
     // Update URL hash
     window.history.pushState(null, "", `#${id}`);
