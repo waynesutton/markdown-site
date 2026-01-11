@@ -272,6 +272,13 @@ export interface AskAIConfig {
   models: AIModelOption[]; // Available models for Ask AI
 }
 
+// Related posts configuration
+// Controls the display of related posts at the bottom of blog posts
+export interface RelatedPostsConfig {
+  defaultViewMode: "list" | "thumbnails"; // Default view mode for related posts
+  showViewToggle: boolean; // Show toggle button to switch between views
+}
+
 // Social link configuration for social footer
 export interface SocialLink {
   platform:
@@ -413,13 +420,16 @@ export interface SiteConfig {
 
   // Ask AI configuration (optional)
   askAI?: AskAIConfig;
+
+  // Related posts configuration (optional)
+  relatedPosts?: RelatedPostsConfig;
 }
 
 // Default site configuration
 // Customize this for your site
 export const siteConfig: SiteConfig = {
   // Basic site info
-  name: 'markdown "sync" framework',
+  name: "markdown sync",
   title: "markdown sync framework",
   // Optional logo/header image (place in public/images/, set to null to hide)
   logo: "/images/logo.svg",
@@ -835,6 +845,13 @@ export const siteConfig: SiteConfig = {
         provider: "openai",
       },
     ],
+  },
+
+  // Related posts configuration
+  // Controls the display of related posts at the bottom of blog posts
+  relatedPosts: {
+    defaultViewMode: "thumbnails", // Default view: "list" or "thumbnails"
+    showViewToggle: true, // Show toggle button to switch between views
   },
 };
 

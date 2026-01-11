@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -135,7 +136,7 @@ function InlineCopyButton({ command }: { command: string }) {
   );
 }
 
-// Image lightbox component
+// Image lightbox component - uses portal to escape contain: layout
 function ImageLightbox({
   src,
   alt,
@@ -165,7 +166,8 @@ function ImageLightbox({
     };
   }, [onClose]);
 
-  return (
+  // Use portal to render at document body level, escaping contain: layout
+  return createPortal(
     <div className="image-lightbox-backdrop" onClick={handleBackdropClick}>
       <button
         className="image-lightbox-close"
@@ -178,7 +180,8 @@ function ImageLightbox({
         <img src={src} alt={alt} className="image-lightbox-image" />
         {alt && <div className="image-lightbox-caption">{alt}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

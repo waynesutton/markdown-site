@@ -15,8 +15,11 @@ import { useSidebar } from "../context/SidebarContext";
 import { format, parseISO } from "date-fns";
 import { ArrowLeft, Link as LinkIcon, Rss, Tag } from "lucide-react";
 import { XLogo, LinkedinLogo } from "@phosphor-icons/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import siteConfig from "../config/siteConfig";
+
+// Local storage key for related posts view mode preference
+const RELATED_POSTS_VIEW_MODE_KEY = "related-posts-view-mode";
 
 // Site configuration - update these for your site (or run npm run configure)
 const SITE_URL = "https://www.markdown.fast";
@@ -86,6 +89,28 @@ export default function Post({
   const footerPage = useQuery(api.pages.getPageBySlug, { slug: "footer" });
 
   const [copied, setCopied] = useState(false);
+
+  // State for related posts view mode toggle (list or thumbnails)
+  const [relatedPostsViewMode, setRelatedPostsViewMode] = useState<"list" | "thumbnails">(
+    siteConfig.relatedPosts?.defaultViewMode ?? "thumbnails",
+  );
+
+  // Load saved related posts view mode preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(RELATED_POSTS_VIEW_MODE_KEY);
+    if (saved === "list" || saved === "thumbnails") {
+      setRelatedPostsViewMode(saved);
+    }
+  }, []);
+
+  // Toggle related posts view mode and save preference
+  const toggleRelatedPostsViewMode = useCallback(() => {
+    setRelatedPostsViewMode((prev) => {
+      const newMode = prev === "list" ? "thumbnails" : "list";
+      localStorage.setItem(RELATED_POSTS_VIEW_MODE_KEY, newMode);
+      return newMode;
+    });
+  }, []);
 
   // Scroll to hash anchor after content loads
   // Skip if there's a search query - let the highlighting hook handle scroll
@@ -859,26 +884,125 @@ export default function Post({
             {/* Related posts section - only shown for blog posts with shared tags */}
             {relatedPosts && relatedPosts.length > 0 && (
               <div className="related-posts">
-                <h3 className="related-posts-title">Related Posts</h3>
-                <ul className="related-posts-list">
-                  {relatedPosts.map((relatedPost) => (
-                    <li key={relatedPost.slug} className="related-post-item">
+                <div className="related-posts-header">
+                  <h3 className="related-posts-title">Related Posts</h3>
+                  {siteConfig.relatedPosts?.showViewToggle !== false && (
+                    <button
+                      className="view-toggle-button"
+                      onClick={toggleRelatedPostsViewMode}
+                      aria-label={`Switch to ${relatedPostsViewMode === "list" ? "thumbnail" : "list"} view`}
+                    >
+                      {relatedPostsViewMode === "thumbnails" ? (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="8" y1="6" x2="21" y2="6" />
+                          <line x1="8" y1="12" x2="21" y2="12" />
+                          <line x1="8" y1="18" x2="21" y2="18" />
+                          <line x1="3" y1="6" x2="3.01" y2="6" />
+                          <line x1="3" y1="12" x2="3.01" y2="12" />
+                          <line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect x="3" y="3" width="7" height="7" />
+                          <rect x="14" y="3" width="7" height="7" />
+                          <rect x="3" y="14" width="7" height="7" />
+                          <rect x="14" y="14" width="7" height="7" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Thumbnail view - shows image, title, description, author */}
+                {relatedPostsViewMode === "thumbnails" ? (
+                  <div className="related-posts-thumbnails">
+                    {relatedPosts.map((relatedPost) => (
                       <Link
+                        key={relatedPost.slug}
                         to={`/${relatedPost.slug}`}
-                        className="related-post-link"
+                        className="related-post-thumbnail"
                       >
-                        <span className="related-post-title">
-                          {relatedPost.title}
-                        </span>
-                        {relatedPost.readTime && (
-                          <span className="related-post-meta">
-                            {relatedPost.readTime}
-                          </span>
+                        {relatedPost.image && (
+                          <div className="related-post-thumbnail-image">
+                            <img
+                              src={relatedPost.image}
+                              alt={relatedPost.title}
+                              loading="lazy"
+                            />
+                          </div>
                         )}
+                        <div className="related-post-thumbnail-content">
+                          <h4 className="related-post-thumbnail-title">
+                            {relatedPost.title}
+                          </h4>
+                          {(relatedPost.excerpt || relatedPost.description) && (
+                            <p className="related-post-thumbnail-excerpt">
+                              {relatedPost.excerpt || relatedPost.description}
+                            </p>
+                          )}
+                          <div className="related-post-thumbnail-meta">
+                            {relatedPost.authorImage && (
+                              <img
+                                src={relatedPost.authorImage}
+                                alt={relatedPost.authorName || "Author"}
+                                className="related-post-thumbnail-author-image"
+                              />
+                            )}
+                            {relatedPost.authorName && (
+                              <span className="related-post-thumbnail-author">
+                                {relatedPost.authorName}
+                              </span>
+                            )}
+                            {relatedPost.date && (
+                              <span className="related-post-thumbnail-date">
+                                {format(parseISO(relatedPost.date), "MMM d, yyyy")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </Link>
-                    </li>
-                  ))}
-                </ul>
+                    ))}
+                  </div>
+                ) : (
+                  /* List view - simple list with title and read time */
+                  <ul className="related-posts-list">
+                    {relatedPosts.map((relatedPost) => (
+                      <li key={relatedPost.slug} className="related-post-item">
+                        <Link
+                          to={`/${relatedPost.slug}`}
+                          className="related-post-link"
+                        >
+                          <span className="related-post-title">
+                            {relatedPost.title}
+                          </span>
+                          {relatedPost.readTime && (
+                            <span className="related-post-meta">
+                              {relatedPost.readTime}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 

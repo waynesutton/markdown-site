@@ -1,5 +1,7 @@
 # OpenCode Integration
 
+> This framework includes full OpenCode support with agents, commands, skills, and plugins.
+
 ---
 Type: post
 Date: 2026-01-10

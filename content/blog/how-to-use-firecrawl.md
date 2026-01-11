@@ -4,7 +4,7 @@ description: "Import external articles as markdown posts using Firecrawl. Get yo
 date: "2025-12-26"
 slug: "how-to-use-firecrawl"
 published: true
-featured: true
+featured: false
 featuredOrder: 6
 image: /images/firecrwall-blog.png
 tags: ["tutorial", "firecrawl", "import"]

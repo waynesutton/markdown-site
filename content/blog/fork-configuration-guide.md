@@ -23,9 +23,37 @@ docsSectionOrder: 1
 
 After forking this markdown framework, you need to update configuration files with your site information. This affects your site name, URLs, RSS feeds, social sharing metadata, and AI discovery files.
 
-Previously this meant editing 10+ files manually. Now you have two options.
+Previously this meant editing 10+ files manually. Now you have three options.
 
-## Option 1: Automated configuration
+## Option 1: npx CLI (Recommended)
+
+The fastest way to get started. Run a single command to create a new project:
+
+```bash
+npx create-markdown-sync my-site
+```
+
+The interactive wizard will:
+1. Clone the template repository
+2. Walk through all configuration options (site name, URLs, features, etc.)
+3. Install dependencies
+4. Set up Convex (opens browser for login)
+5. Start the dev server and open your browser
+
+After setup, follow the on-screen instructions:
+
+```bash
+cd my-site
+npx convex dev    # Start Convex (required first time)
+npm run sync      # Sync content (in another terminal)
+npm run dev       # Start dev server
+```
+
+**Resources:**
+- Deployment: https://www.markdown.fast/docs-deployment
+- WorkOS auth: https://www.markdown.fast/how-to-setup-workos
+
+## Option 2: Automated configuration
 
 Run a single command to configure everything at once.
 
@@ -91,7 +119,7 @@ Updating public/.well-known/ai-plugin.json...
 Configuration complete!
 ```
 
-## Option 2: Manual configuration
+## Option 3: Manual configuration
 
 If you prefer to update files manually, follow the guide in `FORK_CONFIG.md`. It includes:
 
@@ -342,11 +370,12 @@ If you want to clear the sample content, delete the markdown files in those dire
 
 ## Summary
 
-Two options after forking:
+Three options to get started:
 
-1. **Automated**: `cp fork-config.json.example fork-config.json`, edit JSON, run `npm run configure`
-2. **Manual**: Follow `FORK_CONFIG.md` step-by-step or paste the AI prompt into Claude/ChatGPT
+1. **npx CLI (Recommended)**: `npx create-markdown-sync my-site` - interactive wizard creates and configures everything
+2. **Automated**: `cp fork-config.json.example fork-config.json`, edit JSON, run `npm run configure`
+3. **Manual**: Follow `FORK_CONFIG.md` step-by-step or paste the AI prompt into Claude/ChatGPT
 
-Both approaches update the same 11 files. The automated option takes about 30 seconds. The manual option gives you more control over each change.
+The npx CLI is the fastest option for new projects. The automated and manual options work best for existing forks.
 
 Fork it, configure it, ship it.

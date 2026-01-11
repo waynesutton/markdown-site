@@ -276,6 +276,7 @@ interface ConfirmDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onCopy: () => void;
   title: string;
   itemName: string;
   itemType: "post" | "page";
@@ -286,11 +287,20 @@ function ConfirmDeleteModal({
   isOpen,
   onClose,
   onConfirm,
+  onCopy,
   title,
   itemName,
   itemType,
   isDeleting,
 }: ConfirmDeleteModalProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await onCopy();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !isDeleting) {
       onClose();
@@ -308,6 +318,13 @@ function ConfirmDeleteModal({
     }
     return () => document.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose, isDeleting]);
+
+  // Reset copied state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCopied(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -340,6 +357,30 @@ function ConfirmDeleteModal({
             This action cannot be undone. The {itemType} will be permanently
             removed from the database.
           </p>
+          <div className="dashboard-modal-copy-prompt">
+            <div className="dashboard-modal-copy-prompt-text">
+              <Info size={16} />
+              <span>Would you like to copy the markdown before deleting?</span>
+            </div>
+            <button
+              className={`dashboard-modal-copy-btn ${copied ? "copied" : ""}`}
+              onClick={handleCopy}
+              disabled={isDeleting}
+              title="Copy markdown to clipboard"
+            >
+              {copied ? (
+                <>
+                  <Check size={16} weight="bold" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <CopySimple size={16} />
+                  <span>Copy Markdown</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="dashboard-modal-footer">
@@ -670,7 +711,8 @@ function DashboardContent() {
     id: string;
     title: string;
     type: "post" | "page";
-  }>({ isOpen: false, id: "", title: "", type: "post" });
+    item: ContentItem | null;
+  }>({ isOpen: false, id: "", title: "", type: "post", item: null });
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync server state
@@ -862,12 +904,13 @@ function DashboardContent() {
 
   // Show delete confirmation modal for a post
   const handleDeletePost = useCallback(
-    (id: string, title: string) => {
+    (item: ContentItem) => {
       setDeleteModal({
         isOpen: true,
-        id,
-        title,
+        id: item._id,
+        title: item.title,
         type: "post",
+        item,
       });
     },
     [],
@@ -875,12 +918,13 @@ function DashboardContent() {
 
   // Show delete confirmation modal for a page
   const handleDeletePage = useCallback(
-    (id: string, title: string) => {
+    (item: ContentItem) => {
       setDeleteModal({
         isOpen: true,
-        id,
-        title,
+        id: item._id,
+        title: item.title,
         type: "page",
+        item,
       });
     },
     [],
@@ -889,7 +933,7 @@ function DashboardContent() {
   // Close delete modal
   const closeDeleteModal = useCallback(() => {
     if (!isDeleting) {
-      setDeleteModal({ isOpen: false, id: "", title: "", type: "post" });
+      setDeleteModal({ isOpen: false, id: "", title: "", type: "post", item: null });
     }
   }, [isDeleting]);
 
@@ -904,7 +948,7 @@ function DashboardContent() {
         await deletePageMutation({ id: deleteModal.id as Id<"pages"> });
         addToast("Page deleted successfully", "success");
       }
-      setDeleteModal({ isOpen: false, id: "", title: "", type: "post" });
+      setDeleteModal({ isOpen: false, id: "", title: "", type: "post", item: null });
     } catch (error) {
       addToast(
         error instanceof Error ? error.message : `Failed to delete ${deleteModal.type}`,
@@ -1004,6 +1048,14 @@ function DashboardContent() {
     },
     [],
   );
+
+  // Copy markdown content before deletion
+  const handleCopyBeforeDelete = useCallback(async () => {
+    if (!deleteModal.item) return;
+    const markdown = generateMarkdown(deleteModal.item, deleteModal.type);
+    await navigator.clipboard.writeText(markdown);
+    addToast("Markdown copied to clipboard", "success");
+  }, [deleteModal, generateMarkdown, addToast]);
 
   // Download markdown file
   const handleDownloadMarkdown = useCallback(() => {
@@ -1166,6 +1218,7 @@ function DashboardContent() {
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
+        onCopy={handleCopyBeforeDelete}
         title="Delete Confirmation"
         itemName={deleteModal.title}
         itemType={deleteModal.type}
@@ -1275,7 +1328,7 @@ function DashboardContent() {
               <MagnifyingGlass size={16} />
               <input
                 type="text"
-                placeholder="Search dashboard..."
+                placeholder="Search posts and pages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="dashboard-search-input"
@@ -1414,6 +1467,7 @@ function DashboardContent() {
               sidebarCollapsed={sidebarCollapsed}
               setSidebarCollapsed={setSidebarCollapsed}
               addToast={addToast}
+              setActiveSection={setActiveSection}
             />
           )}
 
@@ -1424,6 +1478,7 @@ function DashboardContent() {
               sidebarCollapsed={sidebarCollapsed}
               setSidebarCollapsed={setSidebarCollapsed}
               addToast={addToast}
+              setActiveSection={setActiveSection}
             />
           )}
 
@@ -1503,7 +1558,7 @@ function PostsListView({
   posts: ContentItem[];
   onEdit: (post: ContentItem) => void;
   searchQuery: string;
-  onDelete: (id: string, title: string) => void;
+  onDelete: (item: ContentItem) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -1651,7 +1706,7 @@ function PostsListView({
                 {post.source === "dashboard" && (
                   <button
                     className="action-btn delete"
-                    onClick={() => onDelete(post._id, post.title)}
+                    onClick={() => onDelete(post as ContentItem)}
                     title="Delete"
                   >
                     <Trash size={16} />
@@ -1698,7 +1753,7 @@ function PagesListView({
   pages: ContentItem[];
   onEdit: (page: ContentItem) => void;
   searchQuery: string;
-  onDelete: (id: string, title: string) => void;
+  onDelete: (item: ContentItem) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -1844,7 +1899,7 @@ function PagesListView({
                 {page.source === "dashboard" && (
                   <button
                     className="action-btn delete"
-                    onClick={() => onDelete(page._id, page.title)}
+                    onClick={() => onDelete(page as ContentItem)}
                     title="Delete"
                   >
                     <Trash size={16} />
@@ -2540,11 +2595,13 @@ function WriteSection({
   sidebarCollapsed,
   setSidebarCollapsed,
   addToast,
+  setActiveSection,
 }: {
   contentType: "post" | "page";
   sidebarCollapsed: boolean;
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   addToast: (message: string, type?: ToastType) => void;
+  setActiveSection: (section: DashboardSection) => void;
 }) {
   const [content, setContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -2742,7 +2799,7 @@ function WriteSection({
         setRichTextHtml(prev => prev + `<p><img src="${src}" alt="${alt}" /></p>`);
       }
     } else {
-      // Preview mode - just append to content
+      // Preview mode - append to content
       setContent(prev => prev + "\n" + markdown);
     }
   }, [content, editorMode]);
@@ -2833,6 +2890,9 @@ published: false
     URL.revokeObjectURL(url);
   }, [content, contentType]);
 
+  // Default slug values that should trigger a warning
+  const DEFAULT_SLUGS = ["your-post-url", "page-url"];
+
   // Parse frontmatter and save to database
   const handleSaveToDb = useCallback(async () => {
     setIsSaving(true);
@@ -2841,6 +2901,7 @@ published: false
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
       if (!frontmatterMatch) {
         addToast("Content must have valid frontmatter (---)", "error");
+        setIsSaving(false);
         return;
       }
 
@@ -2876,6 +2937,27 @@ published: false
 
       if (!title || !slug) {
         addToast("Frontmatter must include title and slug", "error");
+        setIsSaving(false);
+        return;
+      }
+
+      // Check if slug is still default and warn user
+      if (DEFAULT_SLUGS.includes(slug)) {
+        addToast(
+          `Warning: Your slug is still "${slug}". Please change the slug to a unique URL-friendly value before saving.`,
+          "warning"
+        );
+        setIsSaving(false);
+        return;
+      }
+
+      // Check if title is still default
+      if (title === "Your Post Title" || title === "Page Title") {
+        addToast(
+          `Warning: Please change the title from "${title}" to something unique before saving.`,
+          "warning"
+        );
+        setIsSaving(false);
         return;
       }
 
@@ -2910,7 +2992,11 @@ published: false
             authorImage,
           },
         });
-        addToast(`Post "${title}" saved to database`, "success");
+        addToast(`Post "${title}" saved to database. Redirecting to Posts...`, "success");
+        // Navigate to posts section after successful save
+        setTimeout(() => {
+          setActiveSection("posts");
+        }, 500);
       } else {
         const published = parseBool("published") ?? false;
         const order = parseNumber("order");
@@ -2938,7 +3024,11 @@ published: false
             authorImage,
           },
         });
-        addToast(`Page "${title}" saved to database`, "success");
+        addToast(`Page "${title}" saved to database. Redirecting to Pages...`, "success");
+        // Navigate to pages section after successful save
+        setTimeout(() => {
+          setActiveSection("pages");
+        }, 500);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to save";
@@ -2946,7 +3036,7 @@ published: false
     } finally {
       setIsSaving(false);
     }
-  }, [content, contentType, createPostMutation, createPageMutation, addToast]);
+  }, [content, contentType, createPostMutation, createPageMutation, addToast, setActiveSection]);
 
   // Calculate stats
   const lines = content.split("\n").length;
@@ -3008,7 +3098,8 @@ published: false
             <button
               onClick={() => setShowImageUpload(true)}
               className="dashboard-action-btn"
-              title="Insert Image"
+              title={editorMode === "richtext" ? "Image insertion not available in Rich Text mode" : "Insert Image"}
+              disabled={editorMode === "richtext"}
             >
               <Image size={16} />
               <span>Image</span>
@@ -4792,6 +4883,9 @@ function ConfigSection({
     // Media library
     mediaEnabled: siteConfig.media?.enabled || false,
     mediaMaxFileSize: siteConfig.media?.maxFileSize || 10,
+    // Related posts
+    relatedPostsDefaultViewMode: siteConfig.relatedPosts?.defaultViewMode || "thumbnails",
+    relatedPostsShowViewToggle: siteConfig.relatedPosts?.showViewToggle !== false,
   });
 
   const [copied, setCopied] = useState(false);
@@ -4977,6 +5071,13 @@ export const siteConfig: SiteConfig = {
     enabled: ${config.mediaEnabled},
     maxFileSize: ${config.mediaMaxFileSize},
     allowedTypes: ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  },
+
+  // Related posts configuration
+  // Controls the display of related posts at the bottom of blog posts
+  relatedPosts: {
+    defaultViewMode: "${config.relatedPostsDefaultViewMode}",
+    showViewToggle: ${config.relatedPostsShowViewToggle},
   },
 };
 
@@ -5868,6 +5969,38 @@ export default siteConfig;
           </div>
           <p className="config-hint">
             Upload and manage images via ConvexFS and Bunny.net CDN. Requires BUNNY_API_KEY, BUNNY_STORAGE_ZONE, and BUNNY_CDN_HOSTNAME in Convex dashboard.
+          </p>
+        </div>
+
+        {/* Related Posts */}
+        <div className="dashboard-config-card">
+          <h3>Related Posts</h3>
+          <div className="config-field">
+            <label>Default View Mode</label>
+            <select
+              value={config.relatedPostsDefaultViewMode}
+              onChange={(e) =>
+                handleChange("relatedPostsDefaultViewMode", e.target.value)
+              }
+            >
+              <option value="thumbnails">Thumbnails</option>
+              <option value="list">List</option>
+            </select>
+          </div>
+          <div className="config-field checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.relatedPostsShowViewToggle}
+                onChange={(e) =>
+                  handleChange("relatedPostsShowViewToggle", e.target.checked)
+                }
+              />
+              <span>Show view toggle button</span>
+            </label>
+          </div>
+          <p className="config-hint">
+            Controls the display of related posts at the bottom of blog posts. Thumbnails view shows image, title, description and author.
           </p>
         </div>
 

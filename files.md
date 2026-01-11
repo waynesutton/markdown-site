@@ -35,7 +35,7 @@ A brief description of each file in the codebase.
 
 | File            | Description                                                                                                                                                                                                                                                                                                                                                                                              |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `siteConfig.ts` | Centralized site configuration (name, logo, blog page, posts display with homepage post limit and read more link, featured section with configurable title via featuredTitle, GitHub contributions, nav order, inner page logo settings, hardcoded navigation items for React routes, GitHub repository config for AI service raw URLs, font family configuration, right sidebar configuration, footer configuration with markdown support, social footer configuration, homepage configuration, AI chat configuration, aiDashboard configuration with multi-model support for text chat and image generation, newsletter configuration with admin and notifications, contact form configuration, weekly digest configuration, stats page configuration with public/private toggle, dashboard configuration with optional WorkOS authentication via requireAuth, image lightbox configuration with enabled toggle, semantic search configuration with enabled toggle and disabled by default to avoid blocking forks without OPENAI_API_KEY, twitter configuration for Twitter Cards meta tags, askAI configuration with enabled toggle, default model, and available models for header Ask AI feature) |
+| `siteConfig.ts` | Centralized site configuration (name, logo, blog page, posts display with homepage post limit and read more link, featured section with configurable title via featuredTitle, GitHub contributions, nav order, inner page logo settings, hardcoded navigation items for React routes, GitHub repository config for AI service raw URLs, font family configuration, right sidebar configuration, footer configuration with markdown support, social footer configuration, homepage configuration, AI chat configuration, aiDashboard configuration with multi-model support for text chat and image generation, newsletter configuration with admin and notifications, contact form configuration, weekly digest configuration, stats page configuration with public/private toggle, dashboard configuration with optional WorkOS authentication via requireAuth, image lightbox configuration with enabled toggle, semantic search configuration with enabled toggle and disabled by default to avoid blocking forks without OPENAI_API_KEY, twitter configuration for Twitter Cards meta tags, askAI configuration with enabled toggle, default model, and available models for header Ask AI feature, relatedPosts configuration with defaultViewMode and showViewToggle options) |
 
 ### Pages (`src/pages/`)
 
@@ -43,7 +43,7 @@ A brief description of each file in the codebase.
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Home.tsx`    | Landing page with featured content and optional post list. Fetches home intro content from `content/pages/home.md` (slug: `home-intro`) for synced markdown intro text. Supports configurable post limit (homePostsLimit) and optional "read more" link (homePostsReadMore) via siteConfig.postsDisplay. Falls back to siteConfig.bio if home-intro page not found. Home intro content uses blog heading styles (blog-h1 through blog-h6) with clickable anchor links, matching blog post typography. Includes helper functions (generateSlug, getTextContent, HeadingAnchor) for heading ID generation and anchor links. Featured section title configurable via siteConfig.featuredTitle (default: "Get started:"). |
 | `Blog.tsx`    | Dedicated blog page with featured layout: hero post (first blogFeatured), featured row (remaining blogFeatured in 2 columns with excerpts), and regular posts (3 columns without excerpts). Supports list/card view toggle. Includes back button in navigation                                                                                                    |
-| `Post.tsx`    | Individual blog post or page view with optional left sidebar (TOC) and right sidebar (CopyPageDropdown). Includes back button (hidden when used as homepage), tag links, related posts section in footer for blog posts, footer component with markdown support (fetches footer.md content from Convex), and social footer. Supports 3-column layout at 1135px+. Can display image at top when showImageAtTop: true. Can be used as custom homepage via siteConfig.homepage (update SITE_URL/SITE_NAME when forking). SEO: Dynamic canonical URL, hreflang tags, og:url consistency, and twitter:site meta tags. DOM order optimized for SEO (article before sidebar, CSS order for visual layout). |
+| `Post.tsx`    | Individual blog post or page view with optional left sidebar (TOC) and right sidebar (CopyPageDropdown). Includes back button (hidden when used as homepage), tag links, related posts section in footer for blog posts with thumbnail/list view toggle, footer component with markdown support (fetches footer.md content from Convex), and social footer. Supports 3-column layout at 1135px+. Can display image at top when showImageAtTop: true. Can be used as custom homepage via siteConfig.homepage (update SITE_URL/SITE_NAME when forking). SEO: Dynamic canonical URL, hreflang tags, og:url consistency, and twitter:site meta tags. DOM order optimized for SEO (article before sidebar, CSS order for visual layout). Related posts view mode persists in localStorage. |
 | `Stats.tsx`   | Real-time analytics dashboard with visitor stats and GitHub stars. Configurable via `siteConfig.statsPage` to enable/disable public access and navigation visibility. Shows disabled message when `enabled: false` (similar to NewsletterAdmin pattern).                                                                                                                                                                 |
 | `DocsPage.tsx` | Docs landing page component for `/docs` route. Renders the page/post with `docsLanding: true` in DocsLayout. Fetches landing content via `getDocsLandingPage` and `getDocsLandingPost` queries. Includes Footer component (respects showFooter frontmatter), AI chat support (aiChatEnabled), and fallback to first docs item if no landing page is set. |
 | `TagPage.tsx` | Tag archive page displaying posts filtered by a specific tag. Includes view mode toggle (list/cards) with localStorage persistence                                                                                                                                                                                                                                |
@@ -118,7 +118,7 @@ A brief description of each file in the codebase.
 | `schema.ts`        | Database schema (posts, pages, viewCounts, pageViews, activeSessions, aiChats, aiGeneratedImages, newsletterSubscribers, newsletterSentPosts, contactMessages, askAISessions, contentVersions, versionControlSettings) with indexes for tag queries (by_tags), AI queries, blog featured posts (by_blogFeatured), source tracking (by_source), vector search (by_embedding), and version history (by_content, by_createdAt). Posts and pages include showSocialFooter, showImageAtTop, blogFeatured, contactForm, source, and embedding fields for frontmatter control, cloud CMS tracking, and semantic search. contentVersions stores snapshots before content updates. versionControlSettings stores the enable/disable toggle. |
 | `cms.ts`           | CRUD mutations for dashboard cloud CMS: createPost, updatePost, deletePost, createPage, updatePage, deletePage, exportPostAsMarkdown, exportPageAsMarkdown. Posts/pages created via dashboard have `source: "dashboard"` (protected from sync overwrites). Captures versions before updates when version control is enabled. |
 | `importAction.ts`  | Server-side Convex action for direct URL import via Firecrawl API. Scrapes URL, converts to markdown, saves directly to database with `source: "dashboard"`. Requires FIRECRAWL_API_KEY environment variable. |
-| `posts.ts`         | Queries and mutations for blog posts, view counts, getAllTags, getPostsByTag, getRelatedPosts, and getBlogFeaturedPosts. Includes tag-based queries for tag pages and related posts functionality. |
+| `posts.ts`         | Queries and mutations for blog posts, view counts, getAllTags, getPostsByTag, getRelatedPosts (returns image, excerpt, authorName, authorImage for thumbnail view), and getBlogFeaturedPosts. Includes tag-based queries for tag pages and related posts functionality. |
 | `pages.ts`         | Queries and mutations for static pages                                                                             |
 | `search.ts`        | Full text search queries across posts and pages                                                                    |
 | `semanticSearch.ts` | Vector-based semantic search action using OpenAI embeddings                                                       |
@@ -351,6 +351,28 @@ Files include a metadata header with type (post/page), date, reading time, and t
 | `frontmatter.md` | Frontmatter syntax and all field options for posts and pages |
 | `convex.md`    | Convex patterns specific to this app (indexes, mutations, queries) |
 | `sync.md`      | How sync commands work and content flow from markdown to database |
+
+## CLI Package (`packages/create-markdown-sync/`)
+
+NPM CLI package for scaffolding new markdown-sync projects with a single command.
+
+| File | Description |
+| ---- | ----------- |
+| `package.json` | CLI package config with bin entry point |
+| `tsconfig.json` | TypeScript config for CLI |
+| `README.md` | NPM package readme |
+| `src/index.ts` | Main entry point with CLI argument parsing |
+| `src/wizard.ts` | Interactive prompts (13 sections, 50+ prompts) |
+| `src/clone.ts` | Repository cloning via giget |
+| `src/configure.ts` | Fork config generation and template fixes |
+| `src/install.ts` | Dependency installation and dev server |
+| `src/convex-setup.ts` | Convex project initialization |
+| `src/utils.ts` | Validation helpers, logging, package manager detection |
+
+**Usage:**
+```bash
+npx create-markdown-sync my-site
+```
 
 ## Cursor Rules (`.cursor/rules/`)
 

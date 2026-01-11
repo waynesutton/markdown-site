@@ -1,12 +1,47 @@
 # Fork Configuration Guide
 
-After forking this repo, update these files with your site information. Choose one of two options:
+After forking this repo, update these files with your site information. Choose one of three options:
 
 **Important**: Keep your `fork-config.json` file after configuring. The `sync:discovery` commands will use it to update discovery files (`AGENTS.md`, `CLAUDE.md`, `public/llms.txt`) with your configured values.
 
 ---
 
-## Option 1: Automated Script (Recommended)
+## Option 1: npx CLI (Recommended)
+
+Run a single command to scaffold and configure your project with an interactive wizard:
+
+```bash
+npx create-markdown-sync my-site
+```
+
+The interactive wizard will:
+
+1. Clone the repository
+2. Walk through all configuration options (site name, URL, features, etc.)
+3. Install dependencies
+4. Set up Convex backend (opens browser for login)
+5. Run initial content sync
+6. Open your site in the browser
+
+### After setup
+
+```bash
+cd my-site
+npm run dev      # Start dev server at localhost:5173
+npm run sync     # Sync content changes
+```
+
+### CLI Options
+
+```bash
+npx create-markdown-sync my-site --force       # Overwrite existing directory
+npx create-markdown-sync my-site --skip-convex # Skip Convex setup
+npx create-markdown-sync my-site --skip-open   # Don't open browser after setup
+```
+
+---
+
+## Option 2: Automated Script
 
 Run a single command to configure all files automatically.
 
@@ -76,7 +111,7 @@ npm run dev                 # Test locally
 
 ---
 
-## Option 2: Manual Configuration
+## Option 3: Manual Configuration
 
 Edit each file individually following the guide below.
 

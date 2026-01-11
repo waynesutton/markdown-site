@@ -2,12 +2,12 @@
 
 ---
 Type: page
-Date: 2026-01-10
+Date: 2026-01-11
 ---
 
-An open-source publishing framework built for AI agents and developers to ship **[docs](/docs)**, or **[blogs](/blog)** or **[websites](/)**.
+The open-source markdown publishing framework for developers and AI agents to ship **[docs](/docs)**, or **[blogs](/blog)** or **[websites](/)** that's always in sync.
 
-Write markdown, sync from the terminal. **[Fork it](https://github.com/waynesutton/markdown-site)**, customize it, ship it.
+**[Fork it](https://github.com/waynesutton/markdown-site)** or npm <span class="copy-command">npx create-markdown-sync my-site</span>, customize it, ship it.
 
 <!-- This is a comments
 Your content is instantly available to browsers, LLMs, and AI
@@ -32,3 +32,7 @@ agents. -->
 **Semantic search** - Find content by meaning, not just keywords.
 
 **Ask AI** - Chat with your site content. Get answers with sources.
+
+```
+
+```

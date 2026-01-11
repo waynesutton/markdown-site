@@ -29,6 +29,19 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Silent mode flag (for CLI usage)
+const silent = process.argv.includes("--silent");
+
+// Log helper that respects silent mode
+function log(message: string): void {
+  if (!silent) log(message);
+}
+
+// Warn helper that always shows warnings
+function warn(message: string): void {
+  warn(message);
+}
+
 // Configuration interface matching fork-config.json
 interface ForkConfig {
   siteName: string;
@@ -112,10 +125,10 @@ function readConfig(): ForkConfig {
 
   if (!fs.existsSync(configPath)) {
     console.error("Error: fork-config.json not found.");
-    console.log("\nTo get started:");
-    console.log("1. Copy fork-config.json.example to fork-config.json");
-    console.log("2. Edit fork-config.json with your site information");
-    console.log("3. Run npm run configure again");
+    log("\nTo get started:");
+    log("1. Copy fork-config.json.example to fork-config.json");
+    log("2. Edit fork-config.json with your site information");
+    log("3. Run npm run configure again");
     process.exit(1);
   }
 
@@ -131,7 +144,7 @@ function updateFile(
   const filePath = path.join(PROJECT_ROOT, relativePath);
 
   if (!fs.existsSync(filePath)) {
-    console.warn(`Warning: ${relativePath} not found, skipping.`);
+    warn(`Warning: ${relativePath} not found, skipping.`);
     return;
   }
 
@@ -148,29 +161,37 @@ function updateFile(
 
   if (modified) {
     fs.writeFileSync(filePath, content, "utf-8");
-    console.log(`  Updated: ${relativePath}`);
+    log(`  Updated: ${relativePath}`);
   } else {
-    console.log(`  No changes: ${relativePath}`);
+    log(`  No changes: ${relativePath}`);
   }
 }
 
 // Update siteConfig.ts
 function updateSiteConfig(config: ForkConfig): void {
-  console.log("\nUpdating src/config/siteConfig.ts...");
+  log("\nUpdating src/config/siteConfig.ts...");
 
   const filePath = path.join(PROJECT_ROOT, "src/config/siteConfig.ts");
   let content = fs.readFileSync(filePath, "utf-8");
 
-  // Update site name
+  // Update site name (match single-quoted or double-quoted strings properly)
   content = content.replace(
-    /name: ['"].*?['"]/,
-    `name: '${config.siteName}'`,
+    /name: '(?:[^'\\]|\\.)*'/,
+    `name: '${config.siteName.replace(/'/g, "\\'")}'`,
+  );
+  content = content.replace(
+    /name: "(?:[^"\\]|\\.)*"/,
+    `name: "${config.siteName.replace(/"/g, '\\"')}"`,
   );
 
-  // Update site title
+  // Update site title (match single-quoted or double-quoted strings properly)
   content = content.replace(
-    /title: ['"].*?['"]/,
-    `title: "${config.siteTitle}"`,
+    /title: '(?:[^'\\]|\\.)*'/,
+    `title: "${config.siteTitle.replace(/"/g, '\\"')}"`,
+  );
+  content = content.replace(
+    /title: "(?:[^"\\]|\\.)*"/,
+    `title: "${config.siteTitle.replace(/"/g, '\\"')}"`,
   );
 
   // Update bio
@@ -389,12 +410,12 @@ function updateSiteConfig(config: ForkConfig): void {
   }
 
   fs.writeFileSync(filePath, content, "utf-8");
-  console.log(`  Updated: src/config/siteConfig.ts`);
+  log(`  Updated: src/config/siteConfig.ts`);
 }
 
 // Update Home.tsx
 function updateHomeTsx(config: ForkConfig): void {
-  console.log("\nUpdating src/pages/Home.tsx...");
+  log("\nUpdating src/pages/Home.tsx...");
 
   const githubRepoUrl = `https://github.com/${config.githubUsername}/${config.githubRepo}`;
 
@@ -439,7 +460,7 @@ function updateHomeTsx(config: ForkConfig): void {
 
 // Update Post.tsx
 function updatePostTsx(config: ForkConfig): void {
-  console.log("\nUpdating src/pages/Post.tsx...");
+  log("\nUpdating src/pages/Post.tsx...");
 
   updateFile("src/pages/Post.tsx", [
     // Match any existing SITE_URL value (https://...)
@@ -457,7 +478,7 @@ function updatePostTsx(config: ForkConfig): void {
 
 // Update DocsPage.tsx
 function updateDocsPageTsx(config: ForkConfig): void {
-  console.log("\nUpdating src/pages/DocsPage.tsx...");
+  log("\nUpdating src/pages/DocsPage.tsx...");
 
   updateFile("src/pages/DocsPage.tsx", [
     // Match any existing SITE_URL value (https://...)
@@ -470,7 +491,7 @@ function updateDocsPageTsx(config: ForkConfig): void {
 
 // Update convex/http.ts
 function updateConvexHttp(config: ForkConfig): void {
-  console.log("\nUpdating convex/http.ts...");
+  log("\nUpdating convex/http.ts...");
 
   updateFile("convex/http.ts", [
     // Match any existing SITE_URL value with process.env fallback
@@ -503,7 +524,7 @@ function updateConvexHttp(config: ForkConfig): void {
 
 // Update convex/rss.ts
 function updateConvexRss(config: ForkConfig): void {
-  console.log("\nUpdating convex/rss.ts...");
+  log("\nUpdating convex/rss.ts...");
 
   updateFile("convex/rss.ts", [
     // Match any existing SITE_URL value with process.env fallback
@@ -526,7 +547,7 @@ function updateConvexRss(config: ForkConfig): void {
 
 // Update index.html
 function updateIndexHtml(config: ForkConfig): void {
-  console.log("\nUpdating index.html...");
+  log("\nUpdating index.html...");
 
   const replacements: Array<{ search: string | RegExp; replace: string }> = [
     // Meta description (match any content)
@@ -626,7 +647,7 @@ function updateIndexHtml(config: ForkConfig): void {
 
 // Update public/llms.txt
 function updateLlmsTxt(config: ForkConfig): void {
-  console.log("\nUpdating public/llms.txt...");
+  log("\nUpdating public/llms.txt...");
 
   const githubUrl = `https://github.com/${config.githubUsername}/${config.githubRepo}`;
 
@@ -713,12 +734,12 @@ Each post contains:
 
   const filePath = path.join(PROJECT_ROOT, "public/llms.txt");
   fs.writeFileSync(filePath, content, "utf-8");
-  console.log(`  Updated: public/llms.txt`);
+  log(`  Updated: public/llms.txt`);
 }
 
 // Update public/robots.txt
 function updateRobotsTxt(config: ForkConfig): void {
-  console.log("\nUpdating public/robots.txt...");
+  log("\nUpdating public/robots.txt...");
 
   const content = `# robots.txt for ${config.siteName}
 # https://www.robotstxt.org/
@@ -757,12 +778,12 @@ Crawl-delay: 1
 
   const filePath = path.join(PROJECT_ROOT, "public/robots.txt");
   fs.writeFileSync(filePath, content, "utf-8");
-  console.log(`  Updated: public/robots.txt`);
+  log(`  Updated: public/robots.txt`);
 }
 
 // Update public/openapi.yaml
 function updateOpenApiYaml(config: ForkConfig): void {
-  console.log("\nUpdating public/openapi.yaml...");
+  log("\nUpdating public/openapi.yaml...");
 
   const githubUrl = `https://github.com/${config.githubUsername}/${config.githubRepo}`;
   // Extract domain from siteUrl for example URLs (without www. if present)
@@ -814,7 +835,7 @@ function updateOpenApiYaml(config: ForkConfig): void {
 
 // Update public/.well-known/ai-plugin.json
 function updateAiPluginJson(config: ForkConfig): void {
-  console.log("\nUpdating public/.well-known/ai-plugin.json...");
+  log("\nUpdating public/.well-known/ai-plugin.json...");
 
   const pluginName = config.siteName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
 
@@ -838,14 +859,14 @@ function updateAiPluginJson(config: ForkConfig): void {
 
   const filePath = path.join(PROJECT_ROOT, "public/.well-known/ai-plugin.json");
   fs.writeFileSync(filePath, JSON.stringify(content, null, 2) + "\n", "utf-8");
-  console.log(`  Updated: public/.well-known/ai-plugin.json`);
+  log(`  Updated: public/.well-known/ai-plugin.json`);
 }
 
 // Update default theme in siteConfig.ts
 function updateThemeConfig(config: ForkConfig): void {
   if (!config.theme) return;
 
-  console.log("\nUpdating default theme in src/config/siteConfig.ts...");
+  log("\nUpdating default theme in src/config/siteConfig.ts...");
 
   updateFile("src/config/siteConfig.ts", [
     {
@@ -857,7 +878,7 @@ function updateThemeConfig(config: ForkConfig): void {
 
 // Update netlify/edge-functions/mcp.ts
 function updateMcpEdgeFunction(config: ForkConfig): void {
-  console.log("\nUpdating netlify/edge-functions/mcp.ts...");
+  log("\nUpdating netlify/edge-functions/mcp.ts...");
 
   updateFile("netlify/edge-functions/mcp.ts", [
     // Match any existing SITE_URL constant
@@ -880,7 +901,7 @@ function updateMcpEdgeFunction(config: ForkConfig): void {
 
 // Update scripts/send-newsletter.ts
 function updateSendNewsletter(config: ForkConfig): void {
-  console.log("\nUpdating scripts/send-newsletter.ts...");
+  log("\nUpdating scripts/send-newsletter.ts...");
 
   updateFile("scripts/send-newsletter.ts", [
     // Match any existing SITE_URL fallback in comment
@@ -898,13 +919,13 @@ function updateSendNewsletter(config: ForkConfig): void {
 
 // Main function
 function main(): void {
-  console.log("Fork Configuration Script");
-  console.log("=========================\n");
+  log("Fork Configuration Script");
+  log("=========================\n");
 
   // Read configuration
   const config = readConfig();
-  console.log(`Configuring site: ${config.siteName}`);
-  console.log(`URL: ${config.siteUrl}`);
+  log(`Configuring site: ${config.siteName}`);
+  log(`URL: ${config.siteUrl}`);
 
   // Apply updates to all files
   updateSiteConfig(config);
@@ -922,14 +943,14 @@ function main(): void {
   updateMcpEdgeFunction(config);
   updateSendNewsletter(config);
 
-  console.log("\n=========================");
-  console.log("Configuration complete!");
-  console.log("\nNext steps:");
-  console.log("1. Review the changes with: git diff");
-  console.log("2. Run: npx convex dev (if not already running)");
-  console.log("3. Run: npm run sync (to sync content to development)");
-  console.log("4. Run: npm run dev (to start the dev server)");
-  console.log("5. Deploy to Netlify when ready");
+  log("\n=========================");
+  log("Configuration complete!");
+  log("\nNext steps:");
+  log("1. Review the changes with: git diff");
+  log("2. Run: npx convex dev (if not already running)");
+  log("3. Run: npm run sync (to sync content to development)");
+  log("4. Run: npm run dev (to start the dev server)");
+  log("5. Deploy to Netlify when ready");
 }
 
 main();

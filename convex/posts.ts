@@ -773,6 +773,10 @@ export const getRelatedPosts = query({
       date: v.string(),
       tags: v.array(v.string()),
       readTime: v.optional(v.string()),
+      image: v.optional(v.string()),
+      excerpt: v.optional(v.string()),
+      authorName: v.optional(v.string()),
+      authorImage: v.optional(v.string()),
       sharedTags: v.number(),
     }),
   ),
@@ -804,6 +808,10 @@ export const getRelatedPosts = query({
           date: post.date,
           tags: post.tags,
           readTime: post.readTime,
+          image: post.image,
+          excerpt: post.excerpt,
+          authorName: post.authorName,
+          authorImage: post.authorImage,
           sharedTags,
         };
       })

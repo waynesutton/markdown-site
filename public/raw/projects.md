@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-01-10
+Date: 2026-01-11
 ---
 
 This markdown framework is open source and built to be extended. Here is what ships out of the box.

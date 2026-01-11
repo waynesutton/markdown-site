@@ -1,0 +1,54 @@
+{
+  "name": "create-markdown-sync",
+  "version": "0.1.0",
+  "description": "Create a markdown-sync site with a single command",
+  "main": "dist/index.js",
+  "bin": {
+    "create-markdown-sync": "dist/index.js"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "markdown",
+    "blog",
+    "convex",
+    "cli",
+    "scaffolding",
+    "create",
+    "static-site",
+    "cms"
+  ],
+  "author": "Wayne Sutton",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waynesutton/markdown-site"
+  },
+  "bugs": {
+    "url": "https://github.com/waynesutton/markdown-site/issues"
+  },
+  "homepage": "https://github.com/waynesutton/markdown-site#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "execa": "^8.0.1",
+    "giget": "^1.2.3",
+    "kleur": "^4.1.5",
+    "open": "^10.1.0",
+    "ora": "^8.0.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.2.2"
+  }
+}

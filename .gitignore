@@ -31,6 +31,10 @@ dist-ssr
 # Fork configuration (user-specific)
 fork-config.json
 
+# CLI package build artifacts
+packages/*/dist/
+packages/*/node_modules/
+
 
 
 

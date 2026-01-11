@@ -11,6 +11,65 @@ docsSectionOrder: 4
 
 All notable changes to this project.
 
+## v2.19.0
+
+Released January 10, 2026
+
+**npx create-markdown-sync CLI**
+
+Added a CLI tool to scaffold new markdown-sync projects with a single command. Run `npx create-markdown-sync my-site` to clone the template, configure your site through an interactive wizard, install dependencies, and set up Convex.
+
+**Changes:**
+
+- Interactive wizard with 13 sections covering all configuration options
+- Clones template from GitHub via giget
+- Configures site settings automatically (siteConfig.ts, fork-config.json)
+- Installs dependencies with your preferred package manager
+- Sets up Convex project with optional WorkOS auth (disabled by default)
+- Starts dev server and opens browser
+- Clear next steps with links to docs, deployment guide, and WorkOS setup
+
+**Files changed:**
+
+- `packages/create-markdown-sync/` - New monorepo package
+- `packages/create-markdown-sync/src/index.ts` - CLI entry point
+- `packages/create-markdown-sync/src/wizard.ts` - Interactive prompts
+- `packages/create-markdown-sync/src/clone.ts` - Template cloning
+- `packages/create-markdown-sync/src/configure.ts` - Site configuration
+- `packages/create-markdown-sync/src/install.ts` - Dependency installation
+- `packages/create-markdown-sync/src/convex-setup.ts` - Convex initialization
+- `packages/create-markdown-sync/src/utils.ts` - Helper utilities
+- `package.json` - Added workspaces configuration
+- `.gitignore` - Added packages/*/dist/ and packages/*/node_modules/
+
+---
+
+## v2.18.2
+
+Released January 10, 2026
+
+**Related posts thumbnail view with toggle**
+
+Added a new thumbnail view for related posts at the bottom of blog posts. Shows post image, title, description, author avatar, author name, and date. Users can toggle between the new thumbnail view and the existing list view, with their preference saved to localStorage.
+
+**Changes:**
+
+- New thumbnail view with image on left, content on right (like attached screenshot)
+- Toggle button using same icons as homepage featured section
+- View preference saved to localStorage
+- Configuration via siteConfig.relatedPosts (defaultViewMode, showViewToggle)
+- Dashboard Config section for related posts settings
+
+**Files changed:**
+
+- `convex/posts.ts` - Updated getRelatedPosts query with image, excerpt, authorName, authorImage
+- `src/config/siteConfig.ts` - Added RelatedPostsConfig interface and relatedPosts config
+- `src/pages/Post.tsx` - Added thumbnail view, toggle state, and view mode rendering
+- `src/pages/Dashboard.tsx` - Added Related Posts config card in ConfigSection
+- `src/styles/global.css` - Added thumbnail view CSS styles
+
+---
+
 ## v2.18.1
 
 Released January 10, 2026

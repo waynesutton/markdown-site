@@ -11,6 +11,21 @@ const THEME_MAP: Record<string, "dark" | "light"> = {
   cloud: "light",
 };
 
+// Check if content is a valid unified diff format
+// Valid diffs have headers like "diff --git", "---", "+++", or "@@"
+function isValidDiff(code: string): boolean {
+  const lines = code.trim().split("\n");
+  // Check for common diff indicators
+  const hasDiffHeader = lines.some(
+    (line) =>
+      line.startsWith("diff ") ||
+      line.startsWith("--- ") ||
+      line.startsWith("+++ ") ||
+      line.startsWith("@@ ")
+  );
+  return hasDiffHeader;
+}
+
 interface DiffCodeBlockProps {
   code: string;
   language: "diff" | "patch";
@@ -29,6 +44,38 @@ export default function DiffCodeBlock({ code, language }: DiffCodeBlockProps) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // If not a valid diff format, render as simple code block with diff styling
+  if (!isValidDiff(code)) {
+    return (
+      <div className="code-block-wrapper">
+        <span className="code-language">{language}</span>
+        <button
+          className="code-copy-button"
+          onClick={handleCopy}
+          aria-label={copied ? "Copied!" : "Copy code"}
+          title={copied ? "Copied!" : "Copy code"}
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+        </button>
+        <pre className="diff-fallback">
+          <code>
+            {code.split("\n").map((line, i) => {
+              let className = "";
+              if (line.startsWith("+")) className = "diff-added";
+              else if (line.startsWith("-")) className = "diff-removed";
+              return (
+                <span key={i} className={className}>
+                  {line}
+                  {"\n"}
+                </span>
+              );
+            })}
+          </code>
+        </pre>
+      </div>
+    );
+  }
 
   return (
     <div className="diff-block-wrapper" data-theme-type={themeType}>

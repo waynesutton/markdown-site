@@ -1,6 +1,7 @@
 ---
 title: "OpenCode Integration"
 slug: "docs-opencode"
+description: "This framework includes full OpenCode support with agents, commands, skills, and plugins."
 date: "2026-01-10"
 published: true
 tags: ["opencode", "plugins", "terminal"]
@@ -8,7 +9,8 @@ readTime: "4 min read"
 order: 2
 showInNav: false
 layout: "sidebar"
-featuredOrder: 2
+featuredOrder: 6
+featured: true
 blogFeatured: true
 rightSidebar: true
 showImageAtTop: false

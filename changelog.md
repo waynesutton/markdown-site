@@ -4,6 +4,52 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.19.0] - 2026-01-10
+
+### Added
+
+- `npx create-markdown-sync` CLI for scaffolding new projects
+  - Interactive wizard with 13 sections covering all configuration options
+  - Clones template from GitHub via giget
+  - Configures site settings automatically
+  - Installs dependencies
+  - Sets up Convex project (optional WorkOS auth disabled by default)
+  - Starts dev server and opens browser
+  - Clear next steps with docs, deployment, and WorkOS setup links
+
+### Technical
+
+- New `packages/create-markdown-sync/` monorepo package
+- CLI files: index.ts, wizard.ts, clone.ts, configure.ts, install.ts, convex-setup.ts, utils.ts
+- Template fixes for siteConfig.ts embedded quotes
+- Empty auth.config.ts when auth not required (prevents WorkOS blocking)
+- Added workspaces to root package.json
+- Updated .gitignore for packages/*/dist/ and packages/*/node_modules/
+
+## [2.18.2] - 2026-01-10
+
+### Added
+
+- Related posts thumbnail view with toggle
+  - New thumbnail view shows post image, title, description, author, and date
+  - Toggle button to switch between thumbnail and list views (same icons as homepage featured)
+  - View preference saved to localStorage
+  - Default view mode and toggle visibility configurable via siteConfig.relatedPosts
+  - Dashboard Config section for related posts settings
+
+### Changed
+
+- Updated getRelatedPosts query to return image, excerpt, authorName, authorImage fields
+- Related posts section now has header with title and optional toggle button
+
+### Technical
+
+- Added `RelatedPostsConfig` interface to siteConfig.ts
+- Added `relatedPosts` configuration to SiteConfig interface
+- Updated convex/posts.ts getRelatedPosts query with additional return fields
+- Added related posts thumbnail CSS styles (~100 lines)
+- Added relatedPostsDefaultViewMode and relatedPostsShowViewToggle to Dashboard ConfigSection
+
 ## [2.18.1] - 2026-01-10
 
 ### Changed

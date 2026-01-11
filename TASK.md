@@ -4,9 +4,33 @@
 
 ## Current Status
 
-v2.18.1 ready. README cleanup with docs links.
+v2.19.0 ready. npx create-markdown-sync CLI.
 
 ## Completed
+
+- [x] npx create-markdown-sync CLI (v2.19.0)
+  - [x] Created packages/create-markdown-sync/ monorepo package
+  - [x] Interactive wizard with 13 sections (50+ prompts)
+  - [x] Clone template from GitHub via giget
+  - [x] Configure site settings automatically
+  - [x] Install dependencies and set up Convex
+  - [x] Disable WorkOS auth by default (empty auth.config.ts)
+  - [x] Start dev server and open browser
+  - [x] Clear next steps with docs, deployment, and WorkOS links
+  - [x] Template fixes for siteConfig.ts embedded quotes
+  - [x] npm publishable package
+
+- [x] Related posts thumbnail view with toggle (v2.18.2)
+  - [x] Added thumbnail view as default for related posts section
+  - [x] Card layout with image on left, title/excerpt/meta on right
+  - [x] Added view toggle button (same icons as homepage featured section)
+  - [x] Added RelatedPostsConfig interface to siteConfig.ts
+  - [x] Added relatedPosts config options: defaultViewMode, showViewToggle
+  - [x] Added config UI in Dashboard ConfigSection
+  - [x] Updated getRelatedPosts query to return image, excerpt, authorName, authorImage
+  - [x] Added localStorage persistence for view mode preference
+  - [x] Added ~100 lines of CSS for thumbnail card styles
+  - [x] Mobile responsive design for thumbnail cards
 
 - [x] README.md streamlined with docs links (v2.18.1)
   - [x] Reduced from 609 lines to 155 lines

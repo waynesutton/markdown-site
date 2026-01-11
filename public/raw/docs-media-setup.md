@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-01-10
+Date: 2026-01-11
 ---
 
 Set up image uploads for the dashboard using ConvexFS and Bunny.net CDN.

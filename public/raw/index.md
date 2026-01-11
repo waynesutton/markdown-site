@@ -1,8 +1,8 @@
 # Homepage
 
-An open-source publishing framework built for AI agents and developers to ship **[docs](/docs)**, or **[blogs](/blog)** or **[websites](/)**.
+The open-source markdown publishing framework for developers and AI agents to ship **[docs](/docs)**, or **[blogs](/blog)** or **[websites](/)** that's always in sync.
 
-Write markdown, sync from the terminal. **[Fork it](https://github.com/waynesutton/markdown-site)**, customize it, ship it.
+**[Fork it](https://github.com/waynesutton/markdown-site)** or npm <span class="copy-command">npx create-markdown-sync my-site</span>, customize it, ship it.
 
 <!-- This is a comments
 Your content is instantly available to browsers, LLMs, and AI
@@ -28,11 +28,15 @@ agents. -->
 
 **Ask AI** - Chat with your site content. Get answers with sources.
 
+```
+
+```
+
 ---
 
 ## Blog Posts (20)
 
-- **[OpenCode Integration](/raw/docs-opencode.md)**
+- **[OpenCode Integration](/raw/docs-opencode.md)** - This framework includes full OpenCode support with agents, commands, skills, and plugins.
   - Date: 2026-01-10 | Reading time: 4 min read | Tags: opencode, plugins, terminal
 - **[How to Use Code Blocks](/raw/how-to-use-code-blocks.md)** - A guide to syntax highlighting, diff rendering, and code formatting in your markdown posts.
   - Date: 2026-01-07 | Reading time: 4 min read | Tags: tutorial, markdown, code, syntax-highlighting
