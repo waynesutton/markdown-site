@@ -5,7 +5,7 @@ Project instructions for Claude Code.
 ## Project context
 
 <!-- Auto-updated by sync:discovery -->
-<!-- Site: markdown sync | Posts: 20 | Pages: 4 | Updated: 2026-02-22T07:08:13.995Z -->
+<!-- Site: markdown sync | Posts: 20 | Pages: 4 | Updated: 2026-02-22T08:13:36.489Z -->
 
 Markdown sync framework. Write markdown in `content/`, run sync commands, content appears instantly via Convex real-time database. Built for developers and AI agents.
 

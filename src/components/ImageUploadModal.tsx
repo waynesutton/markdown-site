@@ -71,8 +71,7 @@ export function ImageUploadModal({ isOpen, onClose, onInsert }: ImageUploadModal
   const resolveDirectUpload = useAction(api.media.resolveDirectUpload);
   const generateR2UploadUrl = useMutation(api.r2.generateUploadUrl);
   const syncR2Metadata = useMutation(api.r2.syncMetadata);
-  const configStatus = useQuery(api.files.isConfigured);
-  const isBunnyConfigured = configStatus?.configured ?? false;
+  // Note: api.files.isConfigured checks Bunny CDN status but browsing only requires convexfs provider
 
   const { results: mediaFiles, status: mediaStatus, loadMore } = usePaginatedQuery(
     api.files.listFiles,
@@ -397,7 +396,7 @@ export function ImageUploadModal({ isOpen, onClose, onInsert }: ImageUploadModal
           <button
             className={`image-upload-tab ${activeTab === "library" ? "active" : ""}`}
             onClick={() => setActiveTab("library")}
-            disabled={mediaProvider !== "convexfs" || !isBunnyConfigured}
+            disabled={mediaProvider !== "convexfs"}
           >
             <Images size={16} />
             Media Library
@@ -447,10 +446,10 @@ export function ImageUploadModal({ isOpen, onClose, onInsert }: ImageUploadModal
 
           {activeTab === "library" && !selectedImage && (
             <div className="image-upload-library">
-              {mediaProvider !== "convexfs" || !isBunnyConfigured ? (
+              {mediaProvider !== "convexfs" ? (
                 <div className="image-upload-library-empty">
                   <Warning size={32} />
-                  <p>Media library is available when media.provider is convexfs</p>
+                  <p>Media library browsing requires convexfs provider</p>
                 </div>
               ) : mediaFiles.length === 0 ? (
                 <div className="image-upload-library-empty">

@@ -4,6 +4,40 @@ A brief description of each file in the codebase.
 
 ## Recent session updates (2026-02-22)
 
+### Button border radius consistency fix (2026-02-22)
+
+- **Added missing CSS border-radius variables** in `src/styles/global.css`:
+  - Added `--border-radius-sm: 4px`, `--border-radius-md: 6px`, `--border-radius-lg: 8px` to `:root`
+  - These variables were referenced but undefined, causing inconsistent button styling
+  - Dashboard mode toggles (Markdown/Rich Text/Preview) now have consistent 6px border radius
+  - All action buttons across Write page and Dashboard now match
+
+### Media Library and router fixes (2026-02-22)
+
+- **Fixed Media Library upload and preview** in `src/components/MediaLibrary.tsx`:
+  - Added `RecentUpload` interface and `recentUploads` state to track uploads from `convex` and `r2` providers
+  - After upload, resolved URL is captured and shown with image preview and MD/HTML/URL copy buttons
+  - Recent uploads persist to `sessionStorage` so they survive page refreshes within the tab session
+  - Image previews use the real Convex storage URL (not ephemeral blob URLs)
+  - Usage text is now dynamic based on active provider (Bunny CDN, ConvexFS, R2, or Convex storage)
+  - Added `dismissRecent` function to remove items from recent uploads list
+
+- **Fixed ImageUploadModal Media Library tab** in `src/components/ImageUploadModal.tsx`:
+  - Removed `isBunnyConfigured` gate from Media Library tab (only requires `convexfs` provider now)
+  - Removed unused `configStatus` query and `isBunnyConfigured` variable
+
+- **Fixed image preview clipping** in `src/styles/global.css`:
+  - Changed `.media-item-preview` from `aspect-ratio: 1` + `object-fit: cover` to `aspect-ratio: 4/3` + `object-fit: contain`
+  - Full image visible without cropping
+  - Added `.media-recent-uploads` CSS for recent uploads heading
+
+- **Added React Router v7 future flags** in `src/main.tsx`:
+  - Added `v7_startTransition` and `v7_relativeSplatPath` to `BrowserRouter` future prop
+  - Eliminates React Router deprecation warnings in console
+
+- **Removed unused logo preload** in `index.html`:
+  - Removed `<link rel="preload" href="/images/logo.svg">` that caused console warning when logo not used
+
 ### Heartbeat write conflict elimination (2026-02-22)
 
 - **Increased backend dedup window** in `convex/stats.ts`:
@@ -214,8 +248,8 @@ A brief description of each file in the codebase.
 | `SocialFooter.tsx`        | Social footer component with social icons on left (GitHub, Twitter/X, LinkedIn, Instagram, YouTube, TikTok, Discord, Website) and copyright on right. Configurable via siteConfig.socialFooter. Shows below main footer on homepage, blog posts, and pages. Supports frontmatter override via showSocialFooter: true/false. Auto-updates copyright year. Exports `platformIcons` for reuse in header. |
 | `AskAIModal.tsx`          | Ask AI chat modal for RAG-based Q&A about site content. Opens via header button (Cmd+J) when enabled. Uses Convex Persistent Text Streaming for real-time responses. Supports model selection (Claude, GPT-4o). Features streaming messages with markdown rendering, internal link handling via React Router, and source citations. Requires siteConfig.askAI.enabled and siteConfig.semanticSearch.enabled. |
 | `VersionHistoryModal.tsx` | Version history modal for viewing and restoring previous content versions. Shows version list with dates and source badges, diff view using DiffCodeBlock component, preview mode, and one-click restore. Used in Dashboard editor when version control is enabled. |
-| `MediaLibrary.tsx`        | Media library component for uploading and managing images. Features drag-and-drop upload, copy as Markdown/HTML/URL, bulk select and delete, file size display, and pagination. Shows configuration warning when Bunny CDN not configured. Uses ConvexFS for storage with Bunny.net Edge Storage and CDN delivery. |
-| `ImageUploadModal.tsx`    | Image insert modal for Write Post/Page sections. Two tabs: "Upload New" for uploading images and "Media Library" for selecting existing images. Shows image dimensions with aspect ratio, size presets (Original, Large 1200px, Medium 800px, Small 400px, Thumbnail 200px, Custom), alt text field, and calculated dimensions before insert. Uses HTML img tag with explicit width/height for non-original sizes. |
+| `MediaLibrary.tsx`        | Media library component for uploading and managing images. Features drag-and-drop upload, copy as Markdown/HTML/URL, bulk select and delete, file size display, and pagination. Supports all three media providers (convex, convexfs, r2). For convex/r2 providers, shows recent uploads with preview and embed code copy buttons (persisted to sessionStorage). Dynamic usage text based on active provider. Uses ConvexFS for file browsing when available. |
+| `ImageUploadModal.tsx`    | Image insert modal for Write Post/Page sections. Two tabs: "Upload New" for uploading images and "Media Library" for selecting existing images (requires convexfs provider). Shows image dimensions with aspect ratio, size presets (Original, Large 1200px, Medium 800px, Small 400px, Thumbnail 200px, Custom), alt text field, and calculated dimensions before insert. Uses HTML img tag with explicit width/height for non-original sizes. |
 
 ### Context (`src/context/`)
 

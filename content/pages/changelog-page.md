@@ -13,6 +13,61 @@ All notable changes to this project.
 
 ---
 
+## v2.21.4
+
+Released February 22, 2026
+
+**Button border radius consistency fix**
+
+Fixes inconsistent button border radius across Write page and Dashboard.
+
+**CSS changes:**
+
+- Added missing CSS variables to `:root`: `--border-radius-sm: 4px`, `--border-radius-md: 6px`, `--border-radius-lg: 8px`
+- Dashboard mode toggles (Markdown/Rich Text/Preview) now have consistent 6px border radius
+- All action buttons (Copy All, Clear, Image, Download .md, Save to DB) match
+
+**Files changed:**
+
+- `src/styles/global.css` (added border-radius CSS variables)
+
+---
+
+## v2.21.3
+
+Released February 22, 2026
+
+**Media Library and router fixes**
+
+Fixes Media Library upload and preview for all media providers, image clipping, React Router warnings, and dynamic usage text.
+
+**Media Library:**
+
+- Upload with `convex` or `r2` providers now shows image preview with MD/HTML/URL copy buttons
+- Recent uploads persist to `sessionStorage` so they survive page refreshes
+- Image previews use real Convex storage URLs instead of ephemeral blob URLs
+- Usage text dynamically reflects the active media provider (Bunny CDN, ConvexFS, R2, or Convex storage)
+- Fixed image clipping in grid: changed from square crop to 4:3 aspect ratio with full image visible
+
+**ImageUploadModal:**
+
+- Media Library tab no longer requires Bunny CDN configuration (only needs `convexfs` provider)
+
+**Other fixes:**
+
+- Added React Router v7 future flags (`v7_startTransition`, `v7_relativeSplatPath`) to eliminate deprecation warnings
+- Removed unused logo preload from `index.html` that caused console warnings
+
+**Files changed:**
+
+- `src/components/MediaLibrary.tsx` (recent uploads tracking, dynamic usage text, sessionStorage persistence)
+- `src/components/ImageUploadModal.tsx` (removed Bunny CDN gate from Media Library tab)
+- `src/styles/global.css` (image preview aspect ratio fix, recent uploads CSS)
+- `src/main.tsx` (React Router v7 future flags)
+- `index.html` (removed logo preload)
+
+---
+
 ## v2.21.2
 
 Released February 22, 2026

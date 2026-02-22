@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { useAction, usePaginatedQuery, useMutation, useQuery } from "convex/react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useAction, usePaginatedQuery, useMutation, useQuery, useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
   Image as ImageIcon,
@@ -40,6 +40,14 @@ interface FileInfo {
 // Copy format options
 type CopyFormat = "markdown" | "html" | "url";
 
+// Tracks uploads made via convex/r2 providers (no ConvexFS browsing)
+interface RecentUpload {
+  id: string;
+  filename: string;
+  url: string;
+  size: number;
+}
+
 export function MediaLibrary() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
@@ -51,8 +59,24 @@ export function MediaLibrary() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [recentUploads, setRecentUploads] = useState<RecentUpload[]>(() => {
+    try {
+      const saved = sessionStorage.getItem("media_recent_uploads");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Persist recent uploads to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("media_recent_uploads", JSON.stringify(recentUploads));
+    } catch { /* ignore storage errors */ }
+  }, [recentUploads]);
+
+  const convex = useConvex();
   const uploadSettings = useQuery(api.media.getUploadSettings);
   const mediaProvider = uploadSettings?.provider ?? "convex";
   // Check if Bunny CDN is configured (server-side check)
@@ -112,7 +136,6 @@ export function MediaLibrary() {
         const dimensions = await getImageDimensions(file);
 
         if (mediaProvider === "convexfs") {
-          // Upload blob to ConvexFS endpoint
           const res = await fetch(`${siteUrl}/fs/upload`, {
             method: "POST",
             headers: { "Content-Type": file.type },
@@ -126,7 +149,6 @@ export function MediaLibrary() {
 
           const { blobId } = await res.json();
 
-          // Commit file to storage path
           await commitFile({
             blobId,
             filename: file.name,
@@ -146,6 +168,16 @@ export function MediaLibrary() {
             throw new Error(`R2 upload failed: ${uploadRes.status}`);
           }
           await syncR2Metadata({ key });
+          const metadata = await convex.query(api.r2.getMetadata, { key });
+          const resolvedUrl = metadata?.url ?? "";
+          if (resolvedUrl) {
+            setRecentUploads((prev) => [{
+              id: key,
+              filename: file.name,
+              url: resolvedUrl,
+              size: file.size,
+            }, ...prev]);
+          }
         } else {
           const uploadUrl = await generateDirectUploadUrl({});
           const uploadRes = await fetch(uploadUrl, {
@@ -157,7 +189,15 @@ export function MediaLibrary() {
             throw new Error(`Upload failed: ${uploadRes.status}`);
           }
           const { storageId } = await uploadRes.json();
-          await resolveDirectUpload({ storageId });
+          const resolvedUrl = await resolveDirectUpload({ storageId });
+          if (resolvedUrl) {
+            setRecentUploads((prev) => [{
+              id: storageId,
+              filename: file.name,
+              url: resolvedUrl,
+              size: file.size,
+            }, ...prev]);
+          }
         }
       } catch (err) {
         setError((err as Error).message);
@@ -172,6 +212,7 @@ export function MediaLibrary() {
     }
   }, [
     commitFile,
+    convex,
     generateDirectUploadUrl,
     generateR2UploadUrl,
     mediaProvider,
@@ -247,6 +288,38 @@ export function MediaLibrary() {
     } catch {
       setError("Failed to copy to clipboard");
     }
+  };
+
+  // Copy recent upload embed code to clipboard
+  const handleCopyRecent = async (upload: RecentUpload, format: CopyFormat) => {
+    let text = "";
+    switch (format) {
+      case "markdown":
+        text = `![${upload.filename}](${upload.url})`;
+        break;
+      case "html":
+        text = `<img src="${upload.url}" alt="${upload.filename}" />`;
+        break;
+      case "url":
+        text = upload.url;
+        break;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPath(upload.id);
+      setCopiedFormat(format);
+      setTimeout(() => {
+        setCopiedPath(null);
+        setCopiedFormat(null);
+      }, 2000);
+    } catch {
+      setError("Failed to copy to clipboard");
+    }
+  };
+
+  // Remove a recent upload from the list
+  const dismissRecent = (id: string) => {
+    setRecentUploads((prev) => prev.filter((u) => u.id !== id));
   };
 
   // Delete file
@@ -432,6 +505,77 @@ export function MediaLibrary() {
         )}
       </div>
 
+      {/* Recent uploads for non-convexfs providers */}
+      {recentUploads.length > 0 && (
+        <div className="media-recent-uploads">
+          <h3>Recent uploads</h3>
+          <div className="media-grid">
+            {recentUploads.map((upload) => (
+              <div key={upload.id} className="media-item">
+                <div className="media-item-preview">
+                  <img
+                    src={upload.url}
+                    alt={upload.filename}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="media-item-info">
+                  <span className="media-item-name" title={upload.filename}>
+                    {upload.filename}
+                  </span>
+                  <span className="media-item-size">{formatSize(upload.size)}</span>
+                </div>
+                <div className="media-item-actions">
+                  <button
+                    className={`media-copy-btn ${copiedPath === upload.id && copiedFormat === "markdown" ? "copied" : ""}`}
+                    onClick={() => handleCopyRecent(upload, "markdown")}
+                    title="Copy as Markdown"
+                  >
+                    {copiedPath === upload.id && copiedFormat === "markdown" ? (
+                      <Check size={14} />
+                    ) : (
+                      <CopySimple size={14} />
+                    )}
+                    <span>MD</span>
+                  </button>
+                  <button
+                    className={`media-copy-btn ${copiedPath === upload.id && copiedFormat === "html" ? "copied" : ""}`}
+                    onClick={() => handleCopyRecent(upload, "html")}
+                    title="Copy as HTML"
+                  >
+                    {copiedPath === upload.id && copiedFormat === "html" ? (
+                      <Check size={14} />
+                    ) : (
+                      <Code size={14} />
+                    )}
+                    <span>HTML</span>
+                  </button>
+                  <button
+                    className={`media-copy-btn ${copiedPath === upload.id && copiedFormat === "url" ? "copied" : ""}`}
+                    onClick={() => handleCopyRecent(upload, "url")}
+                    title="Copy URL"
+                  >
+                    {copiedPath === upload.id && copiedFormat === "url" ? (
+                      <Check size={14} />
+                    ) : (
+                      <LinkIcon size={14} />
+                    )}
+                    <span>URL</span>
+                  </button>
+                  <button
+                    className="media-delete-btn"
+                    onClick={() => dismissRecent(upload.id)}
+                    title="Dismiss"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* File grid */}
       <div className="media-grid">
         {results.map((file) => (
@@ -544,7 +688,7 @@ export function MediaLibrary() {
       )}
 
       {/* Empty state */}
-      {results.length === 0 && status !== "LoadingFirstPage" && (
+      {results.length === 0 && recentUploads.length === 0 && status !== "LoadingFirstPage" && (
         <div className="media-empty">
           <ImageIcon size={64} weight="light" />
           <p>No images uploaded yet</p>
@@ -557,8 +701,11 @@ export function MediaLibrary() {
         <h3>Usage</h3>
         <p>
           Click <strong>MD</strong> to copy markdown image syntax,{" "}
-          <strong>HTML</strong> for img tag, or <strong>URL</strong> for direct link.
-          Images are served via Bunny CDN for fast global delivery.
+          <strong>HTML</strong> for img tag, or <strong>URL</strong> for direct link.{" "}
+          {mediaProvider === "convexfs" && isBunnyConfigured && "Images are served via Bunny CDN for fast global delivery."}
+          {mediaProvider === "convexfs" && !isBunnyConfigured && "Images are served via ConvexFS blob storage."}
+          {mediaProvider === "r2" && "Images are served via Cloudflare R2 storage."}
+          {mediaProvider === "convex" && "Images are served via Convex file storage."}
         </p>
       </div>
     </div>

@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Fixed button border-radius inconsistency across Write page and Dashboard:
+  - Added missing CSS variables `--border-radius-sm: 4px`, `--border-radius-md: 6px`, `--border-radius-lg: 8px` to `:root`
+  - Dashboard mode toggles (Markdown/Rich Text/Preview) and action buttons now have consistent 6px border radius
+
+- Fixed Media Library upload and preview for `convex` and `r2` providers:
+  - Uploads now show image preview with MD/HTML/URL copy buttons after upload completes
+  - Recent uploads persist to `sessionStorage` (survive page refreshes within tab session)
+  - Image previews use real Convex storage URLs instead of ephemeral blob URLs
+  - Usage text now dynamically reflects the active media provider
+- Fixed image preview clipping in Media Library grid:
+  - Changed from square aspect ratio with cover crop to 4:3 aspect ratio with contain fit
+- Fixed ImageUploadModal Media Library tab being disabled when Bunny CDN not configured:
+  - Tab now only requires `convexfs` provider, not Bunny CDN configuration
+- Fixed React Router v7 deprecation warnings:
+  - Added `v7_startTransition` and `v7_relativeSplatPath` future flags to `BrowserRouter`
+- Fixed logo preload warning in browser console:
+  - Removed unused `<link rel="preload">` for logo.svg from `index.html`
+
 - Eliminated `activeSessions` write conflicts in `stats:heartbeat` mutation:
   - Increased backend dedup window from 20s to 45s in `convex/stats.ts`
   - Increased frontend heartbeat interval from 30s to 45s in `usePageTracking.ts`

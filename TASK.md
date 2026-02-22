@@ -6,6 +6,20 @@
 
 Session updates complete on 2026-02-22.
 
+- **Button border radius consistency fix** (2026-02-22)
+  - Added missing CSS variables (`--border-radius-sm`, `--border-radius-md`, `--border-radius-lg`) to `:root`
+  - Fixed inconsistent button styling across Write page and Dashboard
+  - Mode toggles and action buttons now all have matching 6px border radius
+
+- **Media Library and router fixes** (2026-02-22)
+  - Fixed Media Library to show image preview and embed code (MD/HTML/URL) after uploading with convex/r2 providers
+  - Recent uploads persist to sessionStorage across page refreshes
+  - Fixed image clipping in media grid (4:3 contain instead of 1:1 cover)
+  - Fixed ImageUploadModal Media Library tab gating (no longer requires Bunny CDN)
+  - Dynamic usage text based on active media provider
+  - Added React Router v7 future flags to eliminate deprecation warnings
+  - Removed unused logo preload from index.html
+
 - **Heartbeat write conflict elimination** (2026-02-22)
   - Increased backend dedup window from 20s to 45s (`HEARTBEAT_DEDUP_MS` in `convex/stats.ts`)
   - Increased frontend debounce from 20s to 45s and interval from 30s to 45s (`usePageTracking.ts`)
@@ -51,6 +65,15 @@ Session updates complete on 2026-02-16.
 - Ask AI modal and docs navigation smoke-tested locally.
 
 ## Completed
+
+- [x] Media Library and router fixes (2026-02-22)
+  - [x] Added `RecentUpload` tracking with preview and MD/HTML/URL copy buttons for convex/r2 providers
+  - [x] Persisted recent uploads to `sessionStorage` for refresh survival
+  - [x] Fixed image preview clipping (aspect-ratio 4:3 + object-fit contain)
+  - [x] Removed Bunny CDN gate from ImageUploadModal Media Library tab
+  - [x] Made usage text dynamic based on active media provider
+  - [x] Added React Router v7 future flags (`v7_startTransition`, `v7_relativeSplatPath`)
+  - [x] Removed unused logo preload from `index.html`
 
 - [x] Heartbeat write conflict elimination (2026-02-22)
   - [x] Increased `HEARTBEAT_DEDUP_MS` from 20s to 45s in `convex/stats.ts`
