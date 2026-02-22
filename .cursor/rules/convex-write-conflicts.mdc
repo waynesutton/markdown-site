@@ -630,11 +630,11 @@ This app uses specific patterns to avoid write conflicts in the `activeSessions`
 
 ### Heartbeat Mutation with Dedup Window
 
-The `stats:heartbeat` mutation uses a 10-second dedup window to prevent rapid updates:
+The `stats:heartbeat` mutation uses a 45-second dedup window to prevent rapid updates:
 
 ```typescript
 // convex/stats.ts
-const HEARTBEAT_DEDUP_MS = 10 * 1000;
+const HEARTBEAT_DEDUP_MS = 45 * 1000;
 
 export const heartbeat = mutation({
   args: {
@@ -652,11 +652,8 @@ export const heartbeat = mutation({
       .first();
 
     if (existingSession) {
-      // Early return if same path and recently updated (idempotent)
-      if (
-        existingSession.currentPath === args.currentPath &&
-        now - existingSession.lastSeen < HEARTBEAT_DEDUP_MS
-      ) {
+      // Early return if recently updated (idempotent)
+      if (now - existingSession.lastSeen < HEARTBEAT_DEDUP_MS) {
         return null;
       }
 
@@ -680,81 +677,88 @@ export const heartbeat = mutation({
 });
 ```
 
-### Frontend Debouncing with Refs
+### Frontend Cross-Tab Coordination with BroadcastChannel
 
-The `usePageTracking` hook uses refs to prevent duplicate heartbeat calls:
+The `usePageTracking` hook uses BroadcastChannel to coordinate heartbeats across tabs (only leader tab sends):
 
 ```typescript
 // src/hooks/usePageTracking.ts
-const HEARTBEAT_DEBOUNCE_MS = 5 * 1000;
+const HEARTBEAT_INTERVAL_MS = 45 * 1000;
+const HEARTBEAT_DEBOUNCE_MS = 45 * 1000;
+const HEARTBEAT_CHANNEL_NAME = "markdown_sync_heartbeat";
 
 export function usePageTracking(): void {
   const heartbeatMutation = useMutation(api.stats.heartbeat);
+  const isStatsEnabled = siteConfig.statsPage?.enabled ?? false;
 
   // Track heartbeat state to prevent duplicate calls
   const isHeartbeatPending = useRef(false);
   const lastHeartbeatTime = useRef(0);
-  const lastHeartbeatPath = useRef<string | null>(null);
+
+  // Cross-tab coordination: only one tab sends heartbeats
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+  const isLeaderTabRef = useRef(true);
+  const tabIdRef = useRef<string>(Math.random().toString(36).substring(2, 9));
+
+  // Initialize BroadcastChannel for cross-tab heartbeat coordination
+  useEffect(() => {
+    if (!isStatsEnabled) return;
+    if (typeof BroadcastChannel === "undefined") return;
+
+    const channel = new BroadcastChannel(HEARTBEAT_CHANNEL_NAME);
+    broadcastChannelRef.current = channel;
+
+    // Claim leadership and handle messages from other tabs
+    channel.postMessage({ type: "claim", tabId: tabIdRef.current, timestamp: Date.now() });
+
+    channel.onmessage = (event) => {
+      const { type, tabId, timestamp } = event.data;
+      if (type === "claim" && tabId !== tabIdRef.current) {
+        if (timestamp > Date.now() - 1000) isLeaderTabRef.current = false;
+      }
+      if (type === "heartbeat_sent" && tabId !== tabIdRef.current) {
+        lastHeartbeatTime.current = Date.now();
+      }
+      if (type === "close" && tabId !== tabIdRef.current) {
+        setTimeout(() => { isLeaderTabRef.current = true; }, Math.random() * 500);
+      }
+    };
+
+    return () => { channel.close(); };
+  }, [isStatsEnabled]);
 
   const sendHeartbeat = useCallback(
     async (path: string) => {
-      const sessionId = sessionIdRef.current;
-      if (!sessionId) return;
-
-      const now = Date.now();
-
-      // Skip if heartbeat is already pending
-      if (isHeartbeatPending.current) {
-        return;
-      }
-
-      // Skip if same path and sent recently (debounce)
-      if (
-        lastHeartbeatPath.current === path &&
-        now - lastHeartbeatTime.current < HEARTBEAT_DEBOUNCE_MS
-      ) {
-        return;
-      }
+      if (!isStatsEnabled) return;
+      if (isHeartbeatPending.current) return;
+      if (broadcastChannelRef.current && !isLeaderTabRef.current) return;
+      if (Date.now() - lastHeartbeatTime.current < HEARTBEAT_DEBOUNCE_MS) return;
 
       isHeartbeatPending.current = true;
-      lastHeartbeatTime.current = now;
-      lastHeartbeatPath.current = path;
+      lastHeartbeatTime.current = Date.now();
 
       try {
-        await heartbeatMutation({
-          sessionId,
-          currentPath: path,
-        });
-      } catch {
-        // Silently fail
+        await heartbeatMutation({ sessionId, currentPath: path });
+        broadcastChannelRef.current?.postMessage({ type: "heartbeat_sent", tabId: tabIdRef.current });
       } finally {
         isHeartbeatPending.current = false;
       }
     },
-    [heartbeatMutation],
+    [heartbeatMutation, isStatsEnabled],
   );
-
-  // Send heartbeat on interval and path change
-  useEffect(() => {
-    const path = location.pathname;
-    sendHeartbeat(path);
-
-    const intervalId = setInterval(() => {
-      sendHeartbeat(path);
-    }, HEARTBEAT_INTERVAL_MS);
-
-    return () => clearInterval(intervalId);
-  }, [location.pathname, sendHeartbeat]);
 }
 ```
 
 ### Key Patterns Used
 
-1. **Backend idempotency**: Early return when session was updated within 10 seconds with same path
-2. **Frontend debouncing**: 5-second debounce window using refs
-3. **Pending state tracking**: `isHeartbeatPending` ref prevents overlapping calls
-4. **Indexed queries**: Uses `by_sessionId` index for efficient lookups
-5. **Event records pattern**: Page views use `pageViews` table instead of counters
+1. **Backend idempotency**: Early return when session was updated within 45 seconds
+2. **Frontend debouncing**: 45-second debounce window matching backend dedup
+3. **Cross-tab coordination**: BroadcastChannel ensures only leader tab sends heartbeats
+4. **Tab leadership election**: Claim/close/heartbeat_sent messages for coordination
+5. **Config-driven disable**: `isStatsEnabled` check completely disables heartbeat when `statsPage.enabled: false`
+6. **Pending state tracking**: `isHeartbeatPending` ref prevents overlapping calls
+7. **Indexed queries**: Uses `by_sessionId` index for efficient lookups
+8. **Event records pattern**: Page views use `pageViews` table instead of counters
 
 ## Summary
 
@@ -764,8 +768,9 @@ export function usePageTracking(): void {
 
 1. Patch directly without reading first (most common fix)
 2. Use indexed queries to minimize read scope
-3. Debounce rapid user inputs (300-500ms for typing, 5s for heartbeats)
+3. Debounce rapid user inputs (300-500ms for typing, 45s for heartbeats)
 4. Use event records for high-frequency counters
-5. Add backend dedup windows for idempotency (10s for heartbeats)
-6. Use refs to track pending mutations and prevent duplicates
-7. Monitor your dashboard for conflict patterns
+5. Add backend dedup windows for idempotency (45s for heartbeats)
+6. Use BroadcastChannel for cross-tab coordination (only leader tab sends)
+7. Use refs to track pending mutations and prevent duplicates
+8. Monitor your dashboard for conflict patterns

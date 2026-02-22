@@ -2,7 +2,38 @@
 
 A brief description of each file in the codebase.
 
-## Recent session updates (2026-02-21)
+## Recent session updates (2026-02-22)
+
+### Heartbeat write conflict elimination (2026-02-22)
+
+- **Increased backend dedup window** in `convex/stats.ts`:
+  - Changed `HEARTBEAT_DEDUP_MS` from 20s to 45s
+  - Backend now rejects duplicate heartbeats within 45 seconds regardless of path
+
+- **Increased frontend timing** in `src/hooks/usePageTracking.ts`:
+  - Changed `HEARTBEAT_INTERVAL_MS` from 30s to 45s
+  - Changed `HEARTBEAT_DEBOUNCE_MS` from 20s to 45s
+
+- **Added BroadcastChannel cross-tab coordination** in `src/hooks/usePageTracking.ts`:
+  - Only "leader" tab sends heartbeats to prevent parallel mutations
+  - Tab leadership election via `claim` messages
+  - Automatic handoff when tabs close via `close` messages
+  - `heartbeat_sent` messages notify other tabs to update their timestamp
+  - Fallback to existing behavior when BroadcastChannel not supported
+
+- **Complete stats disable when config disabled** in `src/hooks/usePageTracking.ts`:
+  - Added `isStatsEnabled` check inside `sendHeartbeat` callback
+  - When `statsPage.enabled: false`, all heartbeat-related code paths are skipped
+
+- **Updated app-specific patterns** in `.cursor/rules/convex-write-conflicts.mdc`:
+  - Updated example code to reflect new 45s timing values
+  - Added BroadcastChannel coordination pattern documentation
+  - Updated key patterns list with cross-tab coordination
+
+- **New PRD** at `prds/fix-heartbeat-write-conflicts.md`:
+  - Documents problem, root cause, solution, and verification steps
+
+## Previous session updates (2026-02-21)
 
 ### Stats performance optimizations (2026-02-21)
 

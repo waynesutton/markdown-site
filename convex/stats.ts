@@ -10,8 +10,9 @@ const DEDUP_WINDOW_MS = 30 * 60 * 1000;
 // Session timeout: 2 minutes in milliseconds
 const SESSION_TIMEOUT_MS = 2 * 60 * 1000;
 
-// Heartbeat dedup window: 20 seconds (prevents write conflicts from rapid calls or multiple tabs)
-const HEARTBEAT_DEDUP_MS = 20 * 1000;
+// Heartbeat dedup window: 45 seconds (prevents write conflicts from rapid calls or multiple tabs)
+// Must be >= frontend HEARTBEAT_DEBOUNCE_MS to ensure backend catches duplicates
+const HEARTBEAT_DEDUP_MS = 45 * 1000;
 
 /**
  * Aggregate for page views by path.

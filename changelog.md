@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Eliminated `activeSessions` write conflicts in `stats:heartbeat` mutation:
+  - Increased backend dedup window from 20s to 45s in `convex/stats.ts`
+  - Increased frontend heartbeat interval from 30s to 45s in `usePageTracking.ts`
+  - Added BroadcastChannel cross-tab coordination so only leader tab sends heartbeats
+  - Tab leadership election with automatic handoff when tabs close
+  - Heartbeat completely disabled when `statsPage.enabled: false` in siteConfig
+  - See `prds/fix-heartbeat-write-conflicts.md` for full details
+
 ### Changed
 
 - Updated `create-markdown-sync` CLI to v0.2.0:

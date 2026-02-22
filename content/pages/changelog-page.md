@@ -13,6 +13,36 @@ All notable changes to this project.
 
 ---
 
+## v2.21.2
+
+Released February 22, 2026
+
+**Heartbeat write conflict elimination**
+
+This release eliminates write conflicts in the `activeSessions` table from rapid heartbeat mutations.
+
+**Backend changes:**
+
+- Increased `HEARTBEAT_DEDUP_MS` from 20s to 45s in `convex/stats.ts`
+- Backend now rejects duplicate heartbeats within 45 seconds regardless of path changes
+
+**Frontend changes:**
+
+- Increased `HEARTBEAT_INTERVAL_MS` from 30s to 45s
+- Increased `HEARTBEAT_DEBOUNCE_MS` from 20s to 45s
+- Added BroadcastChannel cross-tab coordination so only leader tab sends heartbeats
+- Tab leadership election with automatic handoff when tabs close
+- Heartbeat completely disabled when `statsPage.enabled: false` in siteConfig
+
+**Files changed:**
+
+- `convex/stats.ts` (increased dedup window)
+- `src/hooks/usePageTracking.ts` (BroadcastChannel coordination, timing increases)
+- `.cursor/rules/convex-write-conflicts.mdc` (updated app-specific patterns)
+- `prds/fix-heartbeat-write-conflicts.md` (new PRD)
+
+---
+
 ## v2.21.1
 
 Released February 21, 2026

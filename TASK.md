@@ -4,6 +4,15 @@
 
 ## Current Status
 
+Session updates complete on 2026-02-22.
+
+- **Heartbeat write conflict elimination** (2026-02-22)
+  - Increased backend dedup window from 20s to 45s (`HEARTBEAT_DEDUP_MS` in `convex/stats.ts`)
+  - Increased frontend debounce from 20s to 45s and interval from 30s to 45s (`usePageTracking.ts`)
+  - Added BroadcastChannel cross-tab coordination (only leader tab sends heartbeats)
+  - Tab leadership election with automatic handoff when tabs close
+  - Heartbeat completely disabled when `statsPage.enabled: false` in siteConfig
+
 Session updates complete on 2026-02-21.
 
 - **Stats performance optimizations** (2026-02-21)
@@ -42,6 +51,15 @@ Session updates complete on 2026-02-16.
 - Ask AI modal and docs navigation smoke-tested locally.
 
 ## Completed
+
+- [x] Heartbeat write conflict elimination (2026-02-22)
+  - [x] Increased `HEARTBEAT_DEDUP_MS` from 20s to 45s in `convex/stats.ts`
+  - [x] Increased `HEARTBEAT_INTERVAL_MS` from 30s to 45s in `usePageTracking.ts`
+  - [x] Increased `HEARTBEAT_DEBOUNCE_MS` from 20s to 45s in `usePageTracking.ts`
+  - [x] Added BroadcastChannel for cross-tab coordination (only leader tab sends heartbeats)
+  - [x] Added tab leadership election with claim/close/heartbeat_sent messages
+  - [x] Added `isStatsEnabled` check to `sendHeartbeat` callback for complete disabling
+  - [x] Created PRD documentation: `prds/fix-heartbeat-write-conflicts.md`
 
 - [x] Stats performance optimizations (2026-02-21)
   - [x] Added `statsPage.enabled` check in `usePageTracking.ts` to prevent DB writes when stats disabled

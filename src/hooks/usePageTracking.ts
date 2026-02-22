@@ -4,17 +4,20 @@ import { useLocation } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import siteConfig from "../config/siteConfig";
 
-// Heartbeat interval: 30 seconds (with jitter added to prevent synchronized calls)
-const HEARTBEAT_INTERVAL_MS = 30 * 1000;
+// Heartbeat interval: 45 seconds (with jitter added to prevent synchronized calls)
+const HEARTBEAT_INTERVAL_MS = 45 * 1000;
 
-// Minimum time between heartbeats to prevent write conflicts: 20 seconds (matches backend dedup window)
-const HEARTBEAT_DEBOUNCE_MS = 20 * 1000;
+// Minimum time between heartbeats to prevent write conflicts: 45 seconds (matches backend dedup window)
+const HEARTBEAT_DEBOUNCE_MS = 45 * 1000;
 
 // Jitter range: ±5 seconds to prevent synchronized heartbeats across tabs
 const HEARTBEAT_JITTER_MS = 5 * 1000;
 
 // Session ID key in localStorage
 const SESSION_ID_KEY = "markdown_blog_session_id";
+
+// BroadcastChannel name for cross-tab heartbeat coordination
+const HEARTBEAT_CHANNEL_NAME = "markdown_sync_heartbeat";
 
 // Geo data interface from Netlify edge function
 interface GeoData {
@@ -69,6 +72,7 @@ function getPageType(path: string): string {
  * Hook to track page views and maintain active session presence
  * Fetches geo location from Netlify edge function for visitor map
  * Only tracks when statsPage.enabled is true in siteConfig
+ * Uses BroadcastChannel to coordinate heartbeats across tabs (only leader tab sends)
  */
 export function usePageTracking(): void {
   const location = useLocation();
@@ -91,6 +95,68 @@ export function usePageTracking(): void {
   const geoDataRef = useRef<GeoData | null>(null);
   const geoFetchedRef = useRef(false);
 
+  // Cross-tab coordination: only one tab sends heartbeats
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+  const isLeaderTabRef = useRef(true);
+  const tabIdRef = useRef<string>(Math.random().toString(36).substring(2, 9));
+
+  // Initialize BroadcastChannel for cross-tab heartbeat coordination
+  useEffect(() => {
+    if (!isStatsEnabled) return;
+    if (typeof window === "undefined") return;
+    if (typeof BroadcastChannel === "undefined") return;
+
+    const channel = new BroadcastChannel(HEARTBEAT_CHANNEL_NAME);
+    broadcastChannelRef.current = channel;
+
+    // Claim leadership with our tab ID and timestamp
+    const claimLeadership = () => {
+      channel.postMessage({ type: "claim", tabId: tabIdRef.current, timestamp: Date.now() });
+    };
+
+    // Announce presence immediately
+    claimLeadership();
+
+    // Handle messages from other tabs
+    channel.onmessage = (event) => {
+      const { type, tabId, timestamp } = event.data;
+
+      if (type === "claim" && tabId !== tabIdRef.current) {
+        // Another tab claimed leadership - yield if they're newer (higher timestamp wins ties)
+        // This ensures deterministic leader election
+        if (timestamp > Date.now() - 1000) {
+          isLeaderTabRef.current = false;
+        }
+      }
+
+      if (type === "heartbeat_sent" && tabId !== tabIdRef.current) {
+        // Another tab sent a heartbeat - we don't need to send one
+        lastHeartbeatTime.current = Date.now();
+      }
+
+      if (type === "close" && tabId !== tabIdRef.current) {
+        // Another tab closed - we can try to become leader
+        setTimeout(() => {
+          isLeaderTabRef.current = true;
+          claimLeadership();
+        }, Math.random() * 500);
+      }
+    };
+
+    // Announce when this tab closes so others can become leader
+    const handleBeforeUnload = () => {
+      channel.postMessage({ type: "close", tabId: tabIdRef.current });
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      channel.postMessage({ type: "close", tabId: tabIdRef.current });
+      channel.close();
+      broadcastChannelRef.current = null;
+    };
+  }, [isStatsEnabled]);
+
   // Initialize session ID and fetch geo data once on mount (only if stats enabled)
   useEffect(() => {
     if (!isStatsEnabled) return;
@@ -108,7 +174,6 @@ export function usePageTracking(): void {
 
       if (isLocalhost) {
         // Use mock geo data for localhost testing
-        // This allows the visitor map to work during local development
         geoDataRef.current = {
           city: "San Francisco",
           country: "US",
@@ -120,7 +185,6 @@ export function usePageTracking(): void {
         fetch("/api/geo")
           .then((res) => res.json())
           .then((data: GeoData) => {
-            // Only store if we have valid coordinates
             if (data.latitude && data.longitude) {
               geoDataRef.current = data;
             }
@@ -135,6 +199,9 @@ export function usePageTracking(): void {
   // Debounced heartbeat function to prevent write conflicts
   const sendHeartbeat = useCallback(
     async (path: string) => {
+      // Skip if stats disabled
+      if (!isStatsEnabled) return;
+
       const sessionId = sessionIdRef.current;
       if (!sessionId) return;
 
@@ -145,11 +212,13 @@ export function usePageTracking(): void {
         return;
       }
 
-      // Skip if same path and sent recently (debounce)
-      if (
-        lastHeartbeatPath.current === path &&
-        now - lastHeartbeatTime.current < HEARTBEAT_DEBOUNCE_MS
-      ) {
+      // Skip if not the leader tab (let other tab handle it)
+      if (broadcastChannelRef.current && !isLeaderTabRef.current) {
+        return;
+      }
+
+      // Skip if sent recently (debounce)
+      if (now - lastHeartbeatTime.current < HEARTBEAT_DEBOUNCE_MS) {
         return;
       }
 
@@ -158,7 +227,6 @@ export function usePageTracking(): void {
       lastHeartbeatPath.current = path;
 
       try {
-        // Include geo data if available
         const geo = geoDataRef.current;
         await heartbeatMutation({
           sessionId,
@@ -168,13 +236,19 @@ export function usePageTracking(): void {
           ...(geo?.latitude && { latitude: geo.latitude }),
           ...(geo?.longitude && { longitude: geo.longitude }),
         });
+
+        // Notify other tabs that we sent a heartbeat
+        broadcastChannelRef.current?.postMessage({
+          type: "heartbeat_sent",
+          tabId: tabIdRef.current,
+        });
       } catch {
         // Silently fail - analytics shouldn't break the app
       } finally {
         isHeartbeatPending.current = false;
       }
     },
-    [heartbeatMutation]
+    [heartbeatMutation, isStatsEnabled]
   );
 
   // Record page view when path changes (only if stats enabled)
@@ -214,11 +288,10 @@ export function usePageTracking(): void {
       sendHeartbeat(path);
     }, initialJitter);
 
-    // Set up interval for ongoing heartbeats with jitter
-    // Using recursive setTimeout instead of setInterval for variable timing
+    // Recursive setTimeout for variable timing with jitter
     let timeoutId: ReturnType<typeof setTimeout>;
     const scheduleNextHeartbeat = () => {
-      const jitter = (Math.random() - 0.5) * 2 * HEARTBEAT_JITTER_MS; // ±5 seconds
+      const jitter = (Math.random() - 0.5) * 2 * HEARTBEAT_JITTER_MS;
       const nextDelay = HEARTBEAT_INTERVAL_MS + jitter;
       timeoutId = setTimeout(() => {
         sendHeartbeat(path);
