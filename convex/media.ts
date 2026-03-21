@@ -1,4 +1,4 @@
-import { action, mutation, query } from "./_generated/server";
+import { internalAction, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { isBunnyConfigured } from "./fs";
 import {
@@ -63,7 +63,7 @@ export const getDirectStorageUrl = query({
   },
 });
 
-export const resolveDirectUpload = action({
+export const resolveDirectUpload = internalAction({
   args: { storageId: v.id("_storage") },
   returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {

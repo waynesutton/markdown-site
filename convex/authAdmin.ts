@@ -1,10 +1,12 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { components } from "./_generated/api";
+import { mutation, query, internalQuery } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
 import {
   isDashboardAdmin,
   requireDashboardAdmin,
 } from "./dashboardAuth";
+import { authUserListHelper } from "./authComponent";
+
+const DASHBOARD_ADMIN_QUERY_LIMIT = 25;
 
 function normalizeEmail(email: string | undefined): string | undefined {
   if (!email) {
@@ -34,6 +36,19 @@ export const isCurrentUserDashboardAdmin = query({
   },
 });
 
+// Internal variant for server-to-server calls (httpActions, actions, other mutations)
+export const isCurrentUserDashboardAdminInternal = internalQuery({
+  args: {},
+  returns: v.boolean(),
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return false;
+    }
+    return await isDashboardAdmin(ctx, identity);
+  },
+});
+
 export const isCurrentUserAuthenticated = query({
   args: {},
   returns: v.boolean(),
@@ -49,7 +64,8 @@ export const getDashboardLoginOptions = query({
     githubEnabled: v.boolean(),
     oauthBaseConfigured: v.boolean(),
   }),
-  handler: async () => {
+  handler: async (ctx) => {
+    await ctx.auth.getUserIdentity();
     const githubEnabled = Boolean(
       process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET,
     );
@@ -72,6 +88,7 @@ export const getAuthSetupStatus = query({
     hasAnyAdmin: v.boolean(),
   }),
   handler: async (ctx) => {
+    await ctx.auth.getUserIdentity();
     const githubEnabled = Boolean(
       process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET,
     );
@@ -81,7 +98,9 @@ export const getAuthSetupStatus = query({
         process.env.SITE_URL,
     );
     const bootstrapKeyConfigured = Boolean(process.env.DASHBOARD_ADMIN_BOOTSTRAP_KEY);
-    const adminCount = (await ctx.db.query("dashboardAdmins").collect()).length;
+    const adminCount = (await ctx.db
+      .query("dashboardAdmins")
+      .take(DASHBOARD_ADMIN_QUERY_LIMIT)).length;
 
     return {
       githubEnabled,
@@ -105,12 +124,13 @@ export const listAuthUsersForBootstrap = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await ctx.auth.getUserIdentity();
     const expectedKey = process.env.DASHBOARD_ADMIN_BOOTSTRAP_KEY;
     if (!expectedKey || args.bootstrapKey !== expectedKey) {
-      throw new Error("Unauthorized");
+      throw new ConvexError("Unauthorized");
     }
 
-    const result = await ctx.runQuery(components.auth.public.userList, {
+    const result = await authUserListHelper(ctx, {
       limit: 100,
       order: "desc",
       orderBy: "_creationTime",
@@ -139,7 +159,7 @@ export const listDashboardAdmins = query({
   ),
   handler: async (ctx) => {
     await requireDashboardAdmin(ctx);
-    return await ctx.db.query("dashboardAdmins").collect();
+    return await ctx.db.query("dashboardAdmins").take(DASHBOARD_ADMIN_QUERY_LIMIT);
   },
 });
 
@@ -163,7 +183,7 @@ export const grantDashboardAdmin = mutation({
     const email = requestedEmail ?? normalizeEmail(caller?.email ?? undefined);
 
     if (!subject && !email) {
-      throw new Error("Must provide subject or email");
+      throw new ConvexError("Must provide subject or email");
     }
 
     if (subject) {
@@ -205,16 +225,17 @@ export const bootstrapDashboardAdmin = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await ctx.auth.getUserIdentity();
     const expectedKey = process.env.DASHBOARD_ADMIN_BOOTSTRAP_KEY;
     if (!expectedKey || args.bootstrapKey !== expectedKey) {
-      throw new Error("Unauthorized");
+      throw new ConvexError("Unauthorized");
     }
 
     const subject = normalizeSubject(args.subject);
     const email = normalizeEmail(args.email);
 
     if (!subject && !email) {
-      throw new Error("Must provide subject or email");
+      throw new ConvexError("Must provide subject or email");
     }
 
     if (subject) {
@@ -260,7 +281,7 @@ export const revokeDashboardAdmin = mutation({
     const subject = args.subject?.trim();
     const email = normalizeEmail(args.email);
     if (!subject && !email) {
-      throw new Error("Must provide subject or email");
+      throw new ConvexError("Must provide subject or email");
     }
 
     let target = null;
@@ -280,9 +301,11 @@ export const revokeDashboardAdmin = mutation({
       return null;
     }
 
-    const adminCount = (await ctx.db.query("dashboardAdmins").collect()).length;
+    const adminCount = (await ctx.db
+      .query("dashboardAdmins")
+      .take(DASHBOARD_ADMIN_QUERY_LIMIT)).length;
     if (adminCount <= 1) {
-      throw new Error("Cannot remove the last dashboard admin");
+      throw new ConvexError("Cannot remove the last dashboard admin");
     }
 
     await ctx.db.delete(target._id);

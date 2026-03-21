@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-02-22
+Date: 2026-03-21
 ---
 
 An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Two ways to publish: write markdown and sync from the terminal, or use the web dashboard. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex with self-hosted static delivery by default.

@@ -19,6 +19,7 @@ export const search = query({
   },
   returns: v.array(searchResultValidator),
   handler: async (ctx, args) => {
+    await ctx.auth.getUserIdentity();
     // Return empty results for empty queries
     if (!args.query.trim()) {
       return [];

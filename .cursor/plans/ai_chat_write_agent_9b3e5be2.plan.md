@@ -52,6 +52,7 @@ todos:
   - id: dependencies
     content: Add @anthropic-ai/sdk to package.json
     status: completed
+isProject: false
 ---
 
 # AI Chat Write Agent Implementation
@@ -66,17 +67,17 @@ flowchart TB
         RightSidebar[RightSidebar.tsx]
         PostPage[Post.tsx]
     end
-    
+
     subgraph convex [Convex Backend]
         aiChats[aiChats.ts - Queries/Mutations]
         aiChatActions[aiChatActions.ts - Claude API Action]
         schema[schema.ts - aiChats table]
     end
-    
+
     subgraph external [External Services]
         Claude[Anthropic Claude API]
     end
-    
+
     WritePage -->|mode toggle| AIChatView
     RightSidebar -->|when aiChat enabled| AIChatView
     PostPage -->|passes content context| RightSidebar
@@ -85,8 +86,6 @@ flowchart TB
     aiChatActions -->|API call| Claude
     aiChats -->|read/write| schema
 ```
-
-
 
 ## Key Design Decisions
 
@@ -111,13 +110,13 @@ aiChats: defineTable({
       role: v.union(v.literal("user"), v.literal("assistant")),
       content: v.string(),
       timestamp: v.number(),
-    }),
+    })
   ),
   pageContext: v.optional(v.string()), // loaded page content
   lastMessageAt: v.optional(v.number()),
 })
   .index("by_session_and_context", ["sessionId", "contextId"])
-  .index("by_session", ["sessionId"])
+  .index("by_session", ["sessionId"]);
 ```
 
 ---
@@ -215,8 +214,6 @@ aiChat: {
   enabledOnContent: true,
 },
 ```
-
-
 
 ### Update Frontmatter Fields
 

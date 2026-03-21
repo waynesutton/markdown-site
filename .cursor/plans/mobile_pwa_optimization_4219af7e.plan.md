@@ -32,6 +32,7 @@ todos:
   - id: update-documentation
     content: Update fork-configuration-guide.md with PWA configuration section
     status: pending
+isProject: false
 ---
 
 # Mobile and PWA Optimization Plan
@@ -50,14 +51,12 @@ Add optional PWA configuration to `scripts/configure-fork.ts`:
 interface ForkConfig {
   // ... existing fields ...
   pwa?: {
-    shortName?: string;        // Short name for home screen (max 12 chars)
-    themeColor?: string;        // Theme color (default: "#faf8f5")
-    backgroundColor?: string;   // Background color (default: "#faf8f5")
+    shortName?: string; // Short name for home screen (max 12 chars)
+    themeColor?: string; // Theme color (default: "#faf8f5")
+    backgroundColor?: string; // Background color (default: "#faf8f5")
   };
 }
 ```
-
-
 
 ### 2. Add manifest.json Generation Function
 
@@ -122,8 +121,6 @@ Add optional PWA section:
 }
 ```
 
-
-
 ### 6. Update netlify.toml
 
 Add headers for manifest.json:
@@ -135,8 +132,6 @@ Add headers for manifest.json:
     Content-Type = "application/manifest+json"
     Cache-Control = "public, max-age=3600"
 ```
-
-
 
 ### 7. Update configure-fork.ts Main Function
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import ReactMarkdown from "react-markdown";
@@ -90,7 +90,7 @@ export default function AIChatView({
   const generateUploadUrl = useMutation(api.aiChats.generateUploadUrl);
   const clearChatMutation = useMutation(api.aiChats.clearChat);
   const setPageContext = useMutation(api.aiChats.setPageContext);
-  const generateResponse = useAction(api.aiChatActions.generateResponse);
+  const requestAIResponse = useMutation(api.aiChats.requestAIResponse);
 
   // Initialize chat
   useEffect(() => {
@@ -112,6 +112,16 @@ export default function AIChatView({
       }
     }
   }, [chat?.messages]);
+
+  useEffect(() => {
+    if (typeof chat?.generating === "boolean" && !isStopped) {
+      setIsLoading(chat.generating);
+    }
+    if (!chat?.generating && isStopped) {
+      setIsStopped(false);
+    }
+    setError(chat?.lastError ?? null);
+  }, [chat?.generating, chat?.lastError, isStopped]);
 
   // Prevent page scroll when clicking input container
   const handleInputContainerClick = useCallback(
@@ -326,14 +336,14 @@ export default function AIChatView({
     });
     setAttachments([]);
 
-    // Generate AI response
+    // Queue AI response generation
     setIsLoading(true);
     setIsStopped(false);
     setError(null);
     abortControllerRef.current = new AbortController();
 
     try {
-      await generateResponse({
+      await requestAIResponse({
         chatId,
         userMessage: message || "",
         model: selectedModel as "claude-sonnet-4-20250514" | "gpt-4o" | "gemini-2.0-flash" | undefined,
@@ -344,12 +354,12 @@ export default function AIChatView({
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         const errorMessage =
-          (error as Error).message || "Failed to generate response";
+          (error as Error).message || "Failed to queue response";
         setError(errorMessage);
         console.error("Error generating response:", error);
+        setIsLoading(false);
       }
     } finally {
-      setIsLoading(false);
       abortControllerRef.current = null;
     }
   };

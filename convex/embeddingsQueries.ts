@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 
 // Internal query to get posts without embeddings
 export const getPostsWithoutEmbeddings = internalQuery({
@@ -12,19 +13,18 @@ export const getPostsWithoutEmbeddings = internalQuery({
     })
   ),
   handler: async (ctx, args) => {
-    const posts = await ctx.db
+    const results: Array<{ _id: Id<"posts">; title: string; content: string }> = [];
+    const query = ctx.db
       .query("posts")
-      .withIndex("by_published", (q) => q.eq("published", true))
-      .collect();
+      .withIndex("by_published", (q) => q.eq("published", true));
 
-    return posts
-      .filter((post) => !post.embedding)
-      .slice(0, args.limit)
-      .map((post) => ({
-        _id: post._id,
-        title: post.title,
-        content: post.content,
-      }));
+    for await (const post of query) {
+      if (!post.embedding) {
+        results.push({ _id: post._id, title: post.title, content: post.content });
+        if (results.length >= args.limit) break;
+      }
+    }
+    return results;
   },
 });
 
@@ -39,19 +39,18 @@ export const getPagesWithoutEmbeddings = internalQuery({
     })
   ),
   handler: async (ctx, args) => {
-    const pages = await ctx.db
+    const results: Array<{ _id: Id<"pages">; title: string; content: string }> = [];
+    const query = ctx.db
       .query("pages")
-      .withIndex("by_published", (q) => q.eq("published", true))
-      .collect();
+      .withIndex("by_published", (q) => q.eq("published", true));
 
-    return pages
-      .filter((page) => !page.embedding)
-      .slice(0, args.limit)
-      .map((page) => ({
-        _id: page._id,
-        title: page.title,
-        content: page.content,
-      }));
+    for await (const page of query) {
+      if (!page.embedding) {
+        results.push({ _id: page._id, title: page.title, content: page.content });
+        if (results.length >= args.limit) break;
+      }
+    }
+    return results;
   },
 });
 
@@ -77,6 +76,40 @@ export const savePageEmbedding = internalMutation({
   },
 });
 
+// Batch save embeddings for posts in a single transaction
+export const savePostEmbeddingsBatch = internalMutation({
+  args: {
+    items: v.array(v.object({
+      id: v.id("posts"),
+      embedding: v.array(v.float64()),
+    })),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await Promise.all(
+      args.items.map((item) => ctx.db.patch(item.id, { embedding: item.embedding })),
+    );
+    return null;
+  },
+});
+
+// Batch save embeddings for pages in a single transaction
+export const savePageEmbeddingsBatch = internalMutation({
+  args: {
+    items: v.array(v.object({
+      id: v.id("pages"),
+      embedding: v.array(v.float64()),
+    })),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await Promise.all(
+      args.items.map((item) => ctx.db.patch(item.id, { embedding: item.embedding })),
+    );
+    return null;
+  },
+});
+
 // Internal query to get post by slug
 export const getPostBySlug = internalQuery({
   args: { slug: v.string() },
@@ -92,7 +125,7 @@ export const getPostBySlug = internalQuery({
     const post = await ctx.db
       .query("posts")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
+      .unique();
 
     if (!post) return null;
 

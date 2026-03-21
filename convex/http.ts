@@ -1,9 +1,9 @@
 import { httpRouter } from "convex/server";
 import { registerStaticRoutes } from "@convex-dev/self-hosting";
 import { httpAction } from "./_generated/server";
-import { api, components } from "./_generated/api";
-import { rssFeed, rssFullFeed } from "./rss";
-import { streamResponse, streamResponseOptions } from "./askAI.node";
+import { internal, components } from "./_generated/api";
+import { handleRssFeed, handleRssFullFeed } from "./rss";
+import { handleStreamResponse, handleStreamResponseOptions } from "./askAI.node";
 import { registerRoutes } from "convex-fs";
 import { fs } from "./fs";
 import { auth } from "./auth";
@@ -30,7 +30,7 @@ http.route({
     }
 
     // Try post first, then page
-    const post = await ctx.runQuery(api.posts.getPostBySlug, { slug });
+    const post = await ctx.runQuery(internal.posts.getPostBySlugWithContent, { slug });
     if (post) {
       const frontmatter = [
         "---",
@@ -54,7 +54,7 @@ http.route({
       });
     }
 
-    const page = await ctx.runQuery(api.pages.getPageBySlug, { slug });
+    const page = await ctx.runQuery(internal.pages.getPageBySlugInternal, { slug });
     if (page) {
       const today = new Date().toISOString().split("T")[0];
       const frontmatter = `---\nType: page\nDate: ${today}\n---`;
@@ -73,6 +73,22 @@ http.route({
   }),
 });
 
+http.route({
+  pathPrefix: "/raw/",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
 // Register static file serving for self-hosted deployments.
 registerStaticRoutes(http, components.selfHosting);
 
@@ -84,14 +100,46 @@ const SITE_NAME = "markdown sync framework";
 http.route({
   path: "/rss.xml",
   method: "GET",
-  handler: rssFeed,
+  handler: httpAction(handleRssFeed),
+});
+
+http.route({
+  path: "/rss.xml",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
 });
 
 // Full RSS feed endpoint (with complete content for LLMs)
 http.route({
   path: "/rss-full.xml",
   method: "GET",
-  handler: rssFullFeed,
+  handler: httpAction(handleRssFullFeed),
+});
+
+http.route({
+  path: "/rss-full.xml",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
 });
 
 // Sitemap.xml endpoint for search engines (includes posts, pages, and tag pages)
@@ -99,10 +147,10 @@ http.route({
   path: "/sitemap.xml",
   method: "GET",
   handler: httpAction(async (ctx) => {
-    const posts = await ctx.runQuery(api.posts.getAllPosts);
-    const pages = await ctx.runQuery(api.pages.getAllPages);
-    const tags = await ctx.runQuery(api.posts.getAllTags);
-    const authors = await ctx.runQuery(api.posts.getAllAuthors);
+    const posts = await ctx.runQuery(internal.posts.getAllPostsInternal);
+    const pages = await ctx.runQuery(internal.pages.getAllPagesInternal);
+    const tags = await ctx.runQuery(internal.posts.getAllTagsInternal);
+    const authors = await ctx.runQuery(internal.posts.getAllAuthorsInternal);
 
     const urls = [
       // Homepage
@@ -160,12 +208,28 @@ ${urls.join("\n")}
   }),
 });
 
+http.route({
+  path: "/sitemap.xml",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
 // API endpoint: List all posts (JSON for LLMs/agents)
 http.route({
   path: "/api/posts",
   method: "GET",
   handler: httpAction(async (ctx) => {
-    const posts = await ctx.runQuery(api.posts.getAllPosts);
+    const posts = await ctx.runQuery(internal.posts.getAllPostsInternal);
 
     const response = {
       site: SITE_NAME,
@@ -194,6 +258,22 @@ http.route({
   }),
 });
 
+http.route({
+  path: "/api/posts",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
 // API endpoint: Get single post as markdown (for LLMs/agents)
 http.route({
   path: "/api/post",
@@ -210,7 +290,7 @@ http.route({
       });
     }
 
-    const post = await ctx.runQuery(api.posts.getPostBySlug, { slug });
+    const post = await ctx.runQuery(internal.posts.getPostBySlugWithContent, { slug });
 
     if (!post) {
       return new Response(JSON.stringify({ error: "Post not found" }), {
@@ -264,31 +344,29 @@ ${post.content}`;
   }),
 });
 
+http.route({
+  path: "/api/post",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
 // API endpoint: Export all posts with full content (batch for LLMs)
 http.route({
   path: "/api/export",
   method: "GET",
   handler: httpAction(async (ctx) => {
-    const posts = await ctx.runQuery(api.posts.getAllPosts);
-
-    // Fetch full content for each post
-    const fullPosts = await Promise.all(
-      posts.map(async (post: { title: string; slug: string; description: string; date: string; readTime?: string; tags: string[] }) => {
-        const fullPost = await ctx.runQuery(api.posts.getPostBySlug, {
-          slug: post.slug,
-        });
-        return {
-          title: post.title,
-          slug: post.slug,
-          description: post.description,
-          date: post.date,
-          readTime: post.readTime,
-          tags: post.tags,
-          url: `${SITE_URL}/${post.slug}`,
-          content: fullPost?.content || "",
-        };
-      }),
-    );
+    // Single batch query instead of N+1 per-post fetches
+    const posts = await ctx.runQuery(internal.posts.getAllPostsWithContentInternal);
 
     const response = {
       site: SITE_NAME,
@@ -296,8 +374,17 @@ http.route({
       description:
         "An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.",
       exportedAt: new Date().toISOString(),
-      totalPosts: fullPosts.length,
-      posts: fullPosts,
+      totalPosts: posts.length,
+      posts: posts.map((post) => ({
+        title: post.title,
+        slug: post.slug,
+        description: post.description,
+        date: post.date,
+        readTime: post.readTime,
+        tags: post.tags,
+        url: `${SITE_URL}/${post.slug}`,
+        content: post.content,
+      })),
     };
 
     return new Response(JSON.stringify(response, null, 2), {
@@ -305,6 +392,22 @@ http.route({
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": "public, max-age=300, s-maxage=600",
         "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
+http.route({
+  path: "/api/export",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
       },
     });
   }),
@@ -419,7 +522,7 @@ http.route({
 
     try {
       // First try to find a post
-      const post = await ctx.runQuery(api.posts.getPostBySlug, { slug });
+      const post = await ctx.runQuery(internal.posts.getPostBySlugWithContent, { slug });
 
       if (post) {
         const html = generateMetaHtml({
@@ -442,7 +545,7 @@ http.route({
       }
 
       // If no post found, try to find a page
-      const page = await ctx.runQuery(api.pages.getPageBySlug, { slug });
+      const page = await ctx.runQuery(internal.pages.getPageBySlugInternal, { slug });
 
       if (page) {
         const html = generateMetaHtml({
@@ -470,18 +573,34 @@ http.route({
   }),
 });
 
+http.route({
+  path: "/meta/post",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
 // Ask AI streaming endpoint for RAG-based Q&A
 http.route({
   path: "/ask-ai-stream",
   method: "POST",
-  handler: streamResponse,
+  handler: httpAction(handleStreamResponse),
 });
 
 // CORS preflight for Ask AI endpoint
 http.route({
   path: "/ask-ai-stream",
   method: "OPTIONS",
-  handler: streamResponseOptions,
+  handler: httpAction(handleStreamResponseOptions),
 });
 
 // ConvexFS routes for file uploads/downloads
@@ -492,7 +611,7 @@ if (fs) {
   registerRoutes(http, components.fs, fs, {
     pathPrefix: "/fs",
     uploadAuth: async (ctx) => {
-      return await ctx.runQuery(api.authAdmin.isCurrentUserDashboardAdmin, {});
+      return await ctx.runQuery(internal.authAdmin.isCurrentUserDashboardAdminInternal, {});
     },
     downloadAuth: async () => {
       // Public downloads - images should be accessible to all

@@ -2,6 +2,7 @@
 name: Custom Homepage Configuration
 overview: Add configuration to set any page or blog post as the homepage, with all Post component features (sidebar, copy dropdown, etc.) but without the featured section. Original homepage remains accessible at /home.
 todos: []
+isProject: false
 ---
 
 # Cus
@@ -16,18 +17,16 @@ flowchart TD
     B -->|default| C[Home Component]
     B -->|page| D[Post Component with page slug]
     B -->|post| E[Post Component with post slug]
-    
+
     D --> F[Render page content]
     E --> G[Render post content]
-    
+
     F --> H[No featured section]
     G --> H
     H --> I[All Post features: sidebar, copy dropdown, etc.]
-    
+
     J[User visits /home] --> C
 ```
-
-
 
 ## Implementation Steps
 
@@ -59,8 +58,6 @@ export const siteConfig: SiteConfig = {
 };
 ```
 
-
-
 ### 2. Update `src/App.tsx`
 
 Modify routing to conditionally render homepage:
@@ -75,8 +72,8 @@ function App() {
   }
 
   // Determine if we should use a custom homepage
-  const useCustomHomepage = 
-    siteConfig.homepage.type !== "default" && 
+  const useCustomHomepage =
+    siteConfig.homepage.type !== "default" &&
     siteConfig.homepage.slug;
 
   return (
@@ -84,29 +81,29 @@ function App() {
       <Layout>
         <Routes>
           {/* Homepage route - either default Home or custom page/post */}
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               useCustomHomepage ? (
-                <Post 
-                  slug={siteConfig.homepage.slug!} 
+                <Post
+                  slug={siteConfig.homepage.slug!}
                   isHomepage={true}
                   homepageType={siteConfig.homepage.type}
                 />
               ) : (
                 <Home />
               )
-            } 
+            }
           />
-          
+
           {/* Original homepage route (when custom homepage is set) */}
           {useCustomHomepage && (
-            <Route 
-              path={siteConfig.homepage.originalHomeRoute || "/home"} 
-              element={<Home />} 
+            <Route
+              path={siteConfig.homepage.originalHomeRoute || "/home"}
+              element={<Home />}
             />
           )}
-          
+
           {/* ... rest of routes ... */}
         </Routes>
       </Layout>
@@ -114,8 +111,6 @@ function App() {
   );
 }
 ```
-
-
 
 ### 3. Update `src/pages/Post.tsx`
 
@@ -128,16 +123,16 @@ interface PostProps {
   homepageType?: "page" | "post"; // Type of homepage content
 }
 
-export default function Post({ 
-  slug: propSlug, 
+export default function Post({
+  slug: propSlug,
   isHomepage = false,
-  homepageType 
+  homepageType
 }: PostProps = {}) {
   const { slug: routeSlug } = useParams<{ slug: string }>();
   const slug = propSlug || routeSlug;
-  
+
   // ... existing queries ...
-  
+
   // Conditionally hide back button when used as homepage
   // In the render section:
   {!isHomepage && (
@@ -146,12 +141,10 @@ export default function Post({
       <span>Back</span>
     </button>
   )}
-  
+
   // ... rest of component unchanged ...
 }
 ```
-
-
 
 ### 4. Update `scripts/configure-fork.ts`
 
@@ -170,26 +163,21 @@ interface ForkConfig {
 // Add update function
 function updateSiteConfig(config: ForkConfig): void {
   // ... existing updates ...
-  
+
   if (config.homepage) {
     const homepageConfig = JSON.stringify(config.homepage, null, 2)
       .replace(/"/g, '"')
-      .replace(/\n/g, '\n    ');
-    
-    updateFile(
-      "src/config/siteConfig.ts",
-      [
-        {
-          search: /homepage:\s*\{[^}]*\},/s,
-          replace: `homepage: ${homepageConfig},`,
-        },
-      ]
-    );
+      .replace(/\n/g, "\n    ");
+
+    updateFile("src/config/siteConfig.ts", [
+      {
+        search: /homepage:\s*\{[^}]*\},/s,
+        replace: `homepage: ${homepageConfig},`,
+      },
+    ]);
   }
 }
 ```
-
-
 
 ### 5. Update `FORK_CONFIG.md`
 
@@ -210,6 +198,7 @@ You can set any page or blog post to serve as your homepage.
     "originalHomeRoute": "/home"
   }
 }
+```
 ````
 
 Options:
@@ -230,14 +219,13 @@ homepage: {
 },
 ```
 
-
-
 ### Notes
 
 - Custom homepage uses the page/post's full content and features (sidebar, copy dropdown, etc.)
 - Featured section is NOT shown on custom homepage
 - SEO metadata comes from the page/post's frontmatter
 - Original homepage remains accessible at `/home` when custom homepage is set
+
 ````javascript
 
 ### 6. Update `fork-config.json.example`
@@ -253,9 +241,6 @@ Add homepage configuration example:
   }
 }
 ````
-
-
-
 
 ## Files to Modify
 

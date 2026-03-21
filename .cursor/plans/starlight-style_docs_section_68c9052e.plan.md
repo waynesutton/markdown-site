@@ -38,6 +38,7 @@ todos:
   - id: test-content
     content: Add docsSection frontmatter to existing content for testing
     status: pending
+isProject: false
 ---
 
 # Starlight-style Docs Section

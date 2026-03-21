@@ -1,27 +1,31 @@
 "use node";
 
-import { v } from "convex/values";
-import { action, internalAction } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
+import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import OpenAI from "openai";
 
-// Generate embedding for text using OpenAI text-embedding-ada-002
+async function generateEmbeddingHelper(text: string): Promise<number[]> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new ConvexError("OPENAI_API_KEY not configured in Convex environment");
+  }
+
+  const openai = new OpenAI({ apiKey });
+  const response = await openai.embeddings.create({
+    model: "text-embedding-ada-002",
+    input: text.slice(0, 8000),
+  });
+
+  return response.data[0].embedding;
+}
+
+// Registered action wrapper for external callers
 export const generateEmbedding = internalAction({
   args: { text: v.string() },
   returns: v.array(v.float64()),
   handler: async (_ctx, { text }) => {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error("OPENAI_API_KEY not configured in Convex environment");
-    }
-
-    const openai = new OpenAI({ apiKey });
-    const response = await openai.embeddings.create({
-      model: "text-embedding-ada-002",
-      input: text.slice(0, 8000), // Truncate to stay within token limit
-    });
-
-    return response.data[0].embedding;
+    return await generateEmbeddingHelper(text);
   },
 });
 
@@ -35,25 +39,24 @@ export const generatePostEmbeddings = internalAction({
       { limit: 10 }
     );
 
-    let processed = 0;
+    const batch: Array<{ id: string; embedding: number[] }> = [];
     for (const post of posts) {
       try {
-        // Combine title and content for embedding
         const textToEmbed = `${post.title}\n\n${post.content}`;
-        const embedding = await ctx.runAction(internal.embeddings.generateEmbedding, {
-          text: textToEmbed,
-        });
-        await ctx.runMutation(internal.embeddingsQueries.savePostEmbedding, {
-          id: post._id,
-          embedding,
-        });
-        processed++;
+        const embedding = await generateEmbeddingHelper(textToEmbed);
+        batch.push({ id: post._id, embedding });
       } catch (error) {
         console.error(`Failed to generate embedding for post ${post._id}:`, error);
       }
     }
 
-    return { processed };
+    if (batch.length > 0) {
+      await ctx.runMutation(internal.embeddingsQueries.savePostEmbeddingsBatch, {
+        items: batch as any,
+      });
+    }
+
+    return { processed: batch.length };
   },
 });
 
@@ -67,67 +70,29 @@ export const generatePageEmbeddings = internalAction({
       { limit: 10 }
     );
 
-    let processed = 0;
+    const batch: Array<{ id: string; embedding: number[] }> = [];
     for (const page of pages) {
       try {
-        // Combine title and content for embedding
         const textToEmbed = `${page.title}\n\n${page.content}`;
-        const embedding = await ctx.runAction(internal.embeddings.generateEmbedding, {
-          text: textToEmbed,
-        });
-        await ctx.runMutation(internal.embeddingsQueries.savePageEmbedding, {
-          id: page._id,
-          embedding,
-        });
-        processed++;
+        const embedding = await generateEmbeddingHelper(textToEmbed);
+        batch.push({ id: page._id, embedding });
       } catch (error) {
         console.error(`Failed to generate embedding for page ${page._id}:`, error);
       }
     }
 
-    return { processed };
-  },
-});
-
-// Public action to generate missing embeddings for all content
-// Called from sync script or manually
-export const generateMissingEmbeddings = action({
-  args: {},
-  returns: v.object({
-    postsProcessed: v.number(),
-    pagesProcessed: v.number(),
-    skipped: v.boolean(),
-  }),
-  handler: async (ctx): Promise<{
-    postsProcessed: number;
-    pagesProcessed: number;
-    skipped: boolean;
-  }> => {
-    // Check for API key first - gracefully skip if not configured
-    if (!process.env.OPENAI_API_KEY) {
-      console.log("OPENAI_API_KEY not set, skipping embedding generation");
-      return { postsProcessed: 0, pagesProcessed: 0, skipped: true };
+    if (batch.length > 0) {
+      await ctx.runMutation(internal.embeddingsQueries.savePageEmbeddingsBatch, {
+        items: batch as any,
+      });
     }
 
-    const postsResult: { processed: number } = await ctx.runAction(
-      internal.embeddings.generatePostEmbeddings,
-      {}
-    );
-    const pagesResult: { processed: number } = await ctx.runAction(
-      internal.embeddings.generatePageEmbeddings,
-      {}
-    );
-
-    return {
-      postsProcessed: postsResult.processed,
-      pagesProcessed: pagesResult.processed,
-      skipped: false,
-    };
+    return { processed: batch.length };
   },
 });
 
-// Public action to regenerate embedding for a specific post
-export const regeneratePostEmbedding = action({
+// Internal action to regenerate embedding for a specific post
+export const regeneratePostEmbeddingJob = internalAction({
   args: { slug: v.string() },
   returns: v.object({ success: v.boolean(), error: v.optional(v.string()) }),
   handler: async (ctx, args) => {
@@ -146,9 +111,7 @@ export const regeneratePostEmbedding = action({
 
     try {
       const textToEmbed = `${post.title}\n\n${post.content}`;
-      const embedding = await ctx.runAction(internal.embeddings.generateEmbedding, {
-        text: textToEmbed,
-      });
+      const embedding = await generateEmbeddingHelper(textToEmbed);
       await ctx.runMutation(internal.embeddingsQueries.savePostEmbedding, {
         id: post._id,
         embedding,

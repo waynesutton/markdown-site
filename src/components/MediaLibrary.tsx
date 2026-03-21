@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useAction, usePaginatedQuery, useMutation, useQuery, useConvex } from "convex/react";
+import { usePaginatedQuery, useMutation, useQuery, useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
   Image as ImageIcon,
@@ -84,9 +84,8 @@ export function MediaLibrary() {
   const isBunnyConfigured = configStatus?.configured ?? false;
 
   // Convex hooks
-  const commitFile = useAction(api.files.commitFile);
+  const commitFile = useMutation(api.files.commitFile);
   const generateDirectUploadUrl = useMutation(api.media.generateDirectUploadUrl);
-  const resolveDirectUpload = useAction(api.media.resolveDirectUpload);
   const generateR2UploadUrl = useMutation(api.r2.generateUploadUrl);
   const syncR2Metadata = useMutation(api.r2.syncMetadata);
   const deleteFile = useMutation(api.files.deleteFile);
@@ -189,7 +188,7 @@ export function MediaLibrary() {
             throw new Error(`Upload failed: ${uploadRes.status}`);
           }
           const { storageId } = await uploadRes.json();
-          const resolvedUrl = await resolveDirectUpload({ storageId });
+          const resolvedUrl = await convex.query(api.media.getDirectStorageUrl, { storageId });
           if (resolvedUrl) {
             setRecentUploads((prev) => [{
               id: storageId,
@@ -216,7 +215,6 @@ export function MediaLibrary() {
     generateDirectUploadUrl,
     generateR2UploadUrl,
     mediaProvider,
-    resolveDirectUpload,
     siteUrl,
     syncR2Metadata,
   ]);

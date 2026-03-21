@@ -1,5 +1,5 @@
-import { mutation, query, action } from "./_generated/server";
-import { v } from "convex/values";
+import { mutation, query, internalAction } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { fs, isBunnyConfigured } from "./fs";
 import {
@@ -18,16 +18,25 @@ const ALLOWED_TYPES = [
 // Max file size in bytes (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+const storedFileValidator = v.object({
+  path: v.string(),
+  blobId: v.string(),
+  contentType: v.string(),
+  size: v.number(),
+});
+
 // Check if media uploads are configured
 export const isConfigured = query({
   args: {},
-  handler: async () => {
+  returns: v.object({ configured: v.boolean() }),
+  handler: async (ctx) => {
+    await ctx.auth.getUserIdentity();
     return { configured: isBunnyConfigured };
   },
 });
 
 // Commit uploaded file to storage path
-export const commitFile = action({
+export const commitFile = mutation({
   args: {
     blobId: v.string(),
     filename: v.string(),
@@ -36,25 +45,33 @@ export const commitFile = action({
     width: v.optional(v.number()),
     height: v.optional(v.number()),
   },
+  returns: v.object({
+    path: v.string(),
+    filename: v.string(),
+    contentType: v.string(),
+    size: v.number(),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+  }),
   handler: async (ctx, args) => {
-    await requireDashboardAdminAction(ctx);
+    await requireDashboardAdmin(ctx);
 
     if (!fs) {
-      throw new Error(
+      throw new ConvexError(
         "Media uploads not configured. Set BUNNY_API_KEY, BUNNY_STORAGE_ZONE, and BUNNY_CDN_HOSTNAME in Convex Dashboard."
       );
     }
 
     // Validate file type
     if (!ALLOWED_TYPES.includes(args.contentType)) {
-      throw new Error(
+      throw new ConvexError(
         `Invalid file type: ${args.contentType}. Allowed: ${ALLOWED_TYPES.join(", ")}`
       );
     }
 
     // Validate file size
     if (args.size > MAX_FILE_SIZE) {
-      throw new Error(
+      throw new ConvexError(
         `File too large: ${(args.size / 1024 / 1024).toFixed(2)}MB. Max: 10MB`
       );
     }
@@ -89,6 +106,11 @@ export const listFiles = query({
     prefix: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
   },
+  returns: v.object({
+    page: v.array(storedFileValidator),
+    isDone: v.boolean(),
+    continueCursor: v.string(),
+  }),
   handler: async (ctx, args) => {
     await requireDashboardAdmin(ctx);
 
@@ -111,6 +133,7 @@ export const listFiles = query({
 // Get file info by path
 export const getFileInfo = query({
   args: { path: v.string() },
+  returns: v.union(storedFileValidator, v.null()),
   handler: async (ctx, args) => {
     await requireDashboardAdmin(ctx);
 
@@ -134,19 +157,23 @@ export const getFileInfo = query({
 });
 
 // Get signed download URL for a file
-export const getDownloadUrl = action({
+export const getDownloadUrl = internalAction({
   args: { path: v.string() },
+  returns: v.object({
+    url: v.string(),
+    expiresIn: v.number(),
+  }),
   handler: async (ctx, args) => {
     await requireDashboardAdminAction(ctx);
 
     if (!fs) {
-      throw new Error("Media uploads not configured");
+      throw new ConvexError("Media uploads not configured");
     }
 
     const file = await fs.stat(ctx, args.path);
 
     if (!file) {
-      throw new Error("File not found");
+      throw new ConvexError("File not found");
     }
 
     // Generate time-limited signed URL
@@ -159,11 +186,12 @@ export const getDownloadUrl = action({
 // Delete file by path
 export const deleteFile = mutation({
   args: { path: v.string() },
+  returns: v.object({ success: v.boolean() }),
   handler: async (ctx, args) => {
     await requireDashboardAdmin(ctx);
 
     if (!fs) {
-      throw new Error("Media uploads not configured");
+      throw new ConvexError("Media uploads not configured");
     }
 
     await fs.delete(ctx, args.path);
@@ -174,11 +202,15 @@ export const deleteFile = mutation({
 // Delete multiple files at once
 export const deleteFiles = mutation({
   args: { paths: v.array(v.string()) },
+  returns: v.object({
+    success: v.boolean(),
+    deleted: v.number(),
+  }),
   handler: async (ctx, args) => {
     await requireDashboardAdmin(ctx);
 
     if (!fs) {
-      throw new Error("Media uploads not configured");
+      throw new ConvexError("Media uploads not configured");
     }
 
     let deleted = 0;
@@ -191,22 +223,26 @@ export const deleteFiles = mutation({
 });
 
 // Set file expiration
-export const setFileExpiration = action({
+export const setFileExpiration = internalAction({
   args: {
     path: v.string(),
     expiresInMs: v.optional(v.number()), // null to remove expiration
   },
+  returns: v.object({
+    success: v.boolean(),
+    expiresAt: v.union(v.number(), v.null()),
+  }),
   handler: async (ctx, args) => {
     await requireDashboardAdminAction(ctx);
 
     if (!fs) {
-      throw new Error("Media uploads not configured");
+      throw new ConvexError("Media uploads not configured");
     }
 
     // Get current file info
     const file = await fs.stat(ctx, args.path);
     if (!file) {
-      throw new Error("File not found");
+      throw new ConvexError("File not found");
     }
 
     const expiresAt = args.expiresInMs ? Date.now() + args.expiresInMs : null;
@@ -226,6 +262,7 @@ export const setFileExpiration = action({
 // Get total file count
 export const getFileCount = query({
   args: {},
+  returns: v.number(),
   handler: async (ctx) => {
     await requireDashboardAdmin(ctx);
 

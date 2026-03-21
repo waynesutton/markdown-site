@@ -43,9 +43,9 @@ export default defineSchema({
     .index("by_date", ["date"])
     .index("by_published", ["published"])
     .index("by_featured", ["featured"])
-    .index("by_blogFeatured", ["blogFeatured"])
-    .index("by_authorName", ["authorName"])
-    .index("by_docsSection", ["docsSection"])
+    .index("by_blogfeatured", ["blogFeatured"])
+    .index("by_authorname", ["authorName"])
+    .index("by_docssection", ["docsSection"])
     .index("by_source", ["source"])
     .searchIndex("search_content", {
       searchField: "content",
@@ -98,7 +98,7 @@ export default defineSchema({
   .index("by_slug", ["slug"])
   .index("by_published", ["published"])
   .index("by_featured", ["featured"])
-  .index("by_docsSection", ["docsSection"])
+  .index("by_docssection", ["docsSection"])
   .index("by_source", ["source"])
     .searchIndex("search_content", {
       searchField: "content",
@@ -135,7 +135,7 @@ export default defineSchema({
   })
     .index("by_path", ["path"])
     .index("by_timestamp", ["timestamp"])
-    .index("by_session_path", ["sessionId", "path"]),
+    .index("by_sessionid_and_path", ["sessionId", "path"]),
 
   // Active sessions for real-time visitor tracking
   activeSessions: defineTable({
@@ -148,11 +148,12 @@ export default defineSchema({
     latitude: v.optional(v.number()),
     longitude: v.optional(v.number()),
   })
-    .index("by_sessionId", ["sessionId"])
-    .index("by_lastSeen", ["lastSeen"]),
+    .index("by_sessionid", ["sessionId"])
+    .index("by_lastseen", ["lastSeen"]),
 
   // AI chat conversations for writing assistant
   aiChats: defineTable({
+    ownerSubject: v.optional(v.string()), // Authenticated user who owns this chat
     sessionId: v.string(), // Anonymous session ID from localStorage
     contextId: v.string(), // Slug or "write-page" identifier
     messages: v.array(
@@ -175,12 +176,14 @@ export default defineSchema({
     ),
     pageContext: v.optional(v.string()), // Loaded page markdown content
     lastMessageAt: v.optional(v.number()),
+    generating: v.optional(v.boolean()),
+    lastError: v.optional(v.string()),
   })
-    .index("by_session_and_context", ["sessionId", "contextId"])
-    .index("by_session", ["sessionId"]),
+    .index("by_sessionid_and_contextid", ["sessionId", "contextId"]),
 
   // AI generated images from Gemini image generation
   aiGeneratedImages: defineTable({
+    ownerSubject: v.optional(v.string()), // Authenticated user who created the image
     sessionId: v.string(), // Anonymous session ID from localStorage
     prompt: v.string(), // User's image prompt
     model: v.string(), // Model used: "gemini-2.5-flash-image" or "gemini-3-pro-image-preview"
@@ -188,9 +191,75 @@ export default defineSchema({
     mimeType: v.string(), // Image MIME type: "image/png" or "image/jpeg"
     createdAt: v.number(), // Timestamp when image was generated
   })
-    .index("by_session", ["sessionId"])
-    .index("by_createdAt", ["createdAt"])
-    .index("by_storageId", ["storageId"]),
+    .index("by_sessionid", ["sessionId"])
+    .index("by_createdat", ["createdAt"])
+    .index("by_storageid", ["storageId"]),
+
+  // Persisted image generation jobs for reactive dashboard status updates
+  aiImageGenerationJobs: defineTable({
+    ownerSubject: v.optional(v.string()),
+    sessionId: v.string(),
+    prompt: v.string(),
+    model: v.string(),
+    aspectRatio: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    storageId: v.optional(v.id("_storage")),
+    mimeType: v.optional(v.string()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_sessionid", ["sessionId"])
+    .index("by_createdat", ["createdAt"])
+    .index("by_storageid", ["storageId"]),
+
+  // Persisted URL import jobs for reactive dashboard status updates
+  importUrlJobs: defineTable({
+    ownerSubject: v.optional(v.string()),
+    url: v.string(),
+    published: v.boolean(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    slug: v.optional(v.string()),
+    title: v.optional(v.string()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  }).index("by_createdat", ["createdAt"]),
+
+  // Persisted semantic search jobs for reactive search modal status updates
+  semanticSearchJobs: defineTable({
+    ownerSubject: v.optional(v.string()),
+    query: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    results: v.optional(
+      v.array(
+        v.object({
+          _id: v.string(),
+          type: v.union(v.literal("post"), v.literal("page")),
+          slug: v.string(),
+          title: v.string(),
+          description: v.optional(v.string()),
+          snippet: v.string(),
+          score: v.number(),
+        }),
+      ),
+    ),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  }).index("by_createdat", ["createdAt"]),
 
   // Newsletter subscribers table
   // Stores email subscriptions with unsubscribe tokens
@@ -214,8 +283,8 @@ export default defineSchema({
     type: v.optional(v.string()), // "post" or "custom" (default "post" for backwards compat)
     subject: v.optional(v.string()), // Subject line for custom emails
   })
-    .index("by_postSlug", ["postSlug"])
-    .index("by_sentAt", ["sentAt"]),
+    .index("by_postslug", ["postSlug"])
+    .index("by_sentat", ["sentAt"]),
 
   // Contact form messages
   // Stores messages submitted via contact forms on posts/pages
@@ -226,11 +295,12 @@ export default defineSchema({
     source: v.string(), // Where submitted from: "page:slug" or "post:slug"
     createdAt: v.number(), // Timestamp when submitted
     emailSentAt: v.optional(v.number()), // Timestamp when email was sent (if applicable)
-  }).index("by_createdAt", ["createdAt"]),
+  }).index("by_createdat", ["createdAt"]),
 
   // Ask AI sessions for header AI chat feature
   // Stores questions and stream IDs for RAG-based Q&A
   askAISessions: defineTable({
+    ownerSubject: v.optional(v.string()), // Authenticated user who created the stream
     question: v.string(), // User's question
     streamId: v.string(), // Persistent text streaming ID
     model: v.optional(v.string()), // Selected AI model
@@ -244,7 +314,7 @@ export default defineSchema({
         })
       )
     ), // Optional sources cited in the response
-  }).index("by_stream", ["streamId"]),
+  }).index("by_streamid", ["streamId"]),
 
   // Content version history for posts and pages
   // Stores snapshots before each update for 3-day retention
@@ -262,10 +332,9 @@ export default defineSchema({
       v.literal("restore")
     ), // What triggered the version capture
   })
-    .index("by_content", ["contentType", "contentId"])
-    .index("by_slug", ["contentType", "slug"])
-    .index("by_createdAt", ["createdAt"])
-    .index("by_content_createdAt", ["contentType", "contentId", "createdAt"]),
+    .index("by_contenttype_and_slug", ["contentType", "slug"])
+    .index("by_createdat", ["createdAt"])
+    .index("by_contenttype_and_contentid_and_createdat", ["contentType", "contentId", "createdAt"]),
 
   // Version control settings
   // Stores toggle state for version control feature

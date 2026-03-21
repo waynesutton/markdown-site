@@ -2,6 +2,7 @@
 name: Admin
 overview: Build a comprehensive admin dashboard at /dashboard for managing posts, pages, site configuration, newsletter, imports, stats, and sync operations. Uses existing UI patterns from Write.tsx and NewsletterAdmin.tsx with a config generator approach for siteConfig.ts and downloadable markdown for content editing.
 todos: []
+isProject: false
 ---
 
 # Admin Dashboard Implementation Plan

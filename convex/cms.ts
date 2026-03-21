@@ -1,5 +1,6 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { mutation, query, internalMutation } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { requireDashboardAdmin } from "./dashboardAuth";
 
@@ -70,6 +71,127 @@ const pageDataValidator = v.object({
   docsLanding: v.optional(v.boolean()),
 });
 
+function escapeFrontmatterString(value: string): string {
+  return value.replace(/"/g, '\\"');
+}
+
+function createMarkdownDocument(
+  frontmatter: Array<string>,
+  content: string,
+): string {
+  return `${frontmatter.join("\n")}\n\n${content}`;
+}
+
+function buildPostFrontmatter(post: Doc<"posts">): Array<string> {
+  const frontmatter: Array<string> = ["---"];
+  frontmatter.push(`title: "${escapeFrontmatterString(post.title)}"`);
+  frontmatter.push(
+    `description: "${escapeFrontmatterString(post.description)}"`,
+  );
+  frontmatter.push(`date: "${post.date}"`);
+  frontmatter.push(`slug: "${post.slug}"`);
+  frontmatter.push(`published: ${post.published}`);
+  frontmatter.push(`tags: [${post.tags.map((tag) => `"${tag}"`).join(", ")}]`);
+
+  if (post.readTime) frontmatter.push(`readTime: "${post.readTime}"`);
+  if (post.image) frontmatter.push(`image: "${post.image}"`);
+  if (post.showImageAtTop !== undefined)
+    frontmatter.push(`showImageAtTop: ${post.showImageAtTop}`);
+  if (post.excerpt)
+    frontmatter.push(`excerpt: "${escapeFrontmatterString(post.excerpt)}"`);
+  if (post.featured !== undefined)
+    frontmatter.push(`featured: ${post.featured}`);
+  if (post.featuredOrder !== undefined)
+    frontmatter.push(`featuredOrder: ${post.featuredOrder}`);
+  if (post.authorName) frontmatter.push(`authorName: "${post.authorName}"`);
+  if (post.authorImage) frontmatter.push(`authorImage: "${post.authorImage}"`);
+  if (post.layout) frontmatter.push(`layout: "${post.layout}"`);
+  if (post.rightSidebar !== undefined)
+    frontmatter.push(`rightSidebar: ${post.rightSidebar}`);
+  if (post.showFooter !== undefined)
+    frontmatter.push(`showFooter: ${post.showFooter}`);
+  if (post.footer)
+    frontmatter.push(`footer: "${escapeFrontmatterString(post.footer)}"`);
+  if (post.showSocialFooter !== undefined)
+    frontmatter.push(`showSocialFooter: ${post.showSocialFooter}`);
+  if (post.aiChat !== undefined) frontmatter.push(`aiChat: ${post.aiChat}`);
+  if (post.blogFeatured !== undefined)
+    frontmatter.push(`blogFeatured: ${post.blogFeatured}`);
+  if (post.newsletter !== undefined)
+    frontmatter.push(`newsletter: ${post.newsletter}`);
+  if (post.contactForm !== undefined)
+    frontmatter.push(`contactForm: ${post.contactForm}`);
+  if (post.unlisted !== undefined)
+    frontmatter.push(`unlisted: ${post.unlisted}`);
+  if (post.docsSection !== undefined)
+    frontmatter.push(`docsSection: ${post.docsSection}`);
+  if (post.docsSectionGroup)
+    frontmatter.push(`docsSectionGroup: "${post.docsSectionGroup}"`);
+  if (post.docsSectionOrder !== undefined)
+    frontmatter.push(`docsSectionOrder: ${post.docsSectionOrder}`);
+  if (post.docsSectionGroupOrder !== undefined)
+    frontmatter.push(`docsSectionGroupOrder: ${post.docsSectionGroupOrder}`);
+  if (post.docsSectionGroupIcon)
+    frontmatter.push(`docsSectionGroupIcon: "${post.docsSectionGroupIcon}"`);
+  if (post.docsLanding !== undefined)
+    frontmatter.push(`docsLanding: ${post.docsLanding}`);
+
+  frontmatter.push("---");
+  return frontmatter;
+}
+
+function buildPageFrontmatter(page: Doc<"pages">): Array<string> {
+  const frontmatter: Array<string> = ["---"];
+  frontmatter.push(`title: "${escapeFrontmatterString(page.title)}"`);
+  frontmatter.push(`slug: "${page.slug}"`);
+  frontmatter.push(`published: ${page.published}`);
+
+  if (page.order !== undefined) frontmatter.push(`order: ${page.order}`);
+  if (page.showInNav !== undefined)
+    frontmatter.push(`showInNav: ${page.showInNav}`);
+  if (page.excerpt)
+    frontmatter.push(`excerpt: "${escapeFrontmatterString(page.excerpt)}"`);
+  if (page.image) frontmatter.push(`image: "${page.image}"`);
+  if (page.showImageAtTop !== undefined)
+    frontmatter.push(`showImageAtTop: ${page.showImageAtTop}`);
+  if (page.featured !== undefined)
+    frontmatter.push(`featured: ${page.featured}`);
+  if (page.featuredOrder !== undefined)
+    frontmatter.push(`featuredOrder: ${page.featuredOrder}`);
+  if (page.authorName) frontmatter.push(`authorName: "${page.authorName}"`);
+  if (page.authorImage) frontmatter.push(`authorImage: "${page.authorImage}"`);
+  if (page.layout) frontmatter.push(`layout: "${page.layout}"`);
+  if (page.rightSidebar !== undefined)
+    frontmatter.push(`rightSidebar: ${page.rightSidebar}`);
+  if (page.showFooter !== undefined)
+    frontmatter.push(`showFooter: ${page.showFooter}`);
+  if (page.footer)
+    frontmatter.push(`footer: "${escapeFrontmatterString(page.footer)}"`);
+  if (page.showSocialFooter !== undefined)
+    frontmatter.push(`showSocialFooter: ${page.showSocialFooter}`);
+  if (page.aiChat !== undefined) frontmatter.push(`aiChat: ${page.aiChat}`);
+  if (page.contactForm !== undefined)
+    frontmatter.push(`contactForm: ${page.contactForm}`);
+  if (page.newsletter !== undefined)
+    frontmatter.push(`newsletter: ${page.newsletter}`);
+  if (page.textAlign) frontmatter.push(`textAlign: "${page.textAlign}"`);
+  if (page.docsSection !== undefined)
+    frontmatter.push(`docsSection: ${page.docsSection}`);
+  if (page.docsSectionGroup)
+    frontmatter.push(`docsSectionGroup: "${page.docsSectionGroup}"`);
+  if (page.docsSectionOrder !== undefined)
+    frontmatter.push(`docsSectionOrder: ${page.docsSectionOrder}`);
+  if (page.docsSectionGroupOrder !== undefined)
+    frontmatter.push(`docsSectionGroupOrder: ${page.docsSectionGroupOrder}`);
+  if (page.docsSectionGroupIcon)
+    frontmatter.push(`docsSectionGroupIcon: "${page.docsSectionGroupIcon}"`);
+  if (page.docsLanding !== undefined)
+    frontmatter.push(`docsLanding: ${page.docsLanding}`);
+
+  frontmatter.push("---");
+  return frontmatter;
+}
+
 // Create a new post via dashboard
 export const createPost = mutation({
   args: { post: postDataValidator },
@@ -81,10 +203,10 @@ export const createPost = mutation({
     const existing = await ctx.db
       .query("posts")
       .withIndex("by_slug", (q) => q.eq("slug", args.post.slug))
-      .first();
+      .unique();
 
     if (existing) {
-      throw new Error(`Post with slug "${args.post.slug}" already exists`);
+      throw new ConvexError(`Post with slug "${args.post.slug}" already exists`);
     }
 
     const postId = await ctx.db.insert("posts", {
@@ -94,6 +216,29 @@ export const createPost = mutation({
     });
 
     return postId;
+  },
+});
+
+// Internal mutation for creating posts from server-side actions (e.g. import)
+// Auth is handled by the calling action, not repeated here.
+export const createPostInternal = internalMutation({
+  args: { post: postDataValidator },
+  returns: v.id("posts"),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("posts")
+      .withIndex("by_slug", (q) => q.eq("slug", args.post.slug))
+      .unique();
+
+    if (existing) {
+      throw new ConvexError(`Post with slug "${args.post.slug}" already exists`);
+    }
+
+    return await ctx.db.insert("posts", {
+      ...args.post,
+      source: "dashboard",
+      lastSyncedAt: Date.now(),
+    });
   },
 });
 
@@ -141,7 +286,7 @@ export const updatePost = mutation({
 
     const existing = await ctx.db.get(args.id);
     if (!existing) {
-      throw new Error("Post not found");
+      throw new ConvexError("Post not found");
     }
 
     // If slug is being changed, check for conflicts
@@ -150,9 +295,9 @@ export const updatePost = mutation({
       const slugConflict = await ctx.db
         .query("posts")
         .withIndex("by_slug", (q) => q.eq("slug", newSlug))
-        .first();
+        .unique();
       if (slugConflict) {
-        throw new Error(`Post with slug "${newSlug}" already exists`);
+        throw new ConvexError(`Post with slug "${newSlug}" already exists`);
       }
     }
 
@@ -185,7 +330,7 @@ export const deletePost = mutation({
 
     const existing = await ctx.db.get(args.id);
     if (!existing) {
-      throw new Error("Post not found");
+      throw new ConvexError("Post not found");
     }
 
     await ctx.db.delete(args.id);
@@ -204,10 +349,10 @@ export const createPage = mutation({
     const existing = await ctx.db
       .query("pages")
       .withIndex("by_slug", (q) => q.eq("slug", args.page.slug))
-      .first();
+      .unique();
 
     if (existing) {
-      throw new Error(`Page with slug "${args.page.slug}" already exists`);
+      throw new ConvexError(`Page with slug "${args.page.slug}" already exists`);
     }
 
     const pageId = await ctx.db.insert("pages", {
@@ -261,7 +406,7 @@ export const updatePage = mutation({
 
     const existing = await ctx.db.get(args.id);
     if (!existing) {
-      throw new Error("Page not found");
+      throw new ConvexError("Page not found");
     }
 
     // If slug is being changed, check for conflicts
@@ -270,9 +415,9 @@ export const updatePage = mutation({
       const slugConflict = await ctx.db
         .query("pages")
         .withIndex("by_slug", (q) => q.eq("slug", newSlug))
-        .first();
+        .unique();
       if (slugConflict) {
-        throw new Error(`Page with slug "${newSlug}" already exists`);
+        throw new ConvexError(`Page with slug "${newSlug}" already exists`);
       }
     }
 
@@ -304,7 +449,7 @@ export const deletePage = mutation({
 
     const existing = await ctx.db.get(args.id);
     if (!existing) {
-      throw new Error("Page not found");
+      throw new ConvexError("Page not found");
     }
 
     await ctx.db.delete(args.id);
@@ -321,65 +466,10 @@ export const exportPostAsMarkdown = query({
 
     const post = await ctx.db.get(args.id);
     if (!post) {
-      throw new Error("Post not found");
+      throw new ConvexError("Post not found");
     }
 
-    // Build frontmatter
-    const frontmatter: string[] = ["---"];
-    frontmatter.push(`title: "${post.title.replace(/"/g, '\\"')}"`);
-    frontmatter.push(`description: "${post.description.replace(/"/g, '\\"')}"`);
-    frontmatter.push(`date: "${post.date}"`);
-    frontmatter.push(`slug: "${post.slug}"`);
-    frontmatter.push(`published: ${post.published}`);
-    frontmatter.push(`tags: [${post.tags.map((t) => `"${t}"`).join(", ")}]`);
-
-    // Add optional fields
-    if (post.readTime) frontmatter.push(`readTime: "${post.readTime}"`);
-    if (post.image) frontmatter.push(`image: "${post.image}"`);
-    if (post.showImageAtTop !== undefined)
-      frontmatter.push(`showImageAtTop: ${post.showImageAtTop}`);
-    if (post.excerpt)
-      frontmatter.push(`excerpt: "${post.excerpt.replace(/"/g, '\\"')}"`);
-    if (post.featured !== undefined)
-      frontmatter.push(`featured: ${post.featured}`);
-    if (post.featuredOrder !== undefined)
-      frontmatter.push(`featuredOrder: ${post.featuredOrder}`);
-    if (post.authorName) frontmatter.push(`authorName: "${post.authorName}"`);
-    if (post.authorImage) frontmatter.push(`authorImage: "${post.authorImage}"`);
-    if (post.layout) frontmatter.push(`layout: "${post.layout}"`);
-    if (post.rightSidebar !== undefined)
-      frontmatter.push(`rightSidebar: ${post.rightSidebar}`);
-    if (post.showFooter !== undefined)
-      frontmatter.push(`showFooter: ${post.showFooter}`);
-    if (post.footer)
-      frontmatter.push(`footer: "${post.footer.replace(/"/g, '\\"')}"`);
-    if (post.showSocialFooter !== undefined)
-      frontmatter.push(`showSocialFooter: ${post.showSocialFooter}`);
-    if (post.aiChat !== undefined) frontmatter.push(`aiChat: ${post.aiChat}`);
-    if (post.blogFeatured !== undefined)
-      frontmatter.push(`blogFeatured: ${post.blogFeatured}`);
-    if (post.newsletter !== undefined)
-      frontmatter.push(`newsletter: ${post.newsletter}`);
-    if (post.contactForm !== undefined)
-      frontmatter.push(`contactForm: ${post.contactForm}`);
-    if (post.unlisted !== undefined)
-      frontmatter.push(`unlisted: ${post.unlisted}`);
-    if (post.docsSection !== undefined)
-      frontmatter.push(`docsSection: ${post.docsSection}`);
-    if (post.docsSectionGroup)
-      frontmatter.push(`docsSectionGroup: "${post.docsSectionGroup}"`);
-    if (post.docsSectionOrder !== undefined)
-      frontmatter.push(`docsSectionOrder: ${post.docsSectionOrder}`);
-    if (post.docsSectionGroupOrder !== undefined)
-      frontmatter.push(`docsSectionGroupOrder: ${post.docsSectionGroupOrder}`);
-    if (post.docsSectionGroupIcon)
-      frontmatter.push(`docsSectionGroupIcon: "${post.docsSectionGroupIcon}"`);
-    if (post.docsLanding !== undefined)
-      frontmatter.push(`docsLanding: ${post.docsLanding}`);
-
-    frontmatter.push("---");
-
-    return `${frontmatter.join("\n")}\n\n${post.content}`;
+    return createMarkdownDocument(buildPostFrontmatter(post), post.content);
   },
 });
 
@@ -392,60 +482,9 @@ export const exportPageAsMarkdown = query({
 
     const page = await ctx.db.get(args.id);
     if (!page) {
-      throw new Error("Page not found");
+      throw new ConvexError("Page not found");
     }
 
-    // Build frontmatter
-    const frontmatter: string[] = ["---"];
-    frontmatter.push(`title: "${page.title.replace(/"/g, '\\"')}"`);
-    frontmatter.push(`slug: "${page.slug}"`);
-    frontmatter.push(`published: ${page.published}`);
-
-    // Add optional fields
-    if (page.order !== undefined) frontmatter.push(`order: ${page.order}`);
-    if (page.showInNav !== undefined)
-      frontmatter.push(`showInNav: ${page.showInNav}`);
-    if (page.excerpt)
-      frontmatter.push(`excerpt: "${page.excerpt.replace(/"/g, '\\"')}"`);
-    if (page.image) frontmatter.push(`image: "${page.image}"`);
-    if (page.showImageAtTop !== undefined)
-      frontmatter.push(`showImageAtTop: ${page.showImageAtTop}`);
-    if (page.featured !== undefined)
-      frontmatter.push(`featured: ${page.featured}`);
-    if (page.featuredOrder !== undefined)
-      frontmatter.push(`featuredOrder: ${page.featuredOrder}`);
-    if (page.authorName) frontmatter.push(`authorName: "${page.authorName}"`);
-    if (page.authorImage) frontmatter.push(`authorImage: "${page.authorImage}"`);
-    if (page.layout) frontmatter.push(`layout: "${page.layout}"`);
-    if (page.rightSidebar !== undefined)
-      frontmatter.push(`rightSidebar: ${page.rightSidebar}`);
-    if (page.showFooter !== undefined)
-      frontmatter.push(`showFooter: ${page.showFooter}`);
-    if (page.footer)
-      frontmatter.push(`footer: "${page.footer.replace(/"/g, '\\"')}"`);
-    if (page.showSocialFooter !== undefined)
-      frontmatter.push(`showSocialFooter: ${page.showSocialFooter}`);
-    if (page.aiChat !== undefined) frontmatter.push(`aiChat: ${page.aiChat}`);
-    if (page.contactForm !== undefined)
-      frontmatter.push(`contactForm: ${page.contactForm}`);
-    if (page.newsletter !== undefined)
-      frontmatter.push(`newsletter: ${page.newsletter}`);
-    if (page.textAlign) frontmatter.push(`textAlign: "${page.textAlign}"`);
-    if (page.docsSection !== undefined)
-      frontmatter.push(`docsSection: ${page.docsSection}`);
-    if (page.docsSectionGroup)
-      frontmatter.push(`docsSectionGroup: "${page.docsSectionGroup}"`);
-    if (page.docsSectionOrder !== undefined)
-      frontmatter.push(`docsSectionOrder: ${page.docsSectionOrder}`);
-    if (page.docsSectionGroupOrder !== undefined)
-      frontmatter.push(`docsSectionGroupOrder: ${page.docsSectionGroupOrder}`);
-    if (page.docsSectionGroupIcon)
-      frontmatter.push(`docsSectionGroupIcon: "${page.docsSectionGroupIcon}"`);
-    if (page.docsLanding !== undefined)
-      frontmatter.push(`docsLanding: ${page.docsLanding}`);
-
-    frontmatter.push("---");
-
-    return `${frontmatter.join("\n")}\n\n${page.content}`;
+    return createMarkdownDocument(buildPageFrontmatter(page), page.content);
   },
 });

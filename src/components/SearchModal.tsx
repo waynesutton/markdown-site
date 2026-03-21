@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useAction } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 import {
   MagnifyingGlass,
   X,
@@ -40,6 +41,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [searchMode, setSearchMode] = useState<SearchMode>("keyword");
   const [semanticResults, setSemanticResults] = useState<SearchResult[] | null>(null);
   const [isSemanticSearching, setIsSemanticSearching] = useState(false);
+  const [semanticSearchJobId, setSemanticSearchJobId] = useState<Id<"semanticSearchJobs"> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -49,32 +51,73 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     searchMode === "keyword" && searchQuery.trim() ? { query: searchQuery } : "skip"
   );
 
-  // Semantic search action
-  const semanticSearchAction = useAction(api.semanticSearch.semanticSearch);
+  const requestSemanticSearch = useMutation(api.semanticSearchJobs.requestSemanticSearch);
+  const semanticSearchJob = useQuery(
+    api.semanticSearchJobs.getSemanticSearchJob,
+    semanticSearchJobId ? { jobId: semanticSearchJobId } : "skip",
+  );
 
   // Trigger semantic search with debounce
   useEffect(() => {
     if (searchMode !== "semantic" || !searchQuery.trim()) {
       setSemanticResults(null);
       setIsSemanticSearching(false);
+      setSemanticSearchJobId(null);
       return;
     }
 
+    setSemanticResults(null);
     setIsSemanticSearching(true);
+    setSemanticSearchJobId(null);
     const timeoutId = setTimeout(async () => {
       try {
-        const results = await semanticSearchAction({ query: searchQuery });
-        setSemanticResults(results as SearchResult[]);
+        const { jobId } = await requestSemanticSearch({ query: searchQuery });
+        setSemanticSearchJobId(jobId);
       } catch (error) {
         console.error("Semantic search error:", error);
         setSemanticResults([]);
-      } finally {
+        setSemanticSearchJobId(null);
         setIsSemanticSearching(false);
       }
     }, 300); // 300ms debounce for API calls
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, searchMode, semanticSearchAction]);
+  }, [requestSemanticSearch, searchMode, searchQuery]);
+
+  useEffect(() => {
+    if (searchMode !== "semantic") {
+      return;
+    }
+
+    if (semanticSearchJobId === null) {
+      return;
+    }
+
+    if (semanticSearchJob === undefined) {
+      setIsSemanticSearching(true);
+      return;
+    }
+
+    if (!semanticSearchJob) {
+      setSemanticResults([]);
+      setIsSemanticSearching(false);
+      return;
+    }
+
+    if (semanticSearchJob.status === "pending") {
+      setIsSemanticSearching(true);
+      return;
+    }
+
+    if (semanticSearchJob.status === "completed") {
+      setSemanticResults(semanticSearchJob.results ?? []);
+      setIsSemanticSearching(false);
+      return;
+    }
+
+    setSemanticResults([]);
+    setIsSemanticSearching(false);
+  }, [searchMode, semanticSearchJob, semanticSearchJobId]);
 
   // Get current results based on mode
   const results: SearchResult[] | undefined =
@@ -93,6 +136,8 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setSearchQuery("");
       setSelectedIndex(0);
       setSemanticResults(null);
+      setSemanticSearchJobId(null);
+      setIsSemanticSearching(false);
     }
   }, [isOpen]);
 

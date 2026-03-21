@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
+
+const TICK_INTERVAL_MS = 60_000;
 import {
   ArrowLeft,
   Users,
@@ -35,7 +37,19 @@ function formatTrackingDate(timestamp: number | null): string {
 
 export default function Stats() {
   const navigate = useNavigate();
-  const stats = useQuery(api.stats.getStats);
+
+  // Round to 60-second intervals so the Convex subscription stays stable
+  const [tick, setTick] = useState(() => Math.floor(Date.now() / TICK_INTERVAL_MS));
+  useEffect(() => {
+    const id = setInterval(
+      () => setTick(Math.floor(Date.now() / TICK_INTERVAL_MS)),
+      TICK_INTERVAL_MS,
+    );
+    return () => clearInterval(id);
+  }, []);
+  const now = useMemo(() => tick * TICK_INTERVAL_MS, [tick]);
+
+  const stats = useQuery(api.stats.getStats, { now });
   const [githubStars, setGithubStars] = useState<number | null>(null);
 
   // Fetch GitHub stars on mount

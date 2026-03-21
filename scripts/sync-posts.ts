@@ -383,15 +383,15 @@ async function syncPosts() {
   } else {
     console.log("\nGenerating embeddings for semantic search...");
     try {
-      const embeddingResult = await client.action(
-        api.embeddings.generateMissingEmbeddings,
+      const embeddingResult = await client.mutation(
+        api.embeddingsAdmin.generateMissingEmbeddings,
         {}
       );
       if (embeddingResult.skipped) {
         console.log("  Skipped: OPENAI_API_KEY not configured");
       } else {
-        console.log(`  Posts: ${embeddingResult.postsProcessed} embeddings generated`);
-        console.log(`  Pages: ${embeddingResult.pagesProcessed} embeddings generated`);
+        console.log("  Queued post embeddings refresh");
+        console.log("  Queued page embeddings refresh");
       }
     } catch (error) {
       // Non-fatal - continue even if embedding generation fails

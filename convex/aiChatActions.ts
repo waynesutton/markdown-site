@@ -1,8 +1,10 @@
 "use node";
 
-import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
+import type { DataModel, Id } from "./_generated/dataModel";
+import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { GenericActionCtx } from "convex/server";
 import Anthropic from "@anthropic-ai/sdk";
 import type {
   ContentBlockParam,
@@ -23,6 +25,43 @@ const modelValidator = v.union(
 
 // Type for model selection
 type AIModel = "claude-sonnet-4-20250514" | "gpt-4o" | "gemini-2.0-flash";
+
+type ChatAttachment = {
+  type: "image" | "link";
+  storageId?: Id<"_storage">;
+  url?: string;
+  scrapedContent?: string;
+  title?: string;
+};
+
+type StoredChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: number;
+  attachments?: ChatAttachment[];
+};
+
+const attachmentValidator = v.object({
+  type: v.union(v.literal("image"), v.literal("link")),
+  storageId: v.optional(v.id("_storage")),
+  url: v.optional(v.string()),
+  scrapedContent: v.optional(v.string()),
+  title: v.optional(v.string()),
+});
+
+const storedChatMessageValidator = v.object({
+  role: v.union(v.literal("user"), v.literal("assistant")),
+  content: v.string(),
+  timestamp: v.number(),
+  attachments: v.optional(v.array(attachmentValidator)),
+});
+
+type FormattedChatMessage = {
+  role: "user" | "assistant";
+  content: string | Array<ContentBlockParam>;
+};
+
+type AiChatActionCtx = GenericActionCtx<DataModel>;
 
 // Default system prompt for writing assistant
 const DEFAULT_SYSTEM_PROMPT = `You are a helpful writing assistant. Help users write clearly and concisely.
@@ -155,6 +194,183 @@ function getNotConfiguredMessage(provider: "anthropic" | "openai" | "google"): s
   );
 }
 
+function buildSystemPromptWithContext(pageContent?: string): string {
+  let systemPrompt = buildSystemPrompt();
+  if (pageContent) {
+    systemPrompt += `\n\n---\n\nThe user is viewing a page with the following content. Use this as context for your responses:\n\n${pageContent}`;
+  }
+  return systemPrompt;
+}
+
+async function enrichAttachmentsWithScrapedContent(
+  attachments: ChatAttachment[] | undefined,
+): Promise<ChatAttachment[] | undefined> {
+  if (!attachments || attachments.length === 0) {
+    return attachments;
+  }
+
+  return await Promise.all(
+    attachments.map(async (attachment) => {
+      if (
+        attachment.type === "link" &&
+        attachment.url &&
+        !attachment.scrapedContent
+      ) {
+        const scraped = await scrapeUrl(attachment.url);
+        if (scraped) {
+          return {
+            ...attachment,
+            scrapedContent: scraped.content,
+            title: scraped.title || attachment.title,
+          };
+        }
+      }
+      return attachment;
+    }),
+  );
+}
+
+async function enrichMessagesWithScrapedContent(
+  messages: StoredChatMessage[],
+): Promise<StoredChatMessage[]> {
+  return await Promise.all(
+    messages.map(async (message) => {
+      if (message.role !== "user" || !message.attachments?.length) {
+        return message;
+      }
+
+      return {
+        ...message,
+        attachments: await enrichAttachmentsWithScrapedContent(message.attachments),
+      };
+    }),
+  );
+}
+
+function collectStorageIds(
+  recentMessages: StoredChatMessage[],
+): Array<Id<"_storage">> {
+  const storageIds = new Set<Id<"_storage">>();
+
+  for (const message of recentMessages) {
+    if (message.role !== "user" || !message.attachments) {
+      continue;
+    }
+    for (const attachment of message.attachments) {
+      if (attachment.type === "image" && attachment.storageId) {
+        storageIds.add(attachment.storageId);
+      }
+    }
+  }
+
+  return Array.from(storageIds);
+}
+
+async function resolveStorageUrls(
+  ctx: { storage: { getUrl: (id: Id<"_storage">) => Promise<string | null> } },
+  storageIds: Array<Id<"_storage">>,
+): Promise<Record<string, string | null>> {
+  const entries = await Promise.all(
+    storageIds.map(async (storageId) => [
+      storageId,
+      await ctx.storage.getUrl(storageId),
+    ] as const),
+  );
+
+  const storageUrlMap: Record<string, string | null> = {};
+  for (const [storageId, url] of entries) {
+    storageUrlMap[storageId] = url;
+  }
+  return storageUrlMap;
+}
+
+function buildLinkText(attachment: ChatAttachment): string {
+  let linkText = attachment.url || "";
+  if (attachment.scrapedContent) {
+    linkText += `\n\nContent from ${attachment.url}:\n${attachment.scrapedContent}`;
+  }
+  return linkText;
+}
+
+function buildUserContent(
+  messageText: string,
+  attachments: ChatAttachment[] | undefined,
+  storageUrlMap: Record<string, string | null>,
+): string | Array<ContentBlockParam> {
+  const contentParts: Array<TextBlockParam | ImageBlockParam> = [];
+
+  if (messageText) {
+    contentParts.push({ type: "text", text: messageText });
+  }
+
+  if (attachments) {
+    for (const attachment of attachments) {
+      if (attachment.type === "image" && attachment.storageId) {
+        const imageUrl = storageUrlMap[attachment.storageId];
+        if (imageUrl) {
+          contentParts.push({
+            type: "image",
+            source: { type: "url", url: imageUrl },
+          });
+        }
+      } else if (attachment.type === "link") {
+        const linkText = buildLinkText(attachment);
+        if (linkText) {
+          contentParts.push({ type: "text", text: linkText });
+        }
+      }
+    }
+  }
+
+  if (contentParts.length === 1 && contentParts[0].type === "text") {
+    return contentParts[0].text;
+  }
+
+  return contentParts;
+}
+
+function buildFormattedMessages(
+  recentMessages: StoredChatMessage[],
+  storageUrlMap: Record<string, string | null>,
+): Array<FormattedChatMessage> {
+  const formattedMessages: Array<FormattedChatMessage> = [];
+
+  for (const message of recentMessages) {
+    if (message.role === "assistant") {
+      formattedMessages.push({ role: "assistant", content: message.content });
+      continue;
+    }
+
+    formattedMessages.push({
+      role: "user",
+      content: buildUserContent(
+        message.content,
+        message.attachments,
+        storageUrlMap,
+      ),
+    });
+  }
+
+  return formattedMessages;
+}
+
+async function callProviderApi(
+  provider: "anthropic" | "openai" | "google",
+  apiKey: string,
+  model: AIModel,
+  systemPrompt: string,
+  formattedMessages: Array<FormattedChatMessage>,
+): Promise<string> {
+  switch (provider) {
+    case "anthropic":
+      return await callAnthropicApi(apiKey, model, systemPrompt, formattedMessages);
+    case "openai":
+      return await callOpenAIApi(apiKey, model, systemPrompt, formattedMessages);
+    case "google":
+      return await callGeminiApi(apiKey, model, systemPrompt, formattedMessages);
+  }
+}
+
 /**
  * Call Anthropic Claude API
  */
@@ -178,7 +394,7 @@ async function callAnthropicApi(
 
   const textContent = response.content.find((block) => block.type === "text");
   if (!textContent || textContent.type !== "text") {
-    throw new Error("No text content in Claude response");
+    throw new ConvexError("No text content in Claude response");
   }
 
   return textContent.text;
@@ -241,7 +457,7 @@ async function callOpenAIApi(
 
   const textContent = response.choices[0]?.message?.content;
   if (!textContent) {
-    throw new Error("No text content in OpenAI response");
+    throw new ConvexError("No text content in OpenAI response");
   }
 
   return textContent;
@@ -302,7 +518,7 @@ async function callGeminiApi(
   );
 
   if (!textContent || !("text" in textContent)) {
-    throw new Error("No text content in Gemini response");
+    throw new ConvexError("No text content in Gemini response");
   }
 
   return textContent.text as string;
@@ -312,234 +528,74 @@ async function callGeminiApi(
  * Generate AI response for a chat
  * Supports multiple AI providers: Anthropic, OpenAI, Google
  */
-export const generateResponse = action({
+export const generateResponse = internalAction({
   args: {
     chatId: v.id("aiChats"),
-    userMessage: v.string(),
     model: v.optional(modelValidator),
     pageContext: v.optional(v.string()),
-    attachments: v.optional(
-      v.array(
-        v.object({
-          type: v.union(v.literal("image"), v.literal("link")),
-          storageId: v.optional(v.id("_storage")),
-          url: v.optional(v.string()),
-          scrapedContent: v.optional(v.string()),
-          title: v.optional(v.string()),
-        }),
-      ),
-    ),
+    recentMessages: v.array(storedChatMessageValidator),
   },
   returns: v.string(),
-  handler: async (ctx, args) => {
-    // Use default model if not specified
+  handler: async (ctx, args) => await generateResponseFromSnapshot(ctx, args),
+});
+
+async function generateResponseFromSnapshot(
+  ctx: AiChatActionCtx,
+  args: {
+    chatId: Id<"aiChats">;
+    model?: AIModel;
+    pageContext?: string;
+    recentMessages: StoredChatMessage[];
+  },
+): Promise<string> {
+  try {
     const selectedModel: AIModel = args.model || "claude-sonnet-4-20250514";
     const provider = getProviderFromModel(selectedModel);
 
-    // Get API key for the selected provider - lazy check only when model is used
     const apiKey = getApiKeyForProvider(provider);
     if (!apiKey) {
       const notConfiguredMessage = getNotConfiguredMessage(provider);
-
-      // Save the message to chat history so it appears in the conversation
-      await ctx.runMutation(internal.aiChats.addAssistantMessage, {
+      await ctx.runMutation(internal.aiChats.finalizeGeneration, {
         chatId: args.chatId,
-        content: notConfiguredMessage,
+        assistantMessage: notConfiguredMessage,
       });
-
       return notConfiguredMessage;
     }
 
-    // Get chat history
-    const chat = await ctx.runQuery(internal.aiChats.getAIChatInternal, {
-      chatId: args.chatId,
-    });
+    const systemPrompt = buildSystemPromptWithContext(args.pageContext);
+    const recentMessages = await enrichMessagesWithScrapedContent(args.recentMessages);
+    const storageIds = collectStorageIds(recentMessages);
+    const storageUrlMap =
+      storageIds.length > 0 ? await resolveStorageUrls(ctx, storageIds) : {};
+    const formattedMessages = buildFormattedMessages(recentMessages, storageUrlMap);
 
-    if (!chat) {
-      throw new Error("Chat not found");
-    }
-
-    // Build system prompt with optional page context
-    let systemPrompt = buildSystemPrompt();
-
-    // Add page context if provided
-    const pageContent = args.pageContext || chat.pageContext;
-    if (pageContent) {
-      systemPrompt += `\n\n---\n\nThe user is viewing a page with the following content. Use this as context for your responses:\n\n${pageContent}`;
-    }
-
-    // Process attachments if provided
-    let processedAttachments = args.attachments;
-    if (processedAttachments && processedAttachments.length > 0) {
-      // Scrape link attachments
-      const processed = await Promise.all(
-        processedAttachments.map(async (attachment) => {
-          if (
-            attachment.type === "link" &&
-            attachment.url &&
-            !attachment.scrapedContent
-          ) {
-            const scraped = await scrapeUrl(attachment.url);
-            if (scraped) {
-              return {
-                ...attachment,
-                scrapedContent: scraped.content,
-                title: scraped.title || attachment.title,
-              };
-            }
-          }
-          return attachment;
-        }),
-      );
-      processedAttachments = processed;
-    }
-
-    // Build messages array from chat history (last 20 messages)
-    const recentMessages = chat.messages.slice(-20);
-    const formattedMessages: Array<{
-      role: "user" | "assistant";
-      content: string | Array<ContentBlockParam>;
-    }> = [];
-
-    // Convert chat messages to provider-agnostic format
-    for (const msg of recentMessages) {
-      if (msg.role === "assistant") {
-        formattedMessages.push({
-          role: "assistant",
-          content: msg.content,
-        });
-      } else {
-        // User message with potential attachments
-        const contentParts: Array<TextBlockParam | ImageBlockParam> = [];
-
-        // Add text content
-        if (msg.content) {
-          contentParts.push({
-            type: "text",
-            text: msg.content,
-          });
-        }
-
-        // Add attachments
-        if (msg.attachments) {
-          for (const attachment of msg.attachments) {
-            if (attachment.type === "image" && attachment.storageId) {
-              // Get image URL from storage
-              const imageUrl = await ctx.runQuery(
-                internal.aiChats.getStorageUrlInternal,
-                { storageId: attachment.storageId },
-              );
-              if (imageUrl) {
-                contentParts.push({
-                  type: "image",
-                  source: {
-                    type: "url",
-                    url: imageUrl,
-                  },
-                });
-              }
-            } else if (attachment.type === "link") {
-              // Add link context as text block
-              let linkText = attachment.url || "";
-              if (attachment.scrapedContent) {
-                linkText += `\n\nContent from ${attachment.url}:\n${attachment.scrapedContent}`;
-              }
-              if (linkText) {
-                contentParts.push({
-                  type: "text",
-                  text: linkText,
-                });
-              }
-            }
-          }
-        }
-
-        formattedMessages.push({
-          role: "user",
-          content:
-            contentParts.length === 1 && contentParts[0].type === "text"
-              ? contentParts[0].text
-              : contentParts,
-        });
-      }
-    }
-
-    // Add the new user message with attachments
-    const newMessageContent: Array<TextBlockParam | ImageBlockParam> = [];
-
-    if (args.userMessage) {
-      newMessageContent.push({
-        type: "text",
-        text: args.userMessage,
-      });
-    }
-
-    // Process new message attachments
-    if (processedAttachments && processedAttachments.length > 0) {
-      for (const attachment of processedAttachments) {
-        if (attachment.type === "image" && attachment.storageId) {
-          const imageUrl = await ctx.runQuery(
-            internal.aiChats.getStorageUrlInternal,
-            { storageId: attachment.storageId },
-          );
-          if (imageUrl) {
-            newMessageContent.push({
-              type: "image",
-              source: {
-                type: "url",
-                url: imageUrl,
-              },
-            });
-          }
-        } else if (attachment.type === "link") {
-          let linkText = attachment.url || "";
-          if (attachment.scrapedContent) {
-            linkText += `\n\nContent from ${attachment.url}:\n${attachment.scrapedContent}`;
-          }
-          if (linkText) {
-            newMessageContent.push({
-              type: "text",
-              text: linkText,
-            });
-          }
-        }
-      }
-    }
-
-    formattedMessages.push({
-      role: "user",
-      content:
-        newMessageContent.length === 1 && newMessageContent[0].type === "text"
-          ? newMessageContent[0].text
-          : newMessageContent,
-    });
-
-    // Call the appropriate AI provider
     let assistantMessage: string;
-
     try {
-      switch (provider) {
-        case "anthropic":
-          assistantMessage = await callAnthropicApi(apiKey, selectedModel, systemPrompt, formattedMessages);
-          break;
-        case "openai":
-          assistantMessage = await callOpenAIApi(apiKey, selectedModel, systemPrompt, formattedMessages);
-          break;
-        case "google":
-          assistantMessage = await callGeminiApi(apiKey, selectedModel, systemPrompt, formattedMessages);
-          break;
-      }
+      assistantMessage = await callProviderApi(
+        provider,
+        apiKey,
+        selectedModel,
+        systemPrompt,
+        formattedMessages,
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       assistantMessage = `**Error from ${provider}:** ${errorMessage}`;
     }
 
-    // Save the assistant message to the chat
-    await ctx.runMutation(internal.aiChats.addAssistantMessage, {
+    await ctx.runMutation(internal.aiChats.finalizeGeneration, {
       chatId: args.chatId,
-      content: assistantMessage,
+      assistantMessage,
     });
 
     return assistantMessage;
-  },
-});
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to generate response";
+    await ctx.runMutation(internal.aiChats.finalizeGeneration, {
+      chatId: args.chatId,
+      error: errorMessage,
+    });
+    throw new ConvexError(errorMessage);
+  }
+}

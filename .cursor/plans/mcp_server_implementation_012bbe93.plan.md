@@ -42,6 +42,7 @@ todos:
     status: pending
     dependencies:
       - create-mcp-server
+isProject: false
 ---
 
 # MCP Server Implementation Plan

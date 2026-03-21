@@ -1,25 +1,38 @@
 import { v } from "convex/values";
 import { internalQuery } from "./_generated/server";
 
-// Internal query to fetch post details by IDs
-export const fetchPostsByIds = internalQuery({
-  args: { ids: v.array(v.id("posts")) },
-  returns: v.array(
-    v.object({
-      _id: v.id("posts"),
-      slug: v.string(),
-      title: v.string(),
-      description: v.string(),
-      content: v.string(),
-      unlisted: v.optional(v.boolean()),
-    })
-  ),
+const postRowValidator = v.object({
+  _id: v.id("posts"),
+  slug: v.string(),
+  title: v.string(),
+  description: v.string(),
+  content: v.string(),
+  unlisted: v.optional(v.boolean()),
+});
+
+const pageRowValidator = v.object({
+  _id: v.id("pages"),
+  slug: v.string(),
+  title: v.string(),
+  content: v.string(),
+});
+
+// Batched fetch for both post and page docs in one transaction
+export const fetchSearchDocsByIds = internalQuery({
+  args: {
+    postIds: v.array(v.id("posts")),
+    pageIds: v.array(v.id("pages")),
+  },
+  returns: v.object({
+    posts: v.array(postRowValidator),
+    pages: v.array(pageRowValidator),
+  }),
   handler: async (ctx, args) => {
-    const results = [];
-    for (const id of args.ids) {
+    const posts = [];
+    for (const id of args.postIds) {
       const doc = await ctx.db.get(id);
       if (doc && doc.published && !doc.unlisted) {
-        results.push({
+        posts.push({
           _id: doc._id,
           slug: doc.slug,
           title: doc.title,
@@ -29,27 +42,12 @@ export const fetchPostsByIds = internalQuery({
         });
       }
     }
-    return results;
-  },
-});
 
-// Internal query to fetch page details by IDs
-export const fetchPagesByIds = internalQuery({
-  args: { ids: v.array(v.id("pages")) },
-  returns: v.array(
-    v.object({
-      _id: v.id("pages"),
-      slug: v.string(),
-      title: v.string(),
-      content: v.string(),
-    })
-  ),
-  handler: async (ctx, args) => {
-    const results = [];
-    for (const id of args.ids) {
+    const pages = [];
+    for (const id of args.pageIds) {
       const doc = await ctx.db.get(id);
       if (doc && doc.published) {
-        results.push({
+        pages.push({
           _id: doc._id,
           slug: doc.slug,
           title: doc.title,
@@ -57,6 +55,7 @@ export const fetchPagesByIds = internalQuery({
         });
       }
     }
-    return results;
+
+    return { posts, pages };
   },
 });

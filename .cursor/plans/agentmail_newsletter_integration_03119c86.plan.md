@@ -99,6 +99,7 @@ todos:
   - id: p3-save-prd
     content: Save final plan as prds/agentmail-newsletter-v1.md
     status: completed
+isProject: false
 ---
 
 # AgentMail Newsletter Integration Plan (Phased)
@@ -403,7 +404,7 @@ export const getActiveSubscribers = internalQuery({
     v.object({
       email: v.string(),
       unsubscribeToken: v.string(),
-    }),
+    })
   ),
   handler: async (ctx) => {
     const subscribers = await ctx.db
@@ -845,9 +846,7 @@ export const sendPostNewsletter = internalAction({
   }),
   handler: async (ctx, args) => {
     // Get subscribers
-    const subscribers = await ctx.runQuery(
-      internal.newsletter.getActiveSubscribers,
-    );
+    const subscribers = await ctx.runQuery(internal.newsletter.getActiveSubscribers);
 
     if (subscribers.length === 0) {
       return { success: false, sentCount: 0, message: "No subscribers." };

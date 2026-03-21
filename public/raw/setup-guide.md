@@ -132,6 +132,23 @@ This will
 
 Keep this terminal running during development. It syncs your Convex functions automatically.
 
+### WSL 2 setup note
+
+If you are using WSL 2 and Convex login fails to open a browser, use the manual login flow:
+
+```bash
+npx convex login --no-open --login-flow paste
+npx convex dev --once
+```
+
+After setup succeeds, you can start watch mode normally:
+
+```bash
+npx convex dev
+```
+
+`--once` completes project initialization and generates `.env.local` without requiring a long running watch session.
+
 ### Verify the Schema
 
 The schema is already defined in `convex/schema.ts`:

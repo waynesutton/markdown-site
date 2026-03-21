@@ -1,5 +1,7 @@
 import type { ActionCtx, QueryCtx } from "./_generated/server";
-import { api, components } from "./_generated/api";
+import { ConvexError } from "convex/values";
+import { internal } from "./_generated/api";
+import { authUserGetByIdHelper } from "./authComponent";
 
 type Identity = {
   subject: string;
@@ -53,7 +55,7 @@ function subjectCandidates(subject: string): Array<string> {
 export async function getAuthenticatedIdentity(ctx: AuthCtx): Promise<Identity> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error("Unauthorized");
+    throw new ConvexError("Unauthorized");
   }
   return identity;
 }
@@ -66,11 +68,9 @@ async function getUserEmailFromAuthComponent(
 ): Promise<string | undefined> {
   const userId = extractUserId(subject);
   try {
-    // Query the auth component's user table directly
-    const user = await ctx.runQuery(components.auth.public.userGetById, { userId });
+    const user = await authUserGetByIdHelper(ctx, userId);
     return user?.email ?? undefined;
   } catch {
-    // If the query fails (e.g., user not found), return undefined
     return undefined;
   }
 }
@@ -86,7 +86,6 @@ export async function isDashboardAdmin(
     // Email not in identity, look it up from the auth component's user table
     const userEmail = await getUserEmailFromAuthComponent(ctx, identity.subject);
     normalizedEmail = userEmail?.toLowerCase().trim();
-    console.log("[isDashboardAdmin] Looked up email from auth component:", normalizedEmail);
   }
 
   let matchedBySubject = false;
@@ -111,7 +110,6 @@ export async function isDashboardAdmin(
   }
 
   const isAdmin = matchedBySubject || matchedByEmail;
-  console.log("[isDashboardAdmin] matchedBySubject:", matchedBySubject, "matchedByEmail:", matchedByEmail, "email:", normalizedEmail);
   
   if (!isAdmin) {
     return false;
@@ -129,7 +127,7 @@ export async function requireDashboardAdmin(ctx: AuthLikeCtx): Promise<Identity>
   const identity = await getAuthenticatedIdentity(ctx);
   const hasAccess = await isDashboardAdmin(ctx, identity);
   if (!hasAccess) {
-    throw new Error("Forbidden");
+    throw new ConvexError("Forbidden");
   }
   return identity;
 }
@@ -138,9 +136,9 @@ export async function requireDashboardAdminAction(
   ctx: ActionLikeCtx,
 ): Promise<Identity> {
   const identity = await getAuthenticatedIdentity(ctx);
-  const hasAccess = await ctx.runQuery(api.authAdmin.isCurrentUserDashboardAdmin, {});
+  const hasAccess = await ctx.runQuery(internal.authAdmin.isCurrentUserDashboardAdminInternal, {});
   if (!hasAccess) {
-    throw new Error("Forbidden");
+    throw new ConvexError("Forbidden");
   }
   return identity;
 }

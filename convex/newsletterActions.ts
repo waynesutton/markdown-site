@@ -71,12 +71,12 @@ export const sendPostNewsletter = internalAction({
     message: v.string(),
   }),
   handler: async (ctx, args) => {
-    // Check if post was already sent
-    const alreadySent: boolean = await ctx.runQuery(
-      internal.newsletter.wasPostSent,
-      { postSlug: args.postSlug }
+    const context = await ctx.runQuery(
+      internal.newsletter.getPostNewsletterSendContextInternal,
+      { postSlug: args.postSlug },
     );
-    if (alreadySent) {
+
+    if (context.alreadySent) {
       return {
         success: false,
         sentCount: 0,
@@ -84,22 +84,16 @@ export const sendPostNewsletter = internalAction({
       };
     }
 
-    // Get subscribers
-    const subscribers: Array<{ email: string; unsubscribeToken: string }> =
-      await ctx.runQuery(internal.newsletter.getActiveSubscribers);
-
-    if (subscribers.length === 0) {
+    if (context.subscribers.length === 0) {
       return { success: false, sentCount: 0, message: "No subscribers." };
     }
 
-    // Get post details
-    const post = await ctx.runQuery(internal.posts.getPostBySlugInternal, {
-      slug: args.postSlug,
-    });
-
-    if (!post) {
+    if (!context.post) {
       return { success: false, sentCount: 0, message: "Post not found." };
     }
+
+    const post = context.post;
+    const subscribers = context.subscribers;
 
     // Get API key and inbox from environment
     const apiKey = process.env.AGENTMAIL_API_KEY;
@@ -416,7 +410,9 @@ export const sendWeeklyStatsSummary = internalAction({
     const siteName = args.siteName || "Your Site";
 
     // Get stats from database
-    const stats = await ctx.runQuery(internal.newsletter.getStatsForSummary);
+    const stats = await ctx.runQuery(internal.newsletter.getStatsForSummary, {
+      now: Date.now(),
+    });
 
     const client = new AgentMailClient({ apiKey });
 

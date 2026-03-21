@@ -1,8 +1,10 @@
 "use node";
 
-import { httpAction, action } from "./_generated/server";
+import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { DataModel } from "./_generated/dataModel";
 import { components } from "./_generated/api";
+import type { GenericActionCtx, GenericDataModel } from "convex/server";
 import { PersistentTextStreaming, StreamId } from "@convex-dev/persistent-text-streaming";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
@@ -29,8 +31,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-// HTTP action for streaming AI responses
-export const streamResponse = httpAction(async (ctx, request) => {
+// HTTP handler for streaming AI responses (requires authentication)
+export async function handleStreamResponse(
+  ctx: GenericActionCtx<DataModel>,
+  request: Request,
+): Promise<Response> {
+  // Verify caller is authenticated
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    return new Response(JSON.stringify({ error: "Authentication required" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   let body: { streamId?: string };
 
   try {
@@ -44,7 +58,6 @@ export const streamResponse = httpAction(async (ctx, request) => {
 
   const { streamId } = body;
 
-  // Validate streamId
   if (!streamId) {
     return new Response(JSON.stringify({ error: "Missing streamId" }), {
       status: 400,
@@ -62,13 +75,14 @@ export const streamResponse = httpAction(async (ctx, request) => {
     });
   }
 
-  const { question, model } = session;
+  if (session.ownerSubject && session.ownerSubject !== identity.subject) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
 
-  console.log("Ask AI received:", {
-    streamId: streamId.slice(0, 20),
-    question: question.slice(0, 50),
-    model
-  });
+  const { question, model } = session;
 
   // Pre-fetch search results before starting the stream
   let searchResults: Array<{ title: string; slug: string; type: string; content: string }> = [];
@@ -81,15 +95,11 @@ export const streamResponse = httpAction(async (ctx, request) => {
     } else {
       const openai = new OpenAI({ apiKey });
 
-      console.log("Generating embedding for query:", question.trim().slice(0, 50));
-
       const embeddingResponse = await openai.embeddings.create({
         model: "text-embedding-ada-002",
         input: question.trim(),
       });
       const queryEmbedding = embeddingResponse.data[0].embedding;
-
-      console.log("Embedding generated, searching...");
 
       // Search posts
       const postResults = await ctx.vectorSearch("posts", "by_embedding", {
@@ -105,15 +115,12 @@ export const streamResponse = httpAction(async (ctx, request) => {
         filter: (q) => q.eq("published", true),
       });
 
-      console.log("Found:", postResults.length, "posts,", pageResults.length, "pages");
-
-      // Fetch full documents
-      const posts = await ctx.runQuery(internal.semanticSearchQueries.fetchPostsByIds, {
-        ids: postResults.map((r) => r._id),
+      const docs = await ctx.runQuery(internal.semanticSearchQueries.fetchSearchDocsByIds, {
+        postIds: postResults.map((r) => r._id),
+        pageIds: pageResults.map((r) => r._id),
       });
-      const pages = await ctx.runQuery(internal.semanticSearchQueries.fetchPagesByIds, {
-        ids: pageResults.map((r) => r._id),
-      });
+      const posts = docs.posts;
+      const pages = docs.pages;
 
       // Build results
       const results: Array<{ title: string; slug: string; type: string; content: string; score: number }> = [];
@@ -147,7 +154,6 @@ export const streamResponse = httpAction(async (ctx, request) => {
       results.sort((a, b) => b.score - a.score);
       searchResults = results.slice(0, 5);
 
-      console.log("Search completed, found", searchResults.length, "relevant results");
     }
   } catch (error) {
     console.error("Search error:", error);
@@ -258,7 +264,7 @@ Please provide a helpful answer based on the context above.`;
   };
 
   const response = await streaming.stream(
-    ctx,
+    ctx as unknown as GenericActionCtx<GenericDataModel>,
     request,
     streamId as StreamId,
     generateAnswer
@@ -271,10 +277,25 @@ Please provide a helpful answer based on the context above.`;
   response.headers.set("Vary", "Origin");
 
   return response;
-});
+}
 
 // CORS preflight handler
-export const streamResponseOptions = httpAction(async () => {
+export async function handleStreamResponseOptions(
+  ctx: GenericActionCtx<DataModel>,
+  request: Request,
+): Promise<Response> {
+  await ctx.auth.getUserIdentity();
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader && !authHeader.startsWith("Bearer ")) {
+    return new Response(null, {
+      status: 401,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
+  }
   return new Response(null, {
     status: 204,
     headers: {
@@ -284,10 +305,10 @@ export const streamResponseOptions = httpAction(async () => {
       "Access-Control-Max-Age": "86400",
     },
   });
-});
+}
 
 // Check if Ask AI is properly configured (environment variables set)
-export const checkConfiguration = action({
+export const checkConfiguration = internalAction({
   args: {},
   returns: v.object({
     configured: v.boolean(),

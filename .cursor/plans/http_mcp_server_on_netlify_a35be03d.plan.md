@@ -60,6 +60,7 @@ todos:
     status: completed
     dependencies:
       - create-mcp-edge-function
+isProject: false
 ---
 
 # HTTP-Based MCP Server on Netlify Plan

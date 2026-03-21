@@ -13,6 +13,35 @@ All notable changes to this project.
 
 ---
 
+## v2.22.0
+
+Released March 20, 2026
+
+**convex-doctor 100/100 and blog post**
+
+Reached a perfect convex-doctor score across 17 remediation passes. Added a featured blog post documenting the full journey from 42/100 to 100/100.
+
+**Changes:**
+
+- 17 passes of convex-doctor remediation: security hardening, performance fixes, schema cleanup, architecture refactors
+- New blog post: "How convex-doctor took markdown.fast from 42 to 100"
+- Generated before/after comparison image and added benchmark screenshots
+- Added convex-doctor skill and always-on Cursor rule
+- Reverted `.unique()` to `.first()` in `authAdmin.ts` and `dashboardAuth.ts` (fix for duplicate row runtime errors)
+- Added `convex-doctor.toml` with documented suppressions for by-design patterns
+
+**Files changed:**
+
+- `content/blog/convex-doctor-score-42-to-100.md` (new featured blog post)
+- `public/images/convex-doctor-*.png` (3 new images)
+- `convex-doctor.toml` (new config)
+- `.cursor/skills/convex-doctor/SKILL.md` (new skill)
+- `.cursor/rules/convex-doctor.mdc` (new rule)
+- `convex/authAdmin.ts`, `convex/dashboardAuth.ts` (reverted .unique() to .first())
+- 30+ Convex function files modified for security, performance, and architecture improvements
+
+---
+
 ## v2.21.6
 
 Released March 1, 2026

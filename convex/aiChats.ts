@@ -1,10 +1,11 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import {
   query,
   mutation,
   internalQuery,
   internalMutation,
 } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 // Message validator for reuse
 const messageValidator = v.object({
@@ -24,6 +25,30 @@ const messageValidator = v.object({
   ),
 });
 
+const attachmentValidator = v.object({
+  type: v.union(v.literal("image"), v.literal("link")),
+  storageId: v.optional(v.id("_storage")),
+  url: v.optional(v.string()),
+  scrapedContent: v.optional(v.string()),
+  title: v.optional(v.string()),
+});
+
+const modelValidator = v.union(
+  v.literal("claude-sonnet-4-20250514"),
+  v.literal("gpt-4o"),
+  v.literal("gemini-2.0-flash"),
+);
+
+async function requireAuthenticatedIdentity(ctx: {
+  auth: { getUserIdentity: () => Promise<{ subject: string } | null> };
+}) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new ConvexError("Authentication required to use AI chat");
+  }
+  return identity;
+}
+
 /**
  * Get storage URL for an image attachment
  */
@@ -33,6 +58,7 @@ export const getStorageUrl = query({
   },
   returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {
+    await requireAuthenticatedIdentity(ctx);
     return await ctx.storage.getUrl(args.storageId);
   },
 });
@@ -50,47 +76,31 @@ export const getAIChatByContext = query({
     v.object({
       _id: v.id("aiChats"),
       _creationTime: v.number(),
+      ownerSubject: v.optional(v.string()),
       sessionId: v.string(),
       contextId: v.string(),
       messages: v.array(messageValidator),
       pageContext: v.optional(v.string()),
       lastMessageAt: v.optional(v.number()),
+      generating: v.optional(v.boolean()),
+      lastError: v.optional(v.string()),
     }),
     v.null(),
   ),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chat = await ctx.db
       .query("aiChats")
-      .withIndex("by_session_and_context", (q) =>
+      .withIndex("by_sessionid_and_contextid", (q) =>
         q.eq("sessionId", args.sessionId).eq("contextId", args.contextId),
       )
-      .first();
+      .unique();
+
+    if (chat && chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
+    }
 
     return chat;
-  },
-});
-
-/**
- * Internal query for use in actions
- */
-export const getAIChatInternal = internalQuery({
-  args: {
-    chatId: v.id("aiChats"),
-  },
-  returns: v.union(
-    v.object({
-      _id: v.id("aiChats"),
-      _creationTime: v.number(),
-      sessionId: v.string(),
-      contextId: v.string(),
-      messages: v.array(messageValidator),
-      pageContext: v.optional(v.string()),
-      lastMessageAt: v.optional(v.number()),
-    }),
-    v.null(),
-  ),
-  handler: async (ctx, args) => {
-    return await ctx.db.get(args.chatId);
   },
 });
 
@@ -118,24 +128,33 @@ export const getOrCreateAIChat = mutation({
   },
   returns: v.id("aiChats"),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     // Check for existing chat
     const existing = await ctx.db
       .query("aiChats")
-      .withIndex("by_session_and_context", (q) =>
+      .withIndex("by_sessionid_and_contextid", (q) =>
         q.eq("sessionId", args.sessionId).eq("contextId", args.contextId),
       )
-      .first();
+      .unique();
 
     if (existing) {
+      if (existing.ownerSubject && existing.ownerSubject !== identity.subject) {
+        throw new ConvexError("Unauthorized");
+      }
+      if (!existing.ownerSubject) {
+        await ctx.db.patch(existing._id, { ownerSubject: identity.subject });
+      }
       return existing._id;
     }
 
     // Create new chat
     const chatId = await ctx.db.insert("aiChats", {
+      ownerSubject: identity.subject,
       sessionId: args.sessionId,
       contextId: args.contextId,
       messages: [],
       lastMessageAt: Date.now(),
+      generating: false,
     });
 
     return chatId;
@@ -153,9 +172,13 @@ export const addUserMessage = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      throw new ConvexError("Chat not found");
+    }
+    if (chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
     }
 
     const now = Date.now();
@@ -168,6 +191,7 @@ export const addUserMessage = mutation({
     await ctx.db.patch(args.chatId, {
       messages: [...chat.messages, newMessage],
       lastMessageAt: now,
+      lastError: undefined,
     });
 
     return null;
@@ -183,22 +207,18 @@ export const addUserMessageWithAttachments = mutation({
     chatId: v.id("aiChats"),
     content: v.string(),
     attachments: v.optional(
-      v.array(
-        v.object({
-          type: v.union(v.literal("image"), v.literal("link")),
-          storageId: v.optional(v.id("_storage")),
-          url: v.optional(v.string()),
-          scrapedContent: v.optional(v.string()),
-          title: v.optional(v.string()),
-        }),
-      ),
+      v.array(attachmentValidator),
     ),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      throw new ConvexError("Chat not found");
+    }
+    if (chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
     }
 
     const now = Date.now();
@@ -212,6 +232,7 @@ export const addUserMessageWithAttachments = mutation({
     await ctx.db.patch(args.chatId, {
       messages: [...chat.messages, newMessage],
       lastMessageAt: now,
+      lastError: undefined,
     });
 
     return null;
@@ -225,37 +246,83 @@ export const generateUploadUrl = mutation({
   args: {},
   returns: v.string(),
   handler: async (ctx) => {
+    await requireAuthenticatedIdentity(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
 
-/**
- * Add assistant message to chat (internal - called from action)
- */
-export const addAssistantMessage = internalMutation({
+export const finalizeGeneration = internalMutation({
   args: {
     chatId: v.id("aiChats"),
-    content: v.string(),
+    assistantMessage: v.optional(v.string()),
+    error: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      return null;
     }
 
     const now = Date.now();
-    const newMessage = {
-      role: "assistant" as const,
-      content: args.content,
-      timestamp: now,
-    };
+    if (args.assistantMessage !== undefined) {
+      const newMessage = {
+        role: "assistant" as const,
+        content: args.assistantMessage,
+        timestamp: now,
+      };
+
+      await ctx.db.patch(args.chatId, {
+        messages: [...chat.messages, newMessage],
+        lastMessageAt: now,
+        generating: false,
+        lastError: undefined,
+      });
+      return null;
+    }
 
     await ctx.db.patch(args.chatId, {
-      messages: [...chat.messages, newMessage],
+      generating: false,
+      lastError: args.error,
       lastMessageAt: now,
     });
+    return null;
+  },
+});
 
+export const requestAIResponse = mutation({
+  args: {
+    chatId: v.id("aiChats"),
+    userMessage: v.string(),
+    model: v.optional(modelValidator),
+    pageContext: v.optional(v.string()),
+    attachments: v.optional(v.array(attachmentValidator)),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat) {
+      throw new ConvexError("Chat not found");
+    }
+    if (chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    await ctx.db.patch(args.chatId, {
+      ownerSubject: chat.ownerSubject ?? identity.subject,
+      generating: true,
+      lastError: undefined,
+      pageContext: args.pageContext ?? chat.pageContext,
+      lastMessageAt: Date.now(),
+    });
+
+    await ctx.scheduler.runAfter(0, internal.aiChatActions.generateResponse, {
+      chatId: args.chatId,
+      model: args.model,
+      pageContext: args.pageContext ?? chat.pageContext,
+      recentMessages: chat.messages.slice(-20),
+    });
     return null;
   },
 });
@@ -269,15 +336,21 @@ export const clearChat = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
       return null; // Idempotent - no error if chat doesn't exist
+    }
+    if (chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
     }
 
     await ctx.db.patch(args.chatId, {
       messages: [],
       pageContext: undefined,
       lastMessageAt: Date.now(),
+      generating: false,
+      lastError: undefined,
     });
 
     return null;
@@ -294,9 +367,13 @@ export const setPageContext = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      throw new ConvexError("Chat not found");
+    }
+    if (chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
     }
 
     await ctx.db.patch(args.chatId, {
@@ -316,9 +393,13 @@ export const deleteChat = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
       return null; // Idempotent
+    }
+    if (chat.ownerSubject && chat.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
     }
 
     await ctx.db.delete(args.chatId);
@@ -337,46 +418,27 @@ export const getChatsBySession = query({
     v.object({
       _id: v.id("aiChats"),
       _creationTime: v.number(),
+      ownerSubject: v.optional(v.string()),
       sessionId: v.string(),
       contextId: v.string(),
       messages: v.array(messageValidator),
       pageContext: v.optional(v.string()),
       lastMessageAt: v.optional(v.number()),
+      generating: v.optional(v.boolean()),
+      lastError: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     const chats = await ctx.db
       .query("aiChats")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
-      .collect();
+      .withIndex("by_sessionid_and_contextid", (q) => q.eq("sessionId", args.sessionId))
+      .order("desc")
+      .take(100);
 
-    return chats;
-  },
-});
-
-/**
- * Save generated image metadata (internal - called from action)
- */
-export const saveGeneratedImage = internalMutation({
-  args: {
-    sessionId: v.string(),
-    prompt: v.string(),
-    model: v.string(),
-    storageId: v.id("_storage"),
-    mimeType: v.string(),
-  },
-  returns: v.id("aiGeneratedImages"),
-  handler: async (ctx, args) => {
-    const imageId = await ctx.db.insert("aiGeneratedImages", {
-      sessionId: args.sessionId,
-      prompt: args.prompt,
-      model: args.model,
-      storageId: args.storageId,
-      mimeType: args.mimeType,
-      createdAt: Date.now(),
-    });
-
-    return imageId;
+    return chats.filter(
+      (chat) => !chat.ownerSubject || chat.ownerSubject === identity.subject,
+    );
   },
 });
 
@@ -392,6 +454,7 @@ export const getRecentImagesInternal = internalQuery({
     v.object({
       _id: v.id("aiGeneratedImages"),
       _creationTime: v.number(),
+      ownerSubject: v.optional(v.string()),
       sessionId: v.string(),
       prompt: v.string(),
       model: v.string(),
@@ -403,7 +466,7 @@ export const getRecentImagesInternal = internalQuery({
   handler: async (ctx, args) => {
     const images = await ctx.db
       .query("aiGeneratedImages")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .withIndex("by_sessionid", (q) => q.eq("sessionId", args.sessionId))
       .order("desc")
       .take(args.limit);
 
@@ -420,11 +483,16 @@ export const deleteGeneratedImage = mutation({
   },
   returns: v.object({ success: v.boolean() }),
   handler: async (ctx, args) => {
+    const identity = await requireAuthenticatedIdentity(ctx);
     // Find and delete from aiGeneratedImages table
     const image = await ctx.db
       .query("aiGeneratedImages")
-      .withIndex("by_storageId", (q) => q.eq("storageId", args.storageId))
-      .first();
+      .withIndex("by_storageid", (q) => q.eq("storageId", args.storageId))
+      .unique();
+
+    if (image?.ownerSubject && image.ownerSubject !== identity.subject) {
+      throw new ConvexError("Unauthorized");
+    }
 
     if (image) {
       await ctx.db.delete(image._id);

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useAction, useConvex, useMutation, usePaginatedQuery, useQuery } from "convex/react";
+import { useConvex, useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
   X,
@@ -66,9 +66,8 @@ export function ImageUploadModal({ isOpen, onClose, onInsert }: ImageUploadModal
 
   const uploadSettings = useQuery(api.media.getUploadSettings);
   const mediaProvider = uploadSettings?.provider ?? "convex";
-  const commitFile = useAction(api.files.commitFile);
+  const commitFile = useMutation(api.files.commitFile);
   const generateDirectUploadUrl = useMutation(api.media.generateDirectUploadUrl);
-  const resolveDirectUpload = useAction(api.media.resolveDirectUpload);
   const generateR2UploadUrl = useMutation(api.r2.generateUploadUrl);
   const syncR2Metadata = useMutation(api.r2.syncMetadata);
   // Note: api.files.isConfigured checks Bunny CDN status but browsing only requires convexfs provider
@@ -250,7 +249,7 @@ export function ImageUploadModal({ isOpen, onClose, onInsert }: ImageUploadModal
           throw new Error(`Upload failed: ${uploadRes.status}`);
         }
         const { storageId } = await uploadRes.json();
-        const storageUrl = await resolveDirectUpload({ storageId });
+        const storageUrl = await convex.query(api.media.getDirectStorageUrl, { storageId });
         if (!storageUrl) {
           throw new Error("Upload succeeded but URL is unavailable");
         }
@@ -279,7 +278,6 @@ export function ImageUploadModal({ isOpen, onClose, onInsert }: ImageUploadModal
     generateR2UploadUrl,
     getCdnUrl,
     mediaProvider,
-    resolveDirectUpload,
     siteUrl,
     syncR2Metadata,
   ]);

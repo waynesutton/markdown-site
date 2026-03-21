@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { useQuery, useMutation, useAction, useConvex } from "convex/react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useTheme } from "../context/ThemeContext";
@@ -38,6 +38,7 @@ import {
   Copy,
   Terminal,
   CheckCircle,
+  WarningCircle,
   Warning,
   Info,
   Trash,
@@ -3950,16 +3951,20 @@ function AIAgentSection() {
   );
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16" | "4:3" | "3:4">("1:1");
   const [imagePrompt, setImagePrompt] = useState("");
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<{ url: string; prompt: string; storageId: Id<"_storage"> } | null>(null);
-  const [imageError, setImageError] = useState<string | null>(null);
+  const [isRequestingImage, setIsRequestingImage] = useState(false);
+  const [currentImageJobId, setCurrentImageJobId] = useState<Id<"aiImageGenerationJobs"> | null>(null);
+  const [imageRequestError, setImageRequestError] = useState<string | null>(null);
   const [showImageModelDropdown, setShowImageModelDropdown] = useState(false);
   const [showTextModelDropdown, setShowTextModelDropdown] = useState(false);
   const [copiedFormat, setCopiedFormat] = useState<"md" | "html" | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
 
-  const generateImage = useAction(api.aiImageGeneration.generateImage);
+  const requestImageGeneration = useMutation(api.aiImageJobs.requestImageGeneration);
+  const imageGenerationJob = useQuery(
+    api.aiImageJobs.getImageGenerationJob,
+    currentImageJobId ? { jobId: currentImageJobId } : "skip"
+  );
   const deleteGeneratedImage = useMutation(api.aiChats.deleteGeneratedImage);
 
   const textModels = siteConfig.aiDashboard?.textModels || [
@@ -3970,32 +3975,44 @@ function AIAgentSection() {
   ];
 
   const enableImageGeneration = siteConfig.aiDashboard?.enableImageGeneration ?? true;
+  const generatedImage =
+    imageGenerationJob &&
+    imageGenerationJob.status === "completed" &&
+    imageGenerationJob.url &&
+    imageGenerationJob.storageId
+      ? {
+          url: imageGenerationJob.url,
+          prompt: imageGenerationJob.prompt,
+          storageId: imageGenerationJob.storageId,
+        }
+      : null;
+  const imageError =
+    imageRequestError ||
+    (imageGenerationJob?.status === "failed"
+      ? imageGenerationJob.error || "Failed to generate image"
+      : null);
+  const isGeneratingImage =
+    isRequestingImage || imageGenerationJob?.status === "pending";
 
   const handleGenerateImage = async () => {
     if (!imagePrompt.trim() || isGeneratingImage) return;
 
-    setIsGeneratingImage(true);
-    setImageError(null);
-    setGeneratedImage(null);
+    setIsRequestingImage(true);
+    setImageRequestError(null);
+    setCurrentImageJobId(null);
 
     try {
-      const result = await generateImage({
+      const result = await requestImageGeneration({
         sessionId: localStorage.getItem("ai_chat_session_id") || crypto.randomUUID(),
         prompt: imagePrompt,
         model: selectedImageModel as "gemini-2.0-flash-exp-image-generation" | "imagen-3.0-generate-002",
         aspectRatio,
       });
-
-      if (result.success && result.url && result.storageId) {
-        setGeneratedImage({ url: result.url, prompt: imagePrompt, storageId: result.storageId });
-        setImagePrompt("");
-      } else if (result.error) {
-        setImageError(result.error);
-      }
+      setCurrentImageJobId(result.jobId);
     } catch (error) {
-      setImageError(error instanceof Error ? error.message : "Failed to generate image");
+      setImageRequestError(error instanceof Error ? error.message : "Failed to generate image");
     } finally {
-      setIsGeneratingImage(false);
+      setIsRequestingImage(false);
     }
   };
 
@@ -4006,7 +4023,7 @@ function AIAgentSection() {
     setIsDeletingImage(true);
     try {
       await deleteGeneratedImage({ storageId: generatedImage.storageId });
-      setGeneratedImage(null);
+      setCurrentImageJobId(null);
       setShowDeleteConfirm(false);
     } catch (error) {
       console.error("Failed to delete image:", error);
@@ -5003,39 +5020,68 @@ function ImportURLSection({
   addToast: (message: string, type?: ToastType) => void;
 }) {
   const [url, setUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isRequestingImport, setIsRequestingImport] = useState(false);
   const [publishImmediately, setPublishImmediately] = useState(false);
   const [lastImported, setLastImported] = useState<{
     title: string;
     slug: string;
   } | null>(null);
-  const importAction = useAction(api.importAction.importFromUrl);
+  const [currentImportJobId, setCurrentImportJobId] = useState<
+    Id<"importUrlJobs"> | null
+  >(null);
+  const [importRequestError, setImportRequestError] = useState<string | null>(null);
+  const [handledImportJobId, setHandledImportJobId] = useState<
+    Id<"importUrlJobs"> | null
+  >(null);
+  const requestImportFromUrl = useMutation(api.importJobs.requestImportFromUrl);
+  const importJob = useQuery(
+    api.importJobs.getImportJob,
+    currentImportJobId ? { jobId: currentImportJobId } : "skip",
+  );
+
+  const isLoading = isRequestingImport || importJob?.status === "pending";
+
+  useEffect(() => {
+    if (!importJob || handledImportJobId === importJob._id) {
+      return;
+    }
+
+    if (importJob.status === "completed" && importJob.slug && importJob.title) {
+      setLastImported({ title: importJob.title, slug: importJob.slug });
+      addToast(`Imported "${importJob.title}" successfully`, "success");
+      setUrl("");
+      setHandledImportJobId(importJob._id);
+      return;
+    }
+
+    if (importJob.status === "failed") {
+      addToast(importJob.error || "Failed to import URL", "error");
+      setHandledImportJobId(importJob._id);
+    }
+  }, [addToast, handledImportJobId, importJob]);
 
   const handleImport = async () => {
     if (!url.trim()) return;
 
-    setIsLoading(true);
+    setIsRequestingImport(true);
     setLastImported(null);
+    setImportRequestError(null);
+    setHandledImportJobId(null);
+    setCurrentImportJobId(null);
 
     try {
-      const result = await importAction({
+      const result = await requestImportFromUrl({
         url: url.trim(),
         published: publishImmediately,
       });
-
-      if (result.success && result.slug && result.title) {
-        setLastImported({ title: result.title, slug: result.slug });
-        addToast(`Imported "${result.title}" successfully`, "success");
-        setUrl("");
-      } else {
-        addToast(result.error || "Failed to import URL", "error");
-      }
+      setCurrentImportJobId(result.jobId);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to import URL";
+      setImportRequestError(message);
       addToast(message, "error");
     } finally {
-      setIsLoading(false);
+      setIsRequestingImport(false);
     }
   };
 
@@ -5100,6 +5146,13 @@ function ImportURLSection({
               View post →
             </Link>
           </div>
+        </div>
+      )}
+
+      {importRequestError && !lastImported && (
+        <div className="dashboard-import-error">
+          <WarningCircle size={20} weight="fill" />
+          <div>{importRequestError}</div>
         </div>
       )}
 
@@ -6904,7 +6957,12 @@ function VersionControlCard({
 }
 
 function StatsSection() {
-  const stats = useQuery(api.stats.getStats);
+  const [tick, setTick] = useState(() => Math.floor(Date.now() / 60_000));
+  useEffect(() => {
+    const id = setInterval(() => setTick(Math.floor(Date.now() / 60_000)), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const stats = useQuery(api.stats.getStats, { now: tick * 60_000 });
 
   return (
     <div className="dashboard-stats-section">

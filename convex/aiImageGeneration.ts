@@ -1,221 +1,148 @@
 "use node";
 
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
-import { action } from "./_generated/server";
+import type { DataModel, Id } from "./_generated/dataModel";
+import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-
-// Type for images returned from internal query
-type GeneratedImageRecord = {
-  _id: Id<"aiGeneratedImages">;
-  _creationTime: number;
-  sessionId: string;
-  prompt: string;
-  model: string;
-  storageId: Id<"_storage">;
-  mimeType: string;
-  createdAt: number;
-};
 import { GoogleGenAI } from "@google/genai";
+import type { GenericActionCtx } from "convex/server";
 
-// Image model validator
-const imageModelValidator = v.union(
-  v.literal("gemini-2.0-flash-exp-image-generation"),
-  v.literal("imagen-3.0-generate-002")
-);
-
-// Aspect ratio validator
-const aspectRatioValidator = v.union(
-  v.literal("1:1"),
-  v.literal("16:9"),
-  v.literal("9:16"),
-  v.literal("4:3"),
-  v.literal("3:4")
-);
+type AiImageActionCtx = GenericActionCtx<DataModel>;
 
 /**
- * Generate an image using Gemini's image generation API
- * Stores the result in Convex storage and returns metadata
+ * Generate an image job in the background and persist status updates
  */
-export const generateImage = action({
+export const generateImage = internalAction({
   args: {
+    jobId: v.id("aiImageGenerationJobs"),
+    ownerSubject: v.optional(v.string()),
     sessionId: v.string(),
     prompt: v.string(),
-    model: imageModelValidator,
-    aspectRatio: v.optional(aspectRatioValidator),
+    model: v.string(),
+    aspectRatio: v.optional(v.string()),
   },
-  returns: v.object({
-    success: v.boolean(),
-    storageId: v.optional(v.id("_storage")),
-    url: v.optional(v.string()),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    // Check for API key - return friendly error if not configured
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
-    if (!apiKey) {
-      return {
-        success: false,
-        error:
-          "**Gemini Image Generation is not configured.**\n\n" +
-          "To use image generation, add your `GOOGLE_AI_API_KEY` to the Convex environment variables.\n\n" +
-          "**Setup steps:**\n" +
-          "1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey)\n" +
-          "2. Add it to Convex: `npx convex env set GOOGLE_AI_API_KEY your-key-here`\n" +
-          "3. For production, set it in the [Convex Dashboard](https://dashboard.convex.dev/)\n\n" +
-          "See the [Convex environment variables docs](https://docs.convex.dev/production/environment-variables) for more details.",
-      };
-    }
-
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-
-      // Configure generation based on model
-      let imageBytes: Uint8Array;
-      let mimeType = "image/png";
-
-      if (args.model === "gemini-2.0-flash-exp-image-generation") {
-        // Gemini Flash experimental image generation
-        const response = await ai.models.generateContent({
-          model: args.model,
-          contents: [{ role: "user", parts: [{ text: args.prompt }] }],
-          config: {
-            responseModalities: ["image", "text"],
-          },
-        });
-
-        // Extract image from response
-        const parts = response.candidates?.[0]?.content?.parts;
-        const imagePart = parts?.find(
-          (part) => {
-            const inlineData = part.inlineData as { mimeType?: string; data?: string } | undefined;
-            return inlineData?.mimeType?.startsWith("image/");
-          }
-        );
-
-        const inlineData = imagePart?.inlineData as { mimeType?: string; data?: string } | undefined;
-        if (!imagePart || !inlineData || !inlineData.mimeType || !inlineData.data) {
-          return {
-            success: false,
-            error: "No image was generated. Try a different prompt.",
-          };
-        }
-
-        mimeType = inlineData.mimeType;
-        imageBytes = base64ToBytes(inlineData.data);
-      } else {
-        // Imagen 3.0 model
-        const response = await ai.models.generateImages({
-          model: args.model,
-          prompt: args.prompt,
-          config: {
-            numberOfImages: 1,
-            aspectRatio: args.aspectRatio || "1:1",
-          },
-        });
-
-        const image = response.generatedImages?.[0];
-        if (!image || !image.image?.imageBytes) {
-          return {
-            success: false,
-            error: "No image was generated. Try a different prompt.",
-          };
-        }
-
-        mimeType = "image/png";
-        imageBytes = base64ToBytes(image.image.imageBytes);
-      }
-
-      // Store the image in Convex storage
-      const blob = new Blob([imageBytes as BlobPart], { type: mimeType });
-      const storageId = await ctx.storage.store(blob);
-
-      // Get the URL for the stored image
-      const url = await ctx.storage.getUrl(storageId);
-
-      // Save metadata to database
-      await ctx.runMutation(internal.aiChats.saveGeneratedImage, {
-        sessionId: args.sessionId,
-        prompt: args.prompt,
-        model: args.model,
-        storageId,
-        mimeType,
-      });
-
-      return {
-        success: true,
-        storageId,
-        url: url || undefined,
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
-      // Check for specific API errors
-      if (errorMessage.includes("quota") || errorMessage.includes("rate")) {
-        return {
-          success: false,
-          error: "**Rate limit exceeded.** Please try again in a few moments.",
-        };
-      }
-
-      if (errorMessage.includes("safety") || errorMessage.includes("blocked")) {
-        return {
-          success: false,
-          error: "**Image generation blocked.** The prompt may have triggered content safety filters. Try rephrasing your prompt.",
-        };
-      }
-
-      return {
-        success: false,
-        error: `**Image generation failed:** ${errorMessage}`,
-      };
-    }
-  },
+  returns: v.null(),
+  handler: async (ctx, args) => await generateImageFromSnapshot(ctx, args),
 });
 
-/**
- * Get recent generated images for a session
- */
-export const getRecentImages = action({
+async function generateImageFromSnapshot(
+  ctx: AiImageActionCtx,
   args: {
-    sessionId: v.string(),
-    limit: v.optional(v.number()),
-  },
-  returns: v.array(
-    v.object({
-      _id: v.id("aiGeneratedImages"),
-      prompt: v.string(),
-      model: v.string(),
-      url: v.union(v.string(), v.null()),
-      createdAt: v.number(),
-    })
-  ),
-  handler: async (ctx, args): Promise<Array<{
-    _id: Id<"aiGeneratedImages">;
+    jobId: Id<"aiImageGenerationJobs">;
+    ownerSubject?: string;
+    sessionId: string;
     prompt: string;
     model: string;
-    url: string | null;
-    createdAt: number;
-  }>> => {
-    const images: GeneratedImageRecord[] = await ctx.runQuery(internal.aiChats.getRecentImagesInternal, {
+    aspectRatio?: string;
+  },
+): Promise<null> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) {
+    await ctx.runMutation(internal.aiImageJobs.finalizeImageGeneration, {
+      jobId: args.jobId,
+      ownerSubject: args.ownerSubject,
       sessionId: args.sessionId,
-      limit: args.limit || 10,
+      prompt: args.prompt,
+      model: args.model,
+      error: getMissingKeyMessage(),
+    });
+    return null;
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    let imageBytes: Uint8Array;
+    let mimeType = "image/png";
+
+    if (args.model === "gemini-2.0-flash-exp-image-generation") {
+      const response = await ai.models.generateContent({
+        model: args.model,
+        contents: [{ role: "user", parts: [{ text: args.prompt }] }],
+        config: {
+          responseModalities: ["image", "text"],
+        },
+      });
+
+      const parts = response.candidates?.[0]?.content?.parts;
+      const imagePart = parts?.find((part) => {
+        const inlineData = part.inlineData as
+          | { mimeType?: string; data?: string }
+          | undefined;
+        return inlineData?.mimeType?.startsWith("image/");
+      });
+
+      const inlineData = imagePart?.inlineData as
+        | { mimeType?: string; data?: string }
+        | undefined;
+      if (!imagePart || !inlineData?.mimeType || !inlineData.data) {
+        await ctx.runMutation(internal.aiImageJobs.finalizeImageGeneration, {
+          jobId: args.jobId,
+          ownerSubject: args.ownerSubject,
+          sessionId: args.sessionId,
+          prompt: args.prompt,
+          model: args.model,
+          error: "No image was generated. Try a different prompt.",
+        });
+        return null;
+      }
+
+      mimeType = inlineData.mimeType;
+      imageBytes = base64ToBytes(inlineData.data);
+    } else {
+      const response = await ai.models.generateImages({
+        model: args.model,
+        prompt: args.prompt,
+        config: {
+          numberOfImages: 1,
+          aspectRatio:
+            args.aspectRatio && isAspectRatio(args.aspectRatio)
+              ? args.aspectRatio
+              : "1:1",
+        },
+      });
+
+      const image = response.generatedImages?.[0];
+      if (!image || !image.image?.imageBytes) {
+        await ctx.runMutation(internal.aiImageJobs.finalizeImageGeneration, {
+          jobId: args.jobId,
+          ownerSubject: args.ownerSubject,
+          sessionId: args.sessionId,
+          prompt: args.prompt,
+          model: args.model,
+          error: "No image was generated. Try a different prompt.",
+        });
+        return null;
+      }
+
+      mimeType = "image/png";
+      imageBytes = base64ToBytes(image.image.imageBytes);
+    }
+
+    const blob = new Blob([imageBytes as BlobPart], { type: mimeType });
+    const storageId = await ctx.storage.store(blob);
+    await ctx.runMutation(internal.aiImageJobs.finalizeImageGeneration, {
+      jobId: args.jobId,
+      ownerSubject: args.ownerSubject,
+      sessionId: args.sessionId,
+      prompt: args.prompt,
+      model: args.model,
+      storageId,
+      mimeType,
     });
 
-    // Get URLs for each image
-    const imagesWithUrls = await Promise.all(
-      images.map(async (image: GeneratedImageRecord) => ({
-        _id: image._id,
-        prompt: image.prompt,
-        model: image.model,
-        url: await ctx.storage.getUrl(image.storageId),
-        createdAt: image.createdAt,
-      }))
-    );
-
-    return imagesWithUrls;
-  },
-});
+    return null;
+  } catch (error) {
+    await ctx.runMutation(internal.aiImageJobs.finalizeImageGeneration, {
+      jobId: args.jobId,
+      ownerSubject: args.ownerSubject,
+      sessionId: args.sessionId,
+      prompt: args.prompt,
+      model: args.model,
+      error: formatImageGenerationError(error),
+    });
+    return null;
+  }
+}
 
 /**
  * Helper to convert base64 string to Uint8Array
@@ -227,5 +154,40 @@ function base64ToBytes(base64: string): Uint8Array {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes;
+}
+
+function isAspectRatio(value: string): value is "1:1" | "16:9" | "9:16" | "4:3" | "3:4" {
+  return (
+    value === "1:1" ||
+    value === "16:9" ||
+    value === "9:16" ||
+    value === "4:3" ||
+    value === "3:4"
+  );
+}
+
+function getMissingKeyMessage(): string {
+  return (
+    "**Gemini Image Generation is not configured.**\n\n" +
+    "To use image generation, add your `GOOGLE_AI_API_KEY` to the Convex environment variables.\n\n" +
+    "**Setup steps:**\n" +
+    "1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey)\n" +
+    "2. Add it to Convex: `npx convex env set GOOGLE_AI_API_KEY your-key-here`\n" +
+    "3. For production, set it in the [Convex Dashboard](https://dashboard.convex.dev/)\n\n" +
+    "See the [Convex environment variables docs](https://docs.convex.dev/production/environment-variables) for more details."
+  );
+}
+
+function formatImageGenerationError(error: unknown): string {
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  if (errorMessage.includes("quota") || errorMessage.includes("rate")) {
+    return "**Rate limit exceeded.** Please try again in a few moments.";
+  }
+
+  if (errorMessage.includes("safety") || errorMessage.includes("blocked")) {
+    return "**Image generation blocked.** The prompt may have triggered content safety filters. Try rephrasing your prompt.";
+  }
+
+  return `**Image generation failed:** ${errorMessage}`;
 }
 

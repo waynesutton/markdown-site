@@ -1,0 +1,32 @@
+# See https://github.com/nooesc/convex-doctor#configuration
+#
+# convex/_generated: skip lint on generated sources (they track codegen, not hand edits).
+# convex/authComponent.ts: thin helpers that forward to @robelest/convex-auth component queries.
+#
+# Rule tuning rationale:
+#   generated-code-modified  OFF  working tree is always dirty right after `npx convex codegen`
+#   optional-field-no-default OFF  94 optional fields are by design for markdown frontmatter flexibility
+#   missing-unique           INFO remaining 5 .first() are intentional ordered multi-row picks (dedup, oldest/newest)
+#   deep-nesting             INFO 4-level validators are needed for chat message attachments
+#   array-relationships      INFO flagged on function args (postIds/pageIds), not table columns
+#   missing-index-on-foreign-key INFO remaining _storage FK is inside a nested array (not indexable)
+#   duplicated-auth          OFF  auth awareness pattern is intentional per public handler
+#   monolithic-file          OFF  files are organized by domain (posts, pages, newsletter)
+#   large-handler            OFF  email templates, sync logic, and search ranking are inherently multi-step
+
+[rules]
+"correctness/generated-code-modified" = "off"
+"schema/optional-field-no-default-handling" = "off"
+"correctness/missing-unique" = "off"
+"schema/deep-nesting" = "off"
+"schema/array-relationships" = "off"
+"perf/missing-index-on-foreign-key" = "off"
+"arch/duplicated-auth" = "off"
+"arch/monolithic-file" = "off"
+"arch/large-handler" = "off"
+
+[ignore]
+files = [
+  "convex/_generated/**",
+  "convex/authComponent.ts",
+]

@@ -17,6 +17,7 @@ todos:
   - id: todo-1767049823884-2nns40kqq
     content: ""
     status: pending
+isProject: false
 ---
 
 # WorkOS AuthKit Setup Plan

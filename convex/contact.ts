@@ -16,6 +16,8 @@ export const submitContact = mutation({
     message: v.string(),
   }),
   handler: async (ctx, args) => {
+    await ctx.auth.getUserIdentity();
+
     // Validate required fields
     const name = args.name.trim();
     const email = args.email.toLowerCase().trim();

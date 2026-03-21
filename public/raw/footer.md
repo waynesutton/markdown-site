@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-02-22
+Date: 2026-03-21
 ---
 
 Built with [Convex](https://convex.dev) for real-time sync and deployed with Convex self-hosting by default. Legacy Netlify hosting remains available for compatibility. Read the [project on GitHub](https://github.com/waynesutton/markdown-site) to fork and deploy your own. View [real-time site stats](/stats).

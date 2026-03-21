@@ -30,8 +30,10 @@ agents. -->
 
 ---
 
-## Blog Posts (21)
+## Blog Posts (22)
 
+- **[How convex-doctor took markdown.fast from 42 to 100](/raw/convex-doctor-score-42-to-100.md)** - I had the most stars on the convex-doctor benchmark and the worst score. Here's how I fixed 364 findings across 17 passes to reach a perfect 100.
+  - Date: 2026-03-20 | Reading time: 7 min read | Tags: convex, developer-tools, code-quality, static-analysis
 - **[Convex first: new defaults for markdown.fast](/raw/convex-first-architecture.md)** - Self-hosted static files, built-in auth, and one-command deploys. No external services required.
   - Date: 2026-02-21 | Reading time: 4 min read | Tags: convex, deployment, auth, architecture
 - **[OpenCode Integration](/raw/docs-opencode.md)** - This framework includes full OpenCode support with agents, commands, skills, and plugins.
@@ -97,7 +99,7 @@ agents. -->
 
 ---
 
-**Total Content:** 21 posts, 17 pages
+**Total Content:** 22 posts, 17 pages
 
 All content is available as raw markdown files at `/raw/{slug}.md`
 
