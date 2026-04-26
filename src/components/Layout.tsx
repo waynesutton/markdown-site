@@ -213,7 +213,6 @@ export default function Layout({ children }: LayoutProps) {
               width={siteConfig.innerPageLogo.size}
               height={siteConfig.innerPageLogo.size}
               style={{ height: siteConfig.innerPageLogo.size, width: "auto" }}
-              fetchPriority="high"
             />
           </Link>
         )}
@@ -223,15 +222,16 @@ export default function Layout({ children }: LayoutProps) {
         <div className="mobile-nav-controls">
           {/* Hamburger button for mobile menu */}
           <HamburgerButton onClick={openMobileMenu} isOpen={isMobileMenuOpen} />
-          {/* Dashboard entry icon (sign-in/admin entrypoint) */}
-          {dashboardEnabled && (
+          {/* Dashboard entry icon with label (hide when already in nav text links) */}
+          {dashboardEnabled && !canShowDashboardNav && (
             <Link
               to="/dashboard"
-              className="search-button"
-              aria-label="Dashboard sign in"
-              title="Dashboard sign in"
+              className="search-button dashboard-nav-link"
+              aria-label="Dashboard"
+              title="Dashboard"
             >
               <SignIn size={18} weight="bold" />
+              <span className="dashboard-icon-label">Dashboard</span>
             </Link>
           )}
           {/* Ask AI button (only if enabled) */}
@@ -278,15 +278,16 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Desktop search and theme (visible on desktop only) */}
         <div className="desktop-controls desktop-only">
-          {/* Dashboard entry icon (sign-in/admin entrypoint) */}
-          {dashboardEnabled && (
+          {/* Dashboard entry icon with label (hide when already in nav text links) */}
+          {dashboardEnabled && !canShowDashboardNav && (
             <Link
               to="/dashboard"
-              className="search-button"
-              aria-label="Dashboard sign in"
-              title="Dashboard sign in"
+              className="search-button dashboard-nav-link"
+              aria-label="Dashboard"
+              title="Dashboard"
             >
               <SignIn size={18} weight="bold" />
+              <span className="dashboard-icon-label">Dashboard</span>
             </Link>
           )}
           {/* Social icons in header (if enabled) */}
@@ -368,6 +369,7 @@ export default function Layout({ children }: LayoutProps) {
         className={
           location.pathname === "/stats" ||
           location.pathname === "/blog" ||
+          location.pathname === "/wiki" ||
           isDocsPage
             ? "main-content-wide"
             : "main-content"

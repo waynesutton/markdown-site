@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
 import { DataModel, type Doc } from "./_generated/dataModel";
 import { TableAggregate } from "@convex-dev/aggregate";
+import { rateLimiter } from "./rateLimits";
 
 // Deduplication window: 30 minutes in milliseconds
 const DEDUP_WINDOW_MS = 30 * 60 * 1000;
@@ -147,6 +148,12 @@ export const recordPageView = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.auth.getUserIdentity();
+
+    const pvRl = await rateLimiter.limit(ctx, "pageView", {
+      key: args.sessionId,
+    });
+    if (!pvRl.ok) return null;
+
     const now = Date.now();
     const dedupCutoff = now - DEDUP_WINDOW_MS;
 
@@ -206,7 +213,6 @@ export const heartbeat = mutation({
   args: {
     sessionId: v.string(),
     currentPath: v.string(),
-    // Optional geo data from Netlify geo headers
     city: v.optional(v.string()),
     country: v.optional(v.string()),
     latitude: v.optional(v.number()),
@@ -215,6 +221,12 @@ export const heartbeat = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.auth.getUserIdentity();
+
+    const hbRl = await rateLimiter.limit(ctx, "heartbeat", {
+      key: args.sessionId,
+    });
+    if (!hbRl.ok) return null;
+
     const now = Date.now();
 
     // Find existing session by sessionId using index

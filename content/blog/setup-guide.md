@@ -223,8 +223,8 @@ Blog posts live in `content/blog/` as markdown files. Sync them to Convex:
 
 ```bash
 npm run sync              # Sync markdown content
-npm run sync:discovery    # Update discovery files (AGENTS.md, llms.txt)
-npm run sync:all          # Sync content + discovery files together
+npm run sync:discovery    # Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages)
+npm run sync:all          # Sync content + wiki + discovery files together
 ```
 
 **Production:**
@@ -493,7 +493,7 @@ Inline images appear in the post content. Alt text is used as the caption below 
 2. Push to GitHub
 3. Wait for Netlify to rebuild
 
-The `npm run sync` command only syncs markdown text content. Images are deployed when Netlify builds your site. Use `npm run sync:discovery` to update discovery files (AGENTS.md, llms.txt) when site configuration changes.
+The `npm run sync` command only syncs markdown text content. Images are deployed when Netlify builds your site. Use `npm run sync:discovery` to update discovery files (AGENTS.md, CLAUDE.md, llms.txt) when site configuration changes. Discovery sync also fetches wiki pages from Convex and includes them in the output files.
 
 ### Sync After Adding Posts
 
@@ -1453,22 +1453,24 @@ Each post and page includes a share dropdown with options for AI tools:
 
 ## API Endpoints
 
-Your blog includes these API endpoints for search engines and AI:
+Your blog includes these API endpoints for search engines and AI. All public endpoints are rate limited via `@convex-dev/rate-limiter`. Exceeding limits returns HTTP 429 with a `Retry-After` header.
 
-| Endpoint                       | Description                 |
-| ------------------------------ | --------------------------- |
-| `/stats`                       | Real-time site analytics    |
-| `/rss.xml`                     | RSS feed with descriptions  |
-| `/rss-full.xml`                | RSS feed with full content  |
-| `/sitemap.xml`                 | Dynamic XML sitemap         |
-| `/api/posts`                   | JSON list of all posts      |
-| `/api/post?slug=xxx`           | Single post as JSON         |
-| `/api/post?slug=xxx&format=md` | Single post as raw markdown |
-| `/api/export`                  | Batch export all posts      |
-| `/raw/{slug}.md`               | Static raw markdown file    |
-| `/.well-known/ai-plugin.json`  | AI plugin manifest          |
-| `/openapi.yaml`                | OpenAPI 3.0 specification   |
-| `/llms.txt`                    | AI agent discovery          |
+| Endpoint                       | Description                 | Rate limit |
+| ------------------------------ | --------------------------- | ---------- |
+| `/stats`                       | Real-time site analytics    |            |
+| `/rss.xml`                     | RSS feed with descriptions  | 30/min     |
+| `/rss-full.xml`                | RSS feed with full content  | 20/min     |
+| `/sitemap.xml`                 | Dynamic XML sitemap         | 10/min     |
+| `/api/posts`                   | JSON list of all posts      | 60/min     |
+| `/api/post?slug=xxx`           | Single post as JSON         | 60/min     |
+| `/api/post?slug=xxx&format=md` | Single post as raw markdown | 60/min     |
+| `/api/export`                  | Batch export all posts      | 10/min     |
+| `/raw/{slug}.md`               | Static raw markdown file    | 60/min     |
+| `/vfs/tree`                    | Virtual filesystem tree     | 30/min     |
+| `/vfs/exec`                    | VFS command execution       | 30/min     |
+| `/.well-known/ai-plugin.json`  | AI plugin manifest          |            |
+| `/openapi.yaml`                | OpenAPI 3.0 specification   |            |
+| `/llms.txt`                    | AI agent discovery          |            |
 
 ## SEO and Bot Detection
 
@@ -1709,7 +1711,7 @@ The Dashboard includes a dedicated AI Agent section with a tab-based UI for Chat
 
 **Chat Tab features:**
 
-- Multi-model selector: Claude Sonnet 4, GPT-4o, Gemini 2.0 Flash
+- Multi-model selector: Claude Sonnet 4, GPT-4.1 mini, Gemini 2.0 Flash
 - Per-session chat history stored in Convex
 - Markdown rendering for AI responses
 - Copy functionality for AI responses
@@ -1731,7 +1733,7 @@ Agent requires API keys for the providers you want to use. Set these in Convex e
 | Variable            | Provider  | Features                                 |
 | ------------------- | --------- | ---------------------------------------- |
 | `ANTHROPIC_API_KEY` | Anthropic | Claude Sonnet 4 chat                     |
-| `OPENAI_API_KEY`    | OpenAI    | GPT-4o chat                              |
+| `OPENAI_API_KEY`    | OpenAI    | GPT-4.1 mini chat                              |
 | `GOOGLE_AI_API_KEY` | Google    | Gemini 2.0 Flash chat + image generation |
 
 **Optional system prompt variables:**
@@ -1748,7 +1750,7 @@ Agent requires API keys for the providers you want to use. Set these in Convex e
 3. Navigate to Settings > Environment Variables
 4. Add API keys for the providers you want to use:
    - `ANTHROPIC_API_KEY` for Claude
-   - `OPENAI_API_KEY` for GPT-4o
+   - `OPENAI_API_KEY` for GPT-4.1 mini
    - `GOOGLE_AI_API_KEY` for Gemini and image generation
 5. Optionally add system prompt variables (`CLAUDE_PROMPT_STYLE`, etc.)
 6. Deploy changes

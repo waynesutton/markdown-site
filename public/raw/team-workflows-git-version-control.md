@@ -205,7 +205,7 @@ jobs:
 
 **Optional: Sync discovery files too**
 
-If you want to update discovery files (`AGENTS.md`, `llms.txt`) automatically:
+If you want to update discovery files (`AGENTS.md`, `CLAUDE.md`, `llms.txt` with wiki pages) automatically:
 
 ```yaml
 - run: npm run sync:all:prod

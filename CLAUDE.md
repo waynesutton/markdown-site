@@ -5,7 +5,7 @@ Project instructions for Claude Code.
 ## Project context
 
 <!-- Auto-updated by sync:discovery -->
-<!-- Site: markdown sync | Posts: 21 | Pages: 4 | Updated: 2026-03-21T00:12:49.190Z -->
+<!-- Site: markdown sync | Posts: 24 | Pages: 4 | Updated: 2026-04-26T22:56:14.180Z -->
 
 Markdown sync framework. Write markdown in `content/`, run sync commands, content appears instantly via Convex real-time database. Built for developers and AI agents.
 
@@ -24,7 +24,12 @@ npm run sync                   # Sync markdown to Convex
 |---------|---------|
 | `npm run sync` | Sync markdown to dev Convex |
 | `npm run sync:prod` | Sync markdown to prod Convex |
-| `npm run sync:all` | Sync content + discovery files |
+| `npm run sync:discovery` | Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages) |
+| `npm run sync:discovery:prod` | Update discovery files for production |
+| `npm run sync:wiki` | Sync wiki from content/blog and content/pages |
+| `npm run sync:wiki:prod` | Sync wiki to production |
+| `npm run sync:wiki -- --kb=<id>` | Sync wiki into a specific knowledge base |
+| `npm run sync:all` | Sync content + wiki + discovery files |
 | `npm run sync:all:prod` | Sync all to production |
 | `npm run dev` | Start Vite dev server |
 | `npm run build` | Production build |
@@ -62,7 +67,7 @@ npm run sync                   # Sync markdown to Convex
 ### Deploying to production
 
 ```bash
-npm run sync:all:prod          # Sync all content to prod
+npm run sync:all:prod          # Sync content + wiki + discovery to prod
 npx convex deploy              # Deploy Convex functions
 npm run deploy                 # Deploy static assets via Convex self-hosting
 ```
@@ -118,10 +123,12 @@ The Dashboard Config generates downloadable siteConfig.ts code. Users can config
 | `convex/posts.ts` | Post queries and mutations |
 | `convex/pages.ts` | Page queries and mutations |
 | `convex/stats.ts` | Analytics (conflict-free patterns) |
+| `convex/rateLimits.ts` | Rate limit definitions (4 tiers) and HTTP action bridge |
+| `convex/http.ts` | HTTP endpoints with rate limiting |
 | `src/config/siteConfig.ts` | Site configuration |
 | `src/pages/Dashboard.tsx` | Dashboard including ConfigSection |
 | `scripts/sync-posts.ts` | Markdown to Convex sync |
-| `scripts/sync-discovery-files.ts` | Updates AGENTS.md, llms.txt, CLAUDE.md |
+| `scripts/sync-discovery-files.ts` | Updates AGENTS.md, CLAUDE.md, llms.txt with wiki pages. Copies AGENTS.md to public/. |
 
 ## Project structure
 
@@ -160,3 +167,11 @@ Detailed documentation in `.claude/skills/`:
 - [Convex Write Conflicts](https://docs.convex.dev/error#1)
 - [Project README](./README.md)
 - [AGENTS.md](./AGENTS.md)
+
+<!-- convex-ai-start -->
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running `npx convex ai-files install`.
+<!-- convex-ai-end -->

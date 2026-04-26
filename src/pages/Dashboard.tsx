@@ -61,6 +61,13 @@ import {
   ArrowsOut,
   ArrowsIn,
   FloppyDisk,
+  Database,
+  BookOpen,
+  TreeStructure,
+  Globe,
+  Lock,
+  FolderOpen,
+  UploadSimple,
 } from "@phosphor-icons/react";
 import siteConfig from "../config/siteConfig";
 import AIChatView from "../components/AIChatView";
@@ -75,11 +82,8 @@ import {
   AuthLoading as ConvexAuthLoading,
 } from "convex/react";
 import { useAuth as useWorkOSAuth } from "@workos-inc/authkit-react";
-import {
-  client as createConvexAuthClient,
-  parseAuthError,
-} from "@robelest/convex-auth/client";
 import type { ConvexReactClient } from "convex/react";
+import { getConvexAuthClient } from "../utils/convexAuthClient";
 
 // Conditionally use auth components based on WorkOS configuration
 // When WorkOS is not configured, use dummy components that render nothing or just children
@@ -610,7 +614,10 @@ type DashboardSection =
   | "index-html"
   | "stats"
   | "sync"
-  | "media";
+  | "media"
+  | "sources"
+  | "wiki"
+  | "knowledge-bases";
 
 // Post/Page type for editing
 interface ContentItem {
@@ -649,7 +656,7 @@ interface ContentItem {
   docsSectionGroupOrder?: number;
   docsSectionGroupIcon?: string;
   docsLanding?: boolean;
-  source?: "dashboard" | "sync";
+  source?: "dashboard" | "sync" | "demo";
 }
 
 // Frontmatter fields for posts
@@ -842,123 +849,110 @@ function LoginPrompt() {
   );
 }
 
-function ConvexAuthLoginPrompt() {
+// Compact sign-in button for the demo sidebar footer
+// Read-only gate shown for admin-only sections in demo mode
+function DemoSectionGate({ section }: { section: string }) {
+  return (
+    <div className="demo-section-gate">
+      <Lock size={32} weight="bold" />
+      <h3>{section}</h3>
+      <p>Sign in with GitHub for full access to {section.toLowerCase()}.</p>
+      <p className="demo-gate-hint">
+        This feature requires an authenticated admin session.
+      </p>
+    </div>
+  );
+}
+
+function DemoSignInButton() {
   const convex = useConvex();
-  const loginOptions = useQuery(api.authAdmin.getDashboardLoginOptions);
-  const authSetupStatus = useQuery(api.authAdmin.getAuthSetupStatus);
-  const [isGithubSubmitting, setIsGithubSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const authClient = useMemo(
-    () =>
-      createConvexAuthClient({
-        convex: convex as unknown as ConvexReactClient,
-      }),
+    () => getConvexAuthClient(convex as unknown as ConvexReactClient),
     [convex],
   );
 
   const handleGithubSignIn = async () => {
-    setErrorMessage(null);
-    setIsGithubSubmitting(true);
+    setIsSubmitting(true);
     try {
       const result = await authClient.signIn("github", {
         redirectTo: "/dashboard",
       });
-      if (result.redirect) {
+      if (result.kind === "redirect") {
         window.location.assign(result.redirect.toString());
-        return;
       }
-      if (!result.signingIn) {
-        setErrorMessage(
-          "GitHub auth is not configured. Set AUTH_GITHUB_ID and AUTH_GITHUB_SECRET in Convex env.",
-        );
-      }
-    } catch (error) {
-      const parsed = parseAuthError(error);
-      const message =
-        parsed?.message ||
-        (error instanceof Error ? error.message : "Failed to sign in");
-      setErrorMessage(message);
-    } finally {
-      setIsGithubSubmitting(false);
+    } catch {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="dashboard-auth-container">
-      <div className="dashboard-auth-card">
-        <h1>Markdown Sync Dashboard</h1>
-        <p>Sign in to continue.</p>
-        <button
-          onClick={handleGithubSignIn}
-          className="dashboard-sign-in-button"
-          disabled={isGithubSubmitting || loginOptions === undefined}
-          style={{ marginTop: "1rem" }}
-        >
-          {isGithubSubmitting
-            ? "Redirecting..."
-            : loginOptions?.githubEnabled
-              ? "Continue with GitHub"
-              : "GitHub login not configured"}
-        </button>
-        {errorMessage && (
-          <p style={{ marginTop: "0.75rem", color: "var(--text-secondary)" }}>
-            {errorMessage}
-          </p>
-        )}
-        {loginOptions && !loginOptions.githubEnabled && (
-          <p style={{ marginTop: "0.75rem", color: "var(--text-secondary)" }}>
-            Set AUTH_GITHUB_ID and AUTH_GITHUB_SECRET in Convex env.
-          </p>
-        )}
-        {loginOptions && loginOptions.githubEnabled && !loginOptions.oauthBaseConfigured && (
-          <p style={{ marginTop: "0.75rem", color: "var(--text-secondary)" }}>
-            OAuth callback base URL is missing. Set SITE_URL (or CUSTOM_AUTH_SITE_URL).
-          </p>
-        )}
-        {authSetupStatus && (
-          <div
-            style={{
-              marginTop: "1rem",
-              padding: "0.75rem",
-              border: "1px solid var(--border-color)",
-              borderRadius: "0.5rem",
-              textAlign: "left",
-              fontSize: "0.9rem",
-              color: "var(--text-secondary)",
-            }}
-          >
-            <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 600 }}>
-              Auth setup status
-            </p>
-            <p style={{ margin: "0.4rem 0 0" }}>
-              GitHub OAuth: {authSetupStatus.githubEnabled ? "configured" : "missing"}
-            </p>
-            <p style={{ margin: "0.25rem 0 0" }}>
-              OAuth callback base URL:{" "}
-              {authSetupStatus.oauthBaseConfigured ? "configured" : "missing"}
-            </p>
-            <p style={{ margin: "0.25rem 0 0" }}>
-              Admin bootstrap key:{" "}
-              {authSetupStatus.bootstrapKeyConfigured ? "configured" : "missing"}
-            </p>
-            <p style={{ margin: "0.25rem 0 0" }}>
-              Dashboard admins: {authSetupStatus.adminCount}
-            </p>
-            {authSetupStatus.adminCount === 0 && (
-              <p style={{ margin: "0.6rem 0 0" }}>
-                First admin not set. After signing in, run{" "}
-                <code>npx convex run authAdmin:bootstrapDashboardAdmin</code> with your
-                bootstrap key and email.
-              </p>
-            )}
-          </div>
-        )}
-        <p style={{ marginTop: "1rem" }}>
-          <Link to="/">Back to Home</Link>
-        </p>
+    <>
+      <div className="dashboard-user-card">
+        <Globe size={20} weight="bold" />
+        <div className="dashboard-user-info">
+          <span className="dashboard-user-name">Demo Mode</span>
+        </div>
       </div>
-    </div>
+      <button
+        className="dashboard-signout-btn"
+        onClick={() => { void handleGithubSignIn(); }}
+        title="Sign in with GitHub for full access"
+        disabled={isSubmitting}
+      >
+        <span>{isSubmitting ? "Redirecting..." : "Sign in with GitHub"}</span>
+      </button>
+    </>
+  );
+}
+
+// Renders demo mode for users who completed OAuth but failed the admin gate.
+// Keep an explicit sign-out control so admins can recover from an email mismatch.
+function DeniedAccessDemo() {
+  const convex = useConvex();
+  const authDebug = useQuery(api.authAdmin.getCurrentDashboardAuthDebug);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    const authClient = getConvexAuthClient(
+      convex as unknown as ConvexReactClient,
+    );
+    try {
+      await authClient.signOut();
+      window.location.assign("/dashboard");
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
+  const signedInEmail =
+    authDebug?.authUserEmail ?? authDebug?.identityEmail ?? "unknown email";
+  const expectedEmail = authDebug?.strictAdminEmail ?? "not configured";
+
+  return (
+    <>
+      <div className="dashboard-demo-warning" role="status">
+        <strong>Signed in, but not a dashboard admin.</strong>
+        <span>
+          GitHub email: {signedInEmail}. Expected admin email: {expectedEmail}.
+        </span>
+        <button
+          type="button"
+          className="dashboard-signout-btn"
+          onClick={() => {
+            void handleSignOut();
+          }}
+          disabled={isSigningOut}
+        >
+          <SignOut size={18} />
+          <span>{isSigningOut ? "Signing out..." : "Sign out and retry"}</span>
+        </button>
+      </div>
+      <DashboardContent isDemo />
+    </>
   );
 }
 
@@ -1030,14 +1024,14 @@ export default function Dashboard() {
           ) : isDashboardAdmin ? (
             <DashboardContent />
           ) : (
-            <Navigate to="/?dashboardNotice=not-admin" replace />
+            <DeniedAccessDemo />
           )}
         </Authenticated>
       </>
     );
   }
 
-  // Convex auth mode: show login prompt before admin gate.
+  // Convex auth mode: show login prompt or demo mode for unauthenticated users.
   if (authMode === "convex-auth") {
     if (
       isAuthenticated === undefined ||
@@ -1047,13 +1041,19 @@ export default function Dashboard() {
       return <LoadingState />;
     }
     if (!isAuthenticated) {
-      return <ConvexAuthLoginPrompt />;
+      return <DashboardContent isDemo />;
     }
     if (!isDashboardAdmin) {
-      if (authSetupStatus.adminCount === 0) {
+      // Bootstrap path remains for forks without DASHBOARD_PRIMARY_ADMIN_EMAIL set.
+      // Once strict email mode is configured, that env var is the sole admin gate.
+      if (
+        !authSetupStatus.strictAdminEmailConfigured &&
+        authSetupStatus.adminCount === 0
+      ) {
         return <FirstAdminSetupRequired />;
       }
-      return <Navigate to="/?dashboardNotice=not-admin" replace />;
+      // App-level denied session: sign out and render demo mode.
+      return <DeniedAccessDemo />;
     }
     return <DashboardContent />;
   }
@@ -1072,7 +1072,7 @@ export default function Dashboard() {
 }
 
 // Dashboard content (protected by auth wrapper above)
-function DashboardContent() {
+function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
   const { theme, setTheme } = useTheme();
   const { fontFamily, setFontFamily } = useFont();
   const { user, signOut } = useAuth();
@@ -1151,15 +1151,25 @@ function DashboardContent() {
   >(null);
   const syncOutputRef = useRef<HTMLPreElement>(null);
 
-  // Convex queries
-  const posts = useQuery(api.posts.listAll);
-  const pages = useQuery(api.pages.listAll);
+  // Convex queries: use auth-free demo queries when in demo mode
+  const adminPosts = useQuery(api.posts.listAll, isDemo ? "skip" : {});
+  const adminPages = useQuery(api.pages.listAll, isDemo ? "skip" : {});
+  const demoPosts = useQuery(api.demo.listAllPosts, isDemo ? {} : "skip");
+  const demoPages = useQuery(api.demo.listAllPages, isDemo ? {} : "skip");
+  const posts: typeof adminPosts = isDemo ? demoPosts : adminPosts;
+  const pages: typeof adminPages = isDemo ? demoPages : adminPages;
 
-  // CMS mutations for CRUD operations
+  // CMS mutations for CRUD operations (admin)
   const deletePostMutation = useMutation(api.cms.deletePost);
   const deletePageMutation = useMutation(api.cms.deletePage);
   const updatePostMutation = useMutation(api.cms.updatePost);
   const updatePageMutation = useMutation(api.cms.updatePage);
+
+  // Demo mutations (no auth required, only operates on source="demo" content)
+  const demoDeletePostMutation = useMutation(api.demo.deleteDemoPost);
+  const demoDeletePageMutation = useMutation(api.demo.deleteDemoPage);
+  const demoUpdatePostMutation = useMutation(api.demo.updateDemoPost);
+  const demoUpdatePageMutation = useMutation(api.demo.updateDemoPage);
 
   // Add toast notification
   const addToast = useCallback((message: string, type: ToastType = "info") => {
@@ -1378,10 +1388,18 @@ function DashboardContent() {
     setIsDeleting(true);
     try {
       if (deleteModal.type === "post") {
-        await deletePostMutation({ id: deleteModal.id as Id<"posts"> });
+        if (isDemo) {
+          await demoDeletePostMutation({ id: deleteModal.id as Id<"posts"> });
+        } else {
+          await deletePostMutation({ id: deleteModal.id as Id<"posts"> });
+        }
         addToast("Post deleted successfully", "success");
       } else {
-        await deletePageMutation({ id: deleteModal.id as Id<"pages"> });
+        if (isDemo) {
+          await demoDeletePageMutation({ id: deleteModal.id as Id<"pages"> });
+        } else {
+          await deletePageMutation({ id: deleteModal.id as Id<"pages"> });
+        }
         addToast("Page deleted successfully", "success");
       }
       setDeleteModal({ isOpen: false, id: "", title: "", type: "post", item: null });
@@ -1393,47 +1411,65 @@ function DashboardContent() {
     } finally {
       setIsDeleting(false);
     }
-  }, [deleteModal, deletePostMutation, deletePageMutation, addToast]);
+  }, [deleteModal, deletePostMutation, deletePageMutation, demoDeletePostMutation, demoDeletePageMutation, isDemo, addToast]);
 
   // Internal function to save post (called after warning or directly for dashboard content)
   const doSavePost = useCallback(
     async (item: ContentItem) => {
       try {
-        await updatePostMutation({
-          id: item._id as Id<"posts">,
-          post: {
-            title: item.title,
-            description: item.description,
-            content: item.content,
-            date: item.date,
-            published: item.published,
-            tags: item.tags,
-            excerpt: item.excerpt,
-            image: item.image,
-            showImageAtTop: item.showImageAtTop,
-            readTime: item.readTime,
-            featured: item.featured,
-            featuredOrder: item.featuredOrder,
-            blogFeatured: item.blogFeatured,
-            unlisted: item.unlisted,
-            authorName: item.authorName,
-            authorImage: item.authorImage,
-            layout: item.layout,
-            rightSidebar: item.rightSidebar,
-            aiChat: item.aiChat,
-            showFooter: item.showFooter,
-            footer: item.footer,
-            showSocialFooter: item.showSocialFooter,
-            newsletter: item.newsletter,
-            contactForm: item.contactForm,
-            docsSection: item.docsSection,
-            docsSectionGroup: item.docsSectionGroup,
-            docsSectionOrder: item.docsSectionOrder,
-            docsSectionGroupOrder: item.docsSectionGroupOrder,
-            docsSectionGroupIcon: item.docsSectionGroupIcon,
-            docsLanding: item.docsLanding,
-          },
-        });
+        if (isDemo) {
+          await demoUpdatePostMutation({
+            id: item._id as Id<"posts">,
+            post: {
+              title: item.title,
+              description: item.description,
+              content: item.content,
+              date: item.date,
+              published: item.published,
+              tags: item.tags,
+              excerpt: item.excerpt,
+              image: item.image,
+              readTime: item.readTime,
+              authorName: item.authorName,
+            },
+          });
+        } else {
+          await updatePostMutation({
+            id: item._id as Id<"posts">,
+            post: {
+              title: item.title,
+              description: item.description,
+              content: item.content,
+              date: item.date,
+              published: item.published,
+              tags: item.tags,
+              excerpt: item.excerpt,
+              image: item.image,
+              showImageAtTop: item.showImageAtTop,
+              readTime: item.readTime,
+              featured: item.featured,
+              featuredOrder: item.featuredOrder,
+              blogFeatured: item.blogFeatured,
+              unlisted: item.unlisted,
+              authorName: item.authorName,
+              authorImage: item.authorImage,
+              layout: item.layout,
+              rightSidebar: item.rightSidebar,
+              aiChat: item.aiChat,
+              showFooter: item.showFooter,
+              footer: item.footer,
+              showSocialFooter: item.showSocialFooter,
+              newsletter: item.newsletter,
+              contactForm: item.contactForm,
+              docsSection: item.docsSection,
+              docsSectionGroup: item.docsSectionGroup,
+              docsSectionOrder: item.docsSectionOrder,
+              docsSectionGroupOrder: item.docsSectionGroupOrder,
+              docsSectionGroupIcon: item.docsSectionGroupIcon,
+              docsLanding: item.docsLanding,
+            },
+          });
+        }
         addToast("Post saved successfully", "success");
       } catch (error) {
         addToast(
@@ -1442,45 +1478,59 @@ function DashboardContent() {
         );
       }
     },
-    [updatePostMutation, addToast],
+    [updatePostMutation, demoUpdatePostMutation, isDemo, addToast],
   );
 
   // Internal function to save page (called after warning or directly for dashboard content)
   const doSavePage = useCallback(
     async (item: ContentItem) => {
       try {
-        await updatePageMutation({
-          id: item._id as Id<"pages">,
-          page: {
-            title: item.title,
-            content: item.content,
-            published: item.published,
-            order: item.order,
-            showInNav: item.showInNav,
-            excerpt: item.excerpt,
-            image: item.image,
-            showImageAtTop: item.showImageAtTop,
-            featured: item.featured,
-            featuredOrder: item.featuredOrder,
-            authorName: item.authorName,
-            authorImage: item.authorImage,
-            layout: item.layout,
-            rightSidebar: item.rightSidebar,
-            aiChat: item.aiChat,
-            showFooter: item.showFooter,
-            footer: item.footer,
-            showSocialFooter: item.showSocialFooter,
-            newsletter: item.newsletter,
-            contactForm: item.contactForm,
-            textAlign: item.textAlign,
-            docsSection: item.docsSection,
-            docsSectionGroup: item.docsSectionGroup,
-            docsSectionOrder: item.docsSectionOrder,
-            docsSectionGroupOrder: item.docsSectionGroupOrder,
-            docsSectionGroupIcon: item.docsSectionGroupIcon,
-            docsLanding: item.docsLanding,
-          },
-        });
+        if (isDemo) {
+          await demoUpdatePageMutation({
+            id: item._id as Id<"pages">,
+            page: {
+              title: item.title,
+              content: item.content,
+              published: item.published,
+              excerpt: item.excerpt,
+              image: item.image,
+              authorName: item.authorName,
+            },
+          });
+        } else {
+          await updatePageMutation({
+            id: item._id as Id<"pages">,
+            page: {
+              title: item.title,
+              content: item.content,
+              published: item.published,
+              order: item.order,
+              showInNav: item.showInNav,
+              excerpt: item.excerpt,
+              image: item.image,
+              showImageAtTop: item.showImageAtTop,
+              featured: item.featured,
+              featuredOrder: item.featuredOrder,
+              authorName: item.authorName,
+              authorImage: item.authorImage,
+              layout: item.layout,
+              rightSidebar: item.rightSidebar,
+              aiChat: item.aiChat,
+              showFooter: item.showFooter,
+              footer: item.footer,
+              showSocialFooter: item.showSocialFooter,
+              newsletter: item.newsletter,
+              contactForm: item.contactForm,
+              textAlign: item.textAlign,
+              docsSection: item.docsSection,
+              docsSectionGroup: item.docsSectionGroup,
+              docsSectionOrder: item.docsSectionOrder,
+              docsSectionGroupOrder: item.docsSectionGroupOrder,
+              docsSectionGroupIcon: item.docsSectionGroupIcon,
+              docsLanding: item.docsLanding,
+            },
+          });
+        }
         addToast("Page saved successfully", "success");
       } catch (error) {
         addToast(
@@ -1489,7 +1539,7 @@ function DashboardContent() {
         );
       }
     },
-    [updatePageMutation, addToast],
+    [updatePageMutation, demoUpdatePageMutation, isDemo, addToast],
   );
 
   // Handle saving post - shows warning if synced content
@@ -1638,6 +1688,7 @@ function DashboardContent() {
   const mediaEnabled = siteConfig.media?.enabled ?? false;
   const newsletterEnabled = siteConfig.newsletter?.enabled ?? false;
 
+  // All sections visible in both admin and demo mode (demo gates interactivity, not visibility)
   const navSections = [
     {
       label: "Content",
@@ -1653,13 +1704,19 @@ function DashboardContent() {
         { id: "write-page" as const, label: "Write Page", icon: File },
         { id: "ai-agent" as const, label: "AI Agent", icon: Robot },
         { id: "import" as const, label: "Import URL", icon: CloudArrowDown },
-        // Only show Media if media feature is enabled
         ...(mediaEnabled
           ? [{ id: "media" as const, label: "Media", icon: Image }]
           : []),
       ],
     },
-    // Only show Newsletter section if newsletter is enabled
+    {
+      label: "Knowledge",
+      items: [
+        { id: "sources" as const, label: "Sources", icon: Database },
+        { id: "wiki" as const, label: "Wiki", icon: BookOpen },
+        { id: "knowledge-bases" as const, label: "Knowledge Bases", icon: FolderOpen },
+      ],
+    },
     ...(newsletterEnabled
       ? [
           {
@@ -1737,9 +1794,9 @@ function DashboardContent() {
     setIsSigningOut(true);
     try {
       if (authMode === "convex-auth") {
-        const authClient = createConvexAuthClient({
-          convex: convex as unknown as ConvexReactClient,
-        });
+        const authClient = getConvexAuthClient(
+          convex as unknown as ConvexReactClient,
+        );
         await authClient.signOut();
         window.location.assign("/dashboard");
         return;
@@ -1850,37 +1907,43 @@ function DashboardContent() {
           ))}
         </nav>
 
-        {/* User Profile Section at bottom of sidebar */}
+        {/* User Profile / Demo Section at bottom of sidebar */}
         <div className="dashboard-sidebar-footer">
-          <div className="dashboard-user-card">
-            {user?.profilePictureUrl && (
-              <img
-                src={user.profilePictureUrl}
-                alt={user.firstName || "User"}
-                className="dashboard-user-avatar"
-              />
-            )}
-            <div className="dashboard-user-info">
-              <span className="dashboard-user-name">
-                {authMode === "convex-auth"
-                  ? "Authenticated admin"
-                  : user?.firstName
-                  ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
-                  : "User"}
-              </span>
-            </div>
-          </div>
-          <button
-            className="dashboard-signout-btn"
-            onClick={() => {
-              void handleDashboardSignOut();
-            }}
-            title="Sign out"
-            disabled={isSigningOut}
-          >
-            <SignOut size={18} />
-            <span>{isSigningOut ? "Signing out..." : "Sign out"}</span>
-          </button>
+          {isDemo ? (
+            <DemoSignInButton />
+          ) : (
+            <>
+              <div className="dashboard-user-card">
+                {user?.profilePictureUrl && (
+                  <img
+                    src={user.profilePictureUrl}
+                    alt={user.firstName || "User"}
+                    className="dashboard-user-avatar"
+                  />
+                )}
+                <div className="dashboard-user-info">
+                  <span className="dashboard-user-name">
+                    {authMode === "convex-auth"
+                      ? "Authenticated admin"
+                      : user?.firstName
+                      ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
+                      : "User"}
+                  </span>
+                </div>
+              </div>
+              <button
+                className="dashboard-signout-btn"
+                onClick={() => {
+                  void handleDashboardSignOut();
+                }}
+                title="Sign out"
+                disabled={isSigningOut}
+              >
+                <SignOut size={18} />
+                <span>{isSigningOut ? "Signing out..." : "Sign out"}</span>
+              </button>
+            </>
+          )}
         </div>
       </aside>
 
@@ -1908,6 +1971,8 @@ function DashboardContent() {
               {activeSection === "stats" && "Analytics"}
               {activeSection === "sync" && "Sync Content"}
               {activeSection === "media" && "Media"}
+              {activeSection === "sources" && "Sources"}
+              {activeSection === "wiki" && "Wiki"}
             </h1>
           </div>
 
@@ -1925,62 +1990,66 @@ function DashboardContent() {
           </div>
 
           <div className="dashboard-header-right">
-            <button
-              className={`dashboard-sync-btn dev ${syncRunning === "sync:all" ? "running" : ""}`}
-              title={
-                syncServerAvailable
-                  ? "Execute Sync Dev"
-                  : "Copy sync command (server not running)"
-              }
-              onClick={() => {
-                if (syncServerAvailable) {
-                  executeSync("sync:all", "Sync All (Dev)");
-                } else {
-                  showCommandModal(
-                    "Sync Development",
-                    "npm run sync:all",
-                    "Sync all content to development environment",
-                  );
-                }
-              }}
-              disabled={syncRunning !== null}
-            >
-              <ArrowsClockwise
-                size={16}
-                className={syncRunning === "sync:all" ? "spinning" : ""}
-              />
-              <span>
-                {syncRunning === "sync:all" ? "Running..." : "Sync Dev"}
-              </span>
-            </button>
-            <button
-              className={`dashboard-sync-btn prod ${syncRunning === "sync:all:prod" ? "running" : ""}`}
-              title={
-                syncServerAvailable
-                  ? "Execute Sync Prod"
-                  : "Copy sync command (server not running)"
-              }
-              onClick={() => {
-                if (syncServerAvailable) {
-                  executeSync("sync:all:prod", "Sync All (Prod)");
-                } else {
-                  showCommandModal(
-                    "Sync Production",
-                    "npm run sync:all:prod",
-                    "Sync all content to production environment",
-                  );
-                }
-              }}
-              disabled={syncRunning !== null}
-            >
-              <ArrowsClockwise
-                size={16}
-                className={syncRunning === "sync:all:prod" ? "spinning" : ""}
-              />
-              <span>
-                {syncRunning === "sync:all:prod" ? "Running..." : "Sync Prod"}
-              </span>
-            </button>
+            {!isDemo && (
+              <>
+                <button
+                  className={`dashboard-sync-btn dev ${syncRunning === "sync:all" ? "running" : ""}`}
+                  title={
+                    syncServerAvailable
+                      ? "Execute Sync Dev"
+                      : "Copy sync command (server not running)"
+                  }
+                  onClick={() => {
+                    if (syncServerAvailable) {
+                      executeSync("sync:all", "Sync All (Dev)");
+                    } else {
+                      showCommandModal(
+                        "Sync Development",
+                        "npm run sync:all",
+                        "Sync all content to development environment",
+                      );
+                    }
+                  }}
+                  disabled={syncRunning !== null}
+                >
+                  <ArrowsClockwise
+                    size={16}
+                    className={syncRunning === "sync:all" ? "spinning" : ""}
+                  />
+                  <span>
+                    {syncRunning === "sync:all" ? "Running..." : "Sync Dev"}
+                  </span>
+                </button>
+                <button
+                  className={`dashboard-sync-btn prod ${syncRunning === "sync:all:prod" ? "running" : ""}`}
+                  title={
+                    syncServerAvailable
+                      ? "Execute Sync Prod"
+                      : "Copy sync command (server not running)"
+                  }
+                  onClick={() => {
+                    if (syncServerAvailable) {
+                      executeSync("sync:all:prod", "Sync All (Prod)");
+                    } else {
+                      showCommandModal(
+                        "Sync Production",
+                        "npm run sync:all:prod",
+                        "Sync all content to production environment",
+                      );
+                    }
+                  }}
+                  disabled={syncRunning !== null}
+                >
+                  <ArrowsClockwise
+                    size={16}
+                    className={syncRunning === "sync:all:prod" ? "spinning" : ""}
+                  />
+                  <span>
+                    {syncRunning === "sync:all:prod" ? "Running..." : "Sync Prod"}
+                  </span>
+                </button>
+              </>
+            )}
             <button
               className="dashboard-theme-btn"
               onClick={toggleTheme}
@@ -2005,6 +2074,19 @@ function DashboardContent() {
           </div>
         </header>
 
+        {/* Demo mode banner */}
+        {isDemo && (
+          <div className="dashboard-demo-banner">
+            <Info size={16} weight="bold" />
+            <span>
+              Demo mode: your content resets every 30 minutes. Admins have full access.{" "}
+              <a href="https://github.com/waynesutton/markdown-site" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>
+                Fork and set up your own
+              </a>
+            </span>
+          </div>
+        )}
+
         {/* Content Area */}
         <div className="dashboard-content">
           {/* Posts List */}
@@ -2014,6 +2096,7 @@ function DashboardContent() {
               onEdit={handleEditPost}
               searchQuery={searchQuery}
               onDelete={handleDeletePost}
+              isDemo={isDemo}
             />
           )}
 
@@ -2024,6 +2107,7 @@ function DashboardContent() {
               onEdit={handleEditPage}
               searchQuery={searchQuery}
               onDelete={handleDeletePage}
+              isDemo={isDemo}
             />
           )}
 
@@ -2056,6 +2140,7 @@ function DashboardContent() {
               setSidebarCollapsed={setSidebarCollapsed}
               addToast={addToast}
               setActiveSection={setActiveSection}
+              isDemo={isDemo}
             />
           )}
 
@@ -2067,69 +2152,99 @@ function DashboardContent() {
               setSidebarCollapsed={setSidebarCollapsed}
               addToast={addToast}
               setActiveSection={setActiveSection}
+              isDemo={isDemo}
             />
           )}
 
           {/* AI Agent Section */}
-          {activeSection === "ai-agent" && <AIAgentSection />}
+          {activeSection === "ai-agent" && (
+            isDemo ? <DemoSectionGate section="AI Agent" /> : <AIAgentSection />
+          )}
 
           {/* Newsletter Subscribers */}
-          {activeSection === "newsletter" && <NewsletterSubscribersSection />}
+          {activeSection === "newsletter" && (
+            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterSubscribersSection />
+          )}
 
           {/* Newsletter Send */}
           {activeSection === "newsletter-send" && (
-            <NewsletterSendSection addToast={addToast} />
+            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterSendSection addToast={addToast} />
           )}
 
           {/* Newsletter Write Email */}
           {activeSection === "newsletter-write-email" && (
-            <NewsletterWriteEmailSection addToast={addToast} />
+            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterWriteEmailSection addToast={addToast} />
           )}
 
           {/* Newsletter Recent Sends */}
           {activeSection === "newsletter-recent-sends" && (
-            <NewsletterRecentSendsSection />
+            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterRecentSendsSection />
           )}
 
           {/* Newsletter Stats */}
-          {activeSection === "newsletter-stats" && <NewsletterStatsSection />}
+          {activeSection === "newsletter-stats" && (
+            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterStatsSection />
+          )}
 
           {/* Import URL */}
           {activeSection === "import" && (
-            <ImportURLSection addToast={addToast} />
+            isDemo ? <DemoSectionGate section="Import" /> : <ImportURLSection addToast={addToast} />
           )}
 
           {/* Site Config */}
           {activeSection === "config" && (
-            <ConfigSection
-              addToast={addToast}
-              onNavigateToIndexHtml={() => setActiveSection("index-html")}
-            />
+            isDemo ? <DemoSectionGate section="Site Config" /> : (
+              <ConfigSection
+                addToast={addToast}
+                onNavigateToIndexHtml={() => setActiveSection("index-html")}
+              />
+            )
           )}
 
           {/* Index HTML */}
           {activeSection === "index-html" && (
-            <IndexHtmlSection addToast={addToast} />
+            isDemo ? <DemoSectionGate section="Index HTML" /> : <IndexHtmlSection addToast={addToast} />
           )}
 
           {/* Stats */}
-          {activeSection === "stats" && <StatsSection />}
+          {activeSection === "stats" && (
+            isDemo ? <DemoSectionGate section="Analytics" /> : <StatsSection />
+          )}
 
           {/* Sync */}
           {activeSection === "sync" && (
-            <SyncSection
-              showCommandModal={showCommandModal}
-              executeSync={executeSync}
-              syncOutput={syncOutput}
-              syncRunning={syncRunning}
-              syncServerAvailable={syncServerAvailable}
-              syncOutputRef={syncOutputRef}
-              setSyncOutput={setSyncOutput}
-            />
+            isDemo ? <DemoSectionGate section="Sync" /> : (
+              <SyncSection
+                showCommandModal={showCommandModal}
+                executeSync={executeSync}
+                syncOutput={syncOutput}
+                syncRunning={syncRunning}
+                syncServerAvailable={syncServerAvailable}
+                syncOutputRef={syncOutputRef}
+                setSyncOutput={setSyncOutput}
+              />
+            )
           )}
 
           {/* Media */}
-          {activeSection === "media" && <MediaLibrary />}
+          {activeSection === "media" && (
+            isDemo ? <DemoSectionGate section="Media" /> : <MediaLibrary />
+          )}
+
+          {/* Sources */}
+          {activeSection === "sources" && (
+            isDemo ? <DemoSectionGate section="Sources" /> : <SourcesSection addToast={addToast} />
+          )}
+
+          {/* Wiki */}
+          {activeSection === "wiki" && (
+            <WikiSection addToast={addToast} />
+          )}
+
+          {/* Knowledge Bases */}
+          {activeSection === "knowledge-bases" && (
+            isDemo ? <DemoSectionGate section="Knowledge Bases" /> : <KnowledgeBasesSection addToast={addToast} />
+          )}
         </div>
       </main>
     </div>
@@ -2142,11 +2257,13 @@ function PostsListView({
   onEdit,
   searchQuery,
   onDelete,
+  isDemo = false,
 }: {
   posts: ContentItem[];
   onEdit: (post: ContentItem) => void;
   searchQuery: string;
   onDelete: (item: ContentItem) => void;
+  isDemo?: boolean;
 }) {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -2268,6 +2385,9 @@ function PostsListView({
                 >
                   {post.published ? "Published" : "Draft"}
                 </span>
+                {post.source === "demo" && (
+                  <span className="source-badge demo">Demo</span>
+                )}
                 {post.source === "dashboard" && (
                   <span className="source-badge dashboard">Dashboard</span>
                 )}
@@ -2276,13 +2396,16 @@ function PostsListView({
                 )}
               </div>
               <div className="col-actions">
-                <button
-                  className="action-btn edit"
-                  onClick={() => onEdit(post as ContentItem)}
-                  title="Edit"
-                >
-                  <PencilSimple size={16} />
-                </button>
+                {/* In demo mode, only allow editing demo content */}
+                {(!isDemo || post.source === "demo") && (
+                  <button
+                    className="action-btn edit"
+                    onClick={() => onEdit(post as ContentItem)}
+                    title="Edit"
+                  >
+                    <PencilSimple size={16} />
+                  </button>
+                )}
                 <Link
                   to={`/${post.slug}`}
                   className="action-btn view"
@@ -2291,7 +2414,8 @@ function PostsListView({
                 >
                   <Eye size={16} />
                 </Link>
-                {post.source === "dashboard" && (
+                {/* Delete: admin can delete dashboard posts; demo can delete demo posts */}
+                {((!isDemo && post.source === "dashboard") || (isDemo && post.source === "demo")) && (
                   <button
                     className="action-btn delete"
                     onClick={() => onDelete(post as ContentItem)}
@@ -2337,11 +2461,13 @@ function PagesListView({
   onEdit,
   searchQuery,
   onDelete,
+  isDemo = false,
 }: {
   pages: ContentItem[];
   onEdit: (page: ContentItem) => void;
   searchQuery: string;
   onDelete: (item: ContentItem) => void;
+  isDemo?: boolean;
 }) {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [itemsPerPage, setItemsPerPage] = useState(15);
@@ -2461,6 +2587,9 @@ function PagesListView({
                 >
                   {page.published ? "Published" : "Draft"}
                 </span>
+                {page.source === "demo" && (
+                  <span className="source-badge demo">Demo</span>
+                )}
                 {page.source === "dashboard" && (
                   <span className="source-badge dashboard">Dashboard</span>
                 )}
@@ -2469,13 +2598,15 @@ function PagesListView({
                 )}
               </div>
               <div className="col-actions">
-                <button
-                  className="action-btn edit"
-                  onClick={() => onEdit(page as ContentItem)}
-                  title="Edit"
-                >
-                  <PencilSimple size={16} />
-                </button>
+                {(!isDemo || page.source === "demo") && (
+                  <button
+                    className="action-btn edit"
+                    onClick={() => onEdit(page as ContentItem)}
+                    title="Edit"
+                  >
+                    <PencilSimple size={16} />
+                  </button>
+                )}
                 <Link
                   to={`/${page.slug}`}
                   className="action-btn view"
@@ -2484,7 +2615,7 @@ function PagesListView({
                 >
                   <Eye size={16} />
                 </Link>
-                {page.source === "dashboard" && (
+                {((!isDemo && page.source === "dashboard") || (isDemo && page.source === "demo")) && (
                   <button
                     className="action-btn delete"
                     onClick={() => onDelete(page as ContentItem)}
@@ -3074,6 +3205,32 @@ const POST_FIELDS = [
   { name: "docsLanding", required: false, example: "true" },
 ];
 
+// Frontmatter field definitions for posts in demo mode.
+// Limited to fields the demo mutation accepts; omits navbar, featured,
+// blogFeatured, ordering, docs sections, layout, and other admin-only fields
+// so demo users don't write frontmatter that is silently dropped and cannot
+// surface demo content in the navbar or featured lists.
+const DEMO_POST_FIELDS = [
+  { name: "title", required: true, example: '"Your Post Title"' },
+  {
+    name: "description",
+    required: true,
+    example: '"A brief description for SEO"',
+  },
+  { name: "date", required: true, example: '"2025-01-20"' },
+  { name: "slug", required: true, example: '"your-post-url"' },
+  { name: "published", required: true, example: "true" },
+  { name: "tags", required: true, example: '["tag1", "tag2"]' },
+  { name: "readTime", required: false, example: '"5 min read"' },
+  { name: "image", required: false, example: '"/images/my-image.png"' },
+  {
+    name: "excerpt",
+    required: false,
+    example: '"Short description for cards"',
+  },
+  { name: "authorName", required: false, example: '"Jane Doe"' },
+];
+
 // Frontmatter field definitions for pages (matches Write.tsx)
 const PAGE_FIELDS = [
   { name: "title", required: true, example: '"Page Title"' },
@@ -3113,8 +3270,71 @@ const PAGE_FIELDS = [
   { name: "docsLanding", required: false, example: "true" },
 ];
 
+// Frontmatter field definitions for pages in demo mode.
+// Limited to fields the demo mutation accepts; `showInNav`, `order`,
+// `featured`, and `featuredOrder` are intentionally omitted so demo pages
+// cannot be forced into the navbar or the homepage featured section.
+const DEMO_PAGE_FIELDS = [
+  { name: "title", required: true, example: '"Page Title"' },
+  { name: "slug", required: true, example: '"page-url"' },
+  { name: "published", required: true, example: "true" },
+  { name: "excerpt", required: false, example: '"Short description"' },
+  { name: "image", required: false, example: '"/images/thumbnail.png"' },
+  { name: "authorName", required: false, example: '"Jane Doe"' },
+];
+
 // Generate frontmatter template based on content type
-function generateWriteTemplate(type: "post" | "page"): string {
+function generateWriteTemplate(
+  type: "post" | "page",
+  isDemo: boolean = false,
+): string {
+  if (isDemo) {
+    if (type === "post") {
+      return `---
+title: "Your Post Title"
+description: "A brief description for SEO and social sharing"
+date: "${new Date().toISOString().split("T")[0]}"
+slug: "your-post-url"
+published: true
+tags: ["tag1", "tag2"]
+readTime: "5 min read"
+---
+
+# Your Post Title
+
+Start writing your content here. Demo posts reset every 30 minutes.
+
+## Section Heading
+
+Add your markdown content. You can use:
+
+- **Bold text** and *italic text*
+- [Links](https://example.com)
+- Code blocks with syntax highlighting
+
+\`\`\`typescript
+const greeting = "Hello, world";
+console.log(greeting);
+\`\`\`
+`;
+    }
+
+    return `---
+title: "Page Title"
+slug: "page-url"
+published: true
+---
+
+# Page Title
+
+Your page content goes here. Demo pages reset every 30 minutes.
+
+## Section
+
+Add your markdown content.
+`;
+  }
+
   if (type === "post") {
     return `---
 title: "Your Post Title"
@@ -3184,18 +3404,22 @@ function WriteSection({
   setSidebarCollapsed,
   addToast,
   setActiveSection,
+  isDemo = false,
 }: {
   contentType: "post" | "page";
   sidebarCollapsed: boolean;
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   addToast: (message: string, type?: ToastType) => void;
   setActiveSection: (section: DashboardSection) => void;
+  isDemo?: boolean;
 }) {
   const [content, setContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [editorMode, setEditorMode] = useState<"markdown" | "richtext" | "preview">("markdown");
   const createPostMutation = useMutation(api.cms.createPost);
   const createPageMutation = useMutation(api.cms.createPage);
+  const createDemoPostMutation = useMutation(api.demo.createDemoPost);
+  const createDemoPageMutation = useMutation(api.demo.createDemoPage);
   const [copied, setCopied] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [focusMode, setFocusMode] = useState(() => {
@@ -3344,9 +3568,9 @@ function WriteSection({
     if (savedContent) {
       setContent(savedContent);
     } else {
-      setContent(generateWriteTemplate(contentType));
+      setContent(generateWriteTemplate(contentType, isDemo));
     }
-  }, [storageKey, contentType]);
+  }, [storageKey, contentType, isDemo]);
 
   // Save to localStorage on content change
   useEffect(() => {
@@ -3434,8 +3658,8 @@ function WriteSection({
 
   // Clear content and reset to template
   const handleClear = useCallback(() => {
-    setContent(generateWriteTemplate(contentType));
-  }, [contentType]);
+    setContent(generateWriteTemplate(contentType, isDemo));
+  }, [contentType, isDemo]);
 
   // Generate markdown file with frontmatter for download
   const handleDownloadMarkdown = useCallback(() => {
@@ -3576,26 +3800,43 @@ published: false
         const authorName = parseValue("authorName");
         const authorImage = parseValue("authorImage");
 
-        await createPostMutation({
-          post: {
-            slug,
-            title,
-            description,
-            content: bodyContent,
-            date,
-            published,
-            tags,
-            readTime,
-            image,
-            excerpt,
-            featured,
-            featuredOrder,
-            authorName,
-            authorImage,
-          },
-        });
+        if (isDemo) {
+          await createDemoPostMutation({
+            post: {
+              slug,
+              title,
+              description,
+              content: bodyContent,
+              date,
+              published,
+              tags,
+              readTime,
+              image,
+              excerpt,
+              authorName,
+            },
+          });
+        } else {
+          await createPostMutation({
+            post: {
+              slug,
+              title,
+              description,
+              content: bodyContent,
+              date,
+              published,
+              tags,
+              readTime,
+              image,
+              excerpt,
+              featured,
+              featuredOrder,
+              authorName,
+              authorImage,
+            },
+          });
+        }
         addToast(`Post "${title}" saved to database. Redirecting to Posts...`, "success");
-        // Navigate to posts section after successful save
         setTimeout(() => {
           setActiveSection("posts");
         }, 500);
@@ -3610,24 +3851,37 @@ published: false
         const authorName = parseValue("authorName");
         const authorImage = parseValue("authorImage");
 
-        await createPageMutation({
-          page: {
-            slug,
-            title,
-            content: bodyContent,
-            published,
-            order,
-            showInNav,
-            excerpt,
-            image,
-            featured,
-            featuredOrder,
-            authorName,
-            authorImage,
-          },
-        });
+        if (isDemo) {
+          await createDemoPageMutation({
+            page: {
+              slug,
+              title,
+              content: bodyContent,
+              published,
+              excerpt,
+              image,
+              authorName,
+            },
+          });
+        } else {
+          await createPageMutation({
+            page: {
+              slug,
+              title,
+              content: bodyContent,
+              published,
+              order,
+              showInNav,
+              excerpt,
+              image,
+              featured,
+              featuredOrder,
+              authorName,
+              authorImage,
+            },
+          });
+        }
         addToast(`Page "${title}" saved to database. Redirecting to Pages...`, "success");
-        // Navigate to pages section after successful save
         setTimeout(() => {
           setActiveSection("pages");
         }, 500);
@@ -3638,14 +3892,24 @@ published: false
     } finally {
       setIsSaving(false);
     }
-  }, [content, contentType, createPostMutation, createPageMutation, addToast, setActiveSection]);
+  }, [content, contentType, createPostMutation, createPageMutation, createDemoPostMutation, createDemoPageMutation, isDemo, addToast, setActiveSection]);
 
   // Calculate stats
   const lines = content.split("\n").length;
   const characters = content.length;
   const words = content.trim() ? content.trim().split(/\s+/).length : 0;
 
-  const fields = contentType === "post" ? POST_FIELDS : PAGE_FIELDS;
+  // In demo mode, limit frontmatter fields to what the demo mutation accepts.
+  // Fields like showInNav, featured, featuredOrder, blogFeatured, order, and
+  // docsSection are intentionally hidden so demo content can't be surfaced in
+  // the navbar or featured sections.
+  const fields = isDemo
+    ? contentType === "post"
+      ? DEMO_POST_FIELDS
+      : DEMO_PAGE_FIELDS
+    : contentType === "post"
+      ? POST_FIELDS
+      : PAGE_FIELDS;
 
   return (
     <div
@@ -3696,7 +3960,7 @@ published: false
             )}
             <span>{copied ? "Copied" : "Copy All"}</span>
           </button>
-          {siteConfig.media?.enabled && (
+          {siteConfig.media?.enabled && !isDemo && (
             <button
               onClick={() => setShowImageUpload(true)}
               className="dashboard-action-btn"
@@ -3929,8 +4193,8 @@ published: false
         </span>
       </div>
 
-      {/* Image Upload Modal - only when media is enabled */}
-      {siteConfig.media?.enabled && (
+      {/* Image Upload Modal - only when media is enabled and not in demo mode */}
+      {siteConfig.media?.enabled && !isDemo && (
         <ImageUploadModal
           isOpen={showImageUpload}
           onClose={() => setShowImageUpload(false)}
@@ -5607,6 +5871,8 @@ function ConfigSection({
     dashboardEnabled: siteConfig.dashboard?.enabled ?? true,
     dashboardRequireAuth: siteConfig.dashboard?.requireAuth ?? true,
     dashboardShowInNav: siteConfig.dashboard?.showInNav ?? true,
+    // Wiki navigation
+    wikiShowInNav: siteConfig.hardcodedNavItems?.find((i) => i.slug === "wiki")?.showInNav ?? true,
     // GitHub
     githubOwner: siteConfig.gitHubRepo.owner,
     githubRepo: siteConfig.gitHubRepo.repo,
@@ -5746,6 +6012,7 @@ export const siteConfig: SiteConfig = {
   hardcodedNavItems: [
     { slug: "stats", title: "Stats", order: 10, showInNav: ${config.statsPageShowInNav} },
     { slug: "write", title: "Write", order: 20, showInNav: true },
+    { slug: "wiki", title: "Wiki", order: 6, showInNav: ${config.wikiShowInNav} },
     { slug: "dashboard", title: "Dashboard", order: 21, showInNav: ${config.dashboardShowInNav} },
   ],
   
@@ -6297,6 +6564,18 @@ export default siteConfig;
                 }
               />
               <span>Show dashboard in nav (admins only)</span>
+            </label>
+          </div>
+          <div className="config-field checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={config.wikiShowInNav}
+                onChange={(e) =>
+                  handleChange("wikiShowInNav", e.target.checked)
+                }
+              />
+              <span>Show wiki in nav</span>
             </label>
           </div>
           <div className="config-field checkbox">
@@ -6949,6 +7228,1303 @@ function VersionControlCard({
             <span className="version-stat-value">
               {formatDate(versionStats.newestVersion)}
             </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SourcesSection({
+  addToast,
+}: {
+  addToast: (message: string, type?: ToastType) => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [sourceType, setSourceType] = useState<
+    "article" | "paper" | "repo" | "note" | "transcript"
+  >("article");
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<
+    Id<"sourceIngestJobs"> | null
+  >(null);
+  const [handledJobId, setHandledJobId] = useState<
+    Id<"sourceIngestJobs"> | null
+  >(null);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+
+  const sources = useQuery(api.sources.listSources);
+  const requestIngest = useMutation(api.sources.requestIngestSource);
+  const ingestJob = useQuery(
+    api.sources.getIngestJobStatus,
+    currentJobId ? { jobId: currentJobId } : "skip",
+  );
+  const sourceBySlug = useQuery(
+    api.sources.getSourceBySlug,
+    selectedSource ? { slug: selectedSource } : "skip",
+  );
+
+  const isLoading = isRequesting || ingestJob?.status === "pending" || ingestJob?.status === "running";
+
+  useEffect(() => {
+    if (!ingestJob || !currentJobId) return;
+    if (handledJobId === currentJobId) return;
+
+    if (ingestJob.status === "completed") {
+      addToast("Source ingested successfully", "success");
+      setUrl("");
+      setTitle("");
+      setHandledJobId(currentJobId);
+      return;
+    }
+
+    if (ingestJob.status === "failed") {
+      addToast(ingestJob.error || "Source ingestion failed", "error");
+      setHandledJobId(currentJobId);
+    }
+  }, [addToast, handledJobId, currentJobId, ingestJob]);
+
+  const handleIngest = async () => {
+    if (!title.trim()) {
+      addToast("Title is required", "warning");
+      return;
+    }
+    if (!url.trim()) {
+      addToast("URL is required", "warning");
+      return;
+    }
+
+    setIsRequesting(true);
+    setHandledJobId(null);
+    setCurrentJobId(null);
+
+    try {
+      const result = await requestIngest({
+        url: url.trim(),
+        title: title.trim(),
+        sourceType,
+      });
+      setCurrentJobId(result.jobId);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start ingestion";
+      addToast(message, "error");
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  return (
+    <div className="dashboard-import-section">
+      <div className="dashboard-import-header">
+        <Database size={32} weight="light" />
+        <h2>Source Ingest</h2>
+        <p>Scrape URLs with Firecrawl and generate embeddings for wiki compilation</p>
+      </div>
+
+      <div className="dashboard-import-form">
+        <div className="dashboard-import-input-group">
+          <Globe size={18} />
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://example.com/article"
+            className="dashboard-import-input"
+          />
+        </div>
+        <div className="dashboard-import-input-group">
+          <FileText size={18} />
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Source title"
+            className="dashboard-import-input"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && url.trim() && title.trim() && !isLoading) {
+                handleIngest();
+              }
+            }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <label style={{ fontSize: "0.85rem", opacity: 0.7 }}>Type:</label>
+          <select
+            value={sourceType}
+            onChange={(e) =>
+              setSourceType(
+                e.target.value as "article" | "paper" | "repo" | "note" | "transcript",
+              )
+            }
+            style={{
+              padding: "0.4rem 0.6rem",
+              borderRadius: "6px",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              fontSize: "0.85rem",
+            }}
+          >
+            <option value="article">Article</option>
+            <option value="paper">Paper</option>
+            <option value="repo">Repository</option>
+            <option value="note">Note</option>
+            <option value="transcript">Transcript</option>
+          </select>
+        </div>
+        <button
+          className="dashboard-import-btn"
+          onClick={handleIngest}
+          disabled={isLoading || !url.trim() || !title.trim()}
+        >
+          {isLoading ? (
+            <>
+              <SpinnerGap size={16} className="animate-spin" />
+              <span>Ingesting...</span>
+            </>
+          ) : (
+            <>
+              <CloudArrowDown size={16} />
+              <span>Ingest Source</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {sources && sources.length > 0 && (
+        <div style={{ marginTop: "1.5rem" }}>
+          <h3 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>
+            Ingested Sources ({sources.length})
+          </h3>
+          <div className="dashboard-list-table">
+            <div
+              className="dashboard-list-table-header"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 100px 100px 140px",
+                gap: "0.5rem",
+                padding: "0.5rem 0.75rem",
+                fontSize: "0.75rem",
+                textTransform: "uppercase",
+                opacity: 0.6,
+                fontWeight: 600,
+              }}
+            >
+              <span>Title</span>
+              <span>Type</span>
+              <span>Status</span>
+              <span>Ingested</span>
+            </div>
+            {sources.map((source) => (
+              <div
+                key={source._id}
+                onClick={() =>
+                  setSelectedSource(
+                    selectedSource === source.slug ? null : source.slug,
+                  )
+                }
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 100px 100px 140px",
+                  gap: "0.5rem",
+                  padding: "0.6rem 0.75rem",
+                  borderBottom: "1px solid var(--border-color)",
+                  cursor: "pointer",
+                  background:
+                    selectedSource === source.slug
+                      ? "var(--bg-secondary)"
+                      : "transparent",
+                  fontSize: "0.85rem",
+                  transition: "background 0.15s",
+                }}
+              >
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                  title={source.title}
+                >
+                  {source.title}
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    opacity: 0.7,
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {source.sourceType}
+                </span>
+                <span>
+                  {source.processed ? (
+                    <span style={{ color: "var(--success-color, #22c55e)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                      <CheckCircle size={14} weight="fill" /> Ready
+                    </span>
+                  ) : (
+                    <span style={{ color: "var(--warning-color, #f59e0b)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                      <Clock size={14} /> Pending
+                    </span>
+                  )}
+                </span>
+                <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
+                  {new Date(source.ingestedAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {selectedSource && sourceBySlug && (
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "1rem",
+                border: "1px solid var(--border-color)",
+                borderRadius: "8px",
+                background: "var(--bg-secondary)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <h4 style={{ margin: 0 }}>{sourceBySlug.title}</h4>
+                <button
+                  onClick={() => setSelectedSource(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--text-primary)",
+                    opacity: 0.6,
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              {sourceBySlug.url && (
+                <p style={{ fontSize: "0.8rem", opacity: 0.6, margin: "0 0 0.5rem" }}>
+                  <a href={sourceBySlug.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--link-color)" }}>
+                    {sourceBySlug.url}
+                  </a>
+                </p>
+              )}
+              {sourceBySlug.tags && sourceBySlug.tags.length > 0 && (
+                <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                  {sourceBySlug.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontSize: "0.7rem",
+                        padding: "0.15rem 0.4rem",
+                        borderRadius: "4px",
+                        background: "var(--bg-primary)",
+                        border: "1px solid var(--border-color)",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <pre
+                style={{
+                  maxHeight: "300px",
+                  overflow: "auto",
+                  fontSize: "0.8rem",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  lineHeight: 1.5,
+                  margin: 0,
+                  padding: "0.75rem",
+                  background: "var(--bg-primary)",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                {sourceBySlug.content.slice(0, 2000)}
+                {sourceBySlug.content.length > 2000 && "\n\n... (truncated)"}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+
+      {sources && sources.length === 0 && (
+        <div className="dashboard-import-info">
+          <h3>No sources yet</h3>
+          <p>Ingest a URL above to add your first source. Sources are scraped with Firecrawl and embedded with OpenAI for use in wiki compilation.</p>
+          <p className="note">
+            Requires FIRECRAWL_API_KEY and OPENAI_API_KEY in Convex environment variables
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WikiSection({
+  addToast,
+}: {
+  addToast: (message: string, type?: ToastType) => void;
+}) {
+  const [selectedPage, setSelectedPage] = useState<string | null>(null);
+  const [isCompiling, setIsCompiling] = useState(false);
+  const [isLinting, setIsLinting] = useState(false);
+  const [compileJobId, setCompileJobId] = useState<
+    Id<"wikiCompilationJobs"> | null
+  >(null);
+  const [lintJobId, setLintJobId] = useState<
+    Id<"wikiCompilationJobs"> | null
+  >(null);
+  const [handledCompileId, setHandledCompileId] = useState<
+    Id<"wikiCompilationJobs"> | null
+  >(null);
+  const [handledLintId, setHandledLintId] = useState<
+    Id<"wikiCompilationJobs"> | null
+  >(null);
+  const [showLintReport, setShowLintReport] = useState(false);
+
+  const wikiPages = useQuery(api.wiki.listWikiPages, {});
+  const latestJob = useQuery(api.wikiJobs.getLatestCompilationJob);
+  const wikiIndex = useQuery(api.wiki.getWikiIndex, { key: "main" });
+  const lintReport = useQuery(api.wiki.getWikiIndex, { key: "lint" });
+  const pageDetail = useQuery(
+    api.wiki.getWikiPageBySlug,
+    selectedPage ? { slug: selectedPage } : "skip",
+  );
+  const compileJobStatus = useQuery(
+    api.wikiJobs.getCompilationJobStatus,
+    compileJobId ? { jobId: compileJobId } : "skip",
+  );
+  const lintJobStatus = useQuery(
+    api.wikiJobs.getCompilationJobStatus,
+    lintJobId ? { jobId: lintJobId } : "skip",
+  );
+
+  const requestCompilation = useMutation(api.wikiJobs.requestCompilation);
+  const requestLint = useMutation(api.wikiJobs.requestLint);
+
+  // Track compile job completion
+  useEffect(() => {
+    if (!compileJobStatus || !compileJobId) return;
+    if (handledCompileId === compileJobId) return;
+
+    if (compileJobStatus.status === "completed") {
+      const created = compileJobStatus.pagesCreated || 0;
+      const updated = compileJobStatus.pagesUpdated || 0;
+      addToast(`Wiki compiled: ${created} created, ${updated} updated`, "success");
+      setHandledCompileId(compileJobId);
+      setIsCompiling(false);
+      return;
+    }
+
+    if (compileJobStatus.status === "failed") {
+      addToast(compileJobStatus.error || "Compilation failed", "error");
+      setHandledCompileId(compileJobId);
+      setIsCompiling(false);
+    }
+  }, [addToast, handledCompileId, compileJobId, compileJobStatus]);
+
+  // Track lint job completion
+  useEffect(() => {
+    if (!lintJobStatus || !lintJobId) return;
+    if (handledLintId === lintJobId) return;
+
+    if (lintJobStatus.status === "completed") {
+      addToast("Wiki lint complete", "success");
+      setHandledLintId(lintJobId);
+      setIsLinting(false);
+      setShowLintReport(true);
+      return;
+    }
+
+    if (lintJobStatus.status === "failed") {
+      addToast(lintJobStatus.error || "Lint failed", "error");
+      setHandledLintId(lintJobId);
+      setIsLinting(false);
+    }
+  }, [addToast, handledLintId, lintJobId, lintJobStatus]);
+
+  const handleCompile = async () => {
+    setIsCompiling(true);
+    setHandledCompileId(null);
+    setCompileJobId(null);
+
+    try {
+      const result = await requestCompilation({});
+      setCompileJobId(result.jobId);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start compilation";
+      addToast(message, "error");
+      setIsCompiling(false);
+    }
+  };
+
+  const handleLint = async () => {
+    setIsLinting(true);
+    setHandledLintId(null);
+    setLintJobId(null);
+
+    try {
+      const result = await requestLint({});
+      setLintJobId(result.jobId);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start lint";
+      addToast(message, "error");
+      setIsLinting(false);
+    }
+  };
+
+  const compileRunning =
+    isCompiling ||
+    compileJobStatus?.status === "pending" ||
+    compileJobStatus?.status === "running";
+  const lintRunning =
+    isLinting ||
+    lintJobStatus?.status === "pending" ||
+    lintJobStatus?.status === "running";
+
+  return (
+    <div className="dashboard-import-section">
+      <div className="dashboard-import-header">
+        <BookOpen size={32} weight="light" />
+        <h2>LLM Wiki</h2>
+        <p>Interlinked knowledge base compiled from all site content by GPT-4.1 mini</p>
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+        <button
+          className="dashboard-import-btn"
+          onClick={handleCompile}
+          disabled={compileRunning || lintRunning}
+          style={{ flex: "0 0 auto" }}
+        >
+          {compileRunning ? (
+            <>
+              <SpinnerGap size={16} className="animate-spin" />
+              <span>Compiling...</span>
+            </>
+          ) : (
+            <>
+              <TreeStructure size={16} />
+              <span>Compile Wiki</span>
+            </>
+          )}
+        </button>
+        <button
+          className="dashboard-import-btn"
+          onClick={handleLint}
+          disabled={lintRunning || compileRunning}
+          style={{ flex: "0 0 auto" }}
+        >
+          {lintRunning ? (
+            <>
+              <SpinnerGap size={16} className="animate-spin" />
+              <span>Linting...</span>
+            </>
+          ) : (
+            <>
+              <MagnifyingGlass size={16} />
+              <span>Lint Wiki</span>
+            </>
+          )}
+        </button>
+        {lintReport && (
+          <button
+            className="dashboard-import-btn"
+            onClick={() => setShowLintReport(!showLintReport)}
+            style={{ flex: "0 0 auto", opacity: 0.8 }}
+          >
+            <Info size={16} />
+            <span>{showLintReport ? "Hide Lint Report" : "Show Lint Report"}</span>
+          </button>
+        )}
+      </div>
+
+      {/* Latest job status */}
+      {latestJob && (
+        <div
+          style={{
+            padding: "0.75rem 1rem",
+            borderRadius: "8px",
+            border: "1px solid var(--border-color)",
+            background: "var(--bg-secondary)",
+            marginBottom: "1.5rem",
+            fontSize: "0.85rem",
+            display: "flex",
+            gap: "1.5rem",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            {latestJob.status === "completed" && <CheckCircle size={16} weight="fill" style={{ color: "var(--success-color, #22c55e)" }} />}
+            {latestJob.status === "failed" && <WarningCircle size={16} weight="fill" style={{ color: "var(--error-color, #ef4444)" }} />}
+            {latestJob.status === "running" && <SpinnerGap size={16} className="animate-spin" />}
+            {latestJob.status === "pending" && <Clock size={16} />}
+            Last job: <strong>{latestJob.trigger}</strong>
+          </span>
+          <span>
+            Status: <strong>{latestJob.status}</strong>
+          </span>
+          {latestJob.pagesCreated !== undefined && (
+            <span>Created: {latestJob.pagesCreated}</span>
+          )}
+          {latestJob.pagesUpdated !== undefined && (
+            <span>Updated: {latestJob.pagesUpdated}</span>
+          )}
+          {latestJob.completedAt && (
+            <span style={{ opacity: 0.6, fontSize: "0.8rem" }}>
+              {new Date(latestJob.completedAt).toLocaleString()}
+            </span>
+          )}
+          {latestJob.error && (
+            <span style={{ color: "var(--error-color, #ef4444)", fontSize: "0.8rem" }}>
+              {latestJob.error}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Lint report */}
+      {showLintReport && lintReport && (
+        <div
+          style={{
+            marginBottom: "1.5rem",
+            padding: "1rem",
+            border: "1px solid var(--border-color)",
+            borderRadius: "8px",
+            background: "var(--bg-secondary)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+            <h4 style={{ margin: 0 }}>Lint Report</h4>
+            <span style={{ fontSize: "0.75rem", opacity: 0.5 }}>
+              {new Date(lintReport.lastUpdatedAt).toLocaleString()}
+            </span>
+          </div>
+          <pre
+            style={{
+              maxHeight: "250px",
+              overflow: "auto",
+              fontSize: "0.8rem",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              lineHeight: 1.5,
+              margin: 0,
+              padding: "0.75rem",
+              background: "var(--bg-primary)",
+              borderRadius: "6px",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            {lintReport.content}
+          </pre>
+        </div>
+      )}
+
+      {/* Wiki pages list */}
+      {wikiPages && wikiPages.length > 0 && (
+        <div>
+          <h3 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>
+            Wiki Pages ({wikiPages.length})
+          </h3>
+          <div className="dashboard-list-table">
+            <div
+              className="dashboard-list-table-header"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 100px 120px 140px",
+                gap: "0.5rem",
+                padding: "0.5rem 0.75rem",
+                fontSize: "0.75rem",
+                textTransform: "uppercase",
+                opacity: 0.6,
+                fontWeight: 600,
+              }}
+            >
+              <span>Title</span>
+              <span>Type</span>
+              <span>Category</span>
+              <span>Compiled</span>
+            </div>
+            {wikiPages.map((page) => (
+              <div
+                key={page._id}
+                onClick={() =>
+                  setSelectedPage(
+                    selectedPage === page.slug ? null : page.slug,
+                  )
+                }
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 100px 120px 140px",
+                  gap: "0.5rem",
+                  padding: "0.6rem 0.75rem",
+                  borderBottom: "1px solid var(--border-color)",
+                  cursor: "pointer",
+                  background:
+                    selectedPage === page.slug
+                      ? "var(--bg-secondary)"
+                      : "transparent",
+                  fontSize: "0.85rem",
+                  transition: "background 0.15s",
+                }}
+              >
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                  title={page.title}
+                >
+                  {page.title}
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    opacity: 0.7,
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {page.pageType}
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    opacity: 0.7,
+                  }}
+                >
+                  {page.category || "\u2014"}
+                </span>
+                <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
+                  {new Date(page.lastCompiledAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Page detail viewer */}
+          {selectedPage && pageDetail && (
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "1rem",
+                border: "1px solid var(--border-color)",
+                borderRadius: "8px",
+                background: "var(--bg-secondary)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <h4 style={{ margin: 0 }}>{pageDetail.title}</h4>
+                <button
+                  onClick={() => setSelectedPage(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--text-primary)",
+                    opacity: 0.6,
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                <span
+                  style={{
+                    fontSize: "0.7rem",
+                    padding: "0.15rem 0.4rem",
+                    borderRadius: "4px",
+                    background: "var(--bg-primary)",
+                    border: "1px solid var(--border-color)",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {pageDetail.pageType}
+                </span>
+                {pageDetail.category && (
+                  <span
+                    style={{
+                      fontSize: "0.7rem",
+                      padding: "0.15rem 0.4rem",
+                      borderRadius: "4px",
+                      background: "var(--bg-primary)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    {pageDetail.category}
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontSize: "0.7rem",
+                    padding: "0.15rem 0.4rem",
+                    opacity: 0.5,
+                  }}
+                >
+                  Compiled: {new Date(pageDetail.lastCompiledAt).toLocaleString()}
+                </span>
+              </div>
+              {pageDetail.backlinks && pageDetail.backlinks.length > 0 && (
+                <div style={{ marginBottom: "0.75rem" }}>
+                  <span style={{ fontSize: "0.75rem", opacity: 0.6 }}>Backlinks: </span>
+                  {pageDetail.backlinks.map((bl: string) => (
+                    <button
+                      key={bl}
+                      onClick={() => setSelectedPage(bl)}
+                      style={{
+                        fontSize: "0.75rem",
+                        padding: "0.1rem 0.35rem",
+                        marginRight: "0.25rem",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-color)",
+                        background: "var(--bg-primary)",
+                        color: "var(--link-color)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {bl}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {pageDetail.sourceSlugs && pageDetail.sourceSlugs.length > 0 && (
+                <div style={{ marginBottom: "0.75rem" }}>
+                  <span style={{ fontSize: "0.75rem", opacity: 0.6 }}>Sources: </span>
+                  {pageDetail.sourceSlugs.map((sl: string) => (
+                    <span
+                      key={sl}
+                      style={{
+                        fontSize: "0.75rem",
+                        padding: "0.1rem 0.35rem",
+                        marginRight: "0.25rem",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-color)",
+                        background: "var(--bg-primary)",
+                        opacity: 0.7,
+                      }}
+                    >
+                      {sl}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div
+                className="markdown-content"
+                style={{
+                  maxHeight: "400px",
+                  overflow: "auto",
+                  padding: "0.75rem",
+                  background: "var(--bg-primary)",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border-color)",
+                  fontSize: "0.85rem",
+                  lineHeight: 1.6,
+                }}
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
+                  rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
+                >
+                  {pageDetail.content}
+                </ReactMarkdown>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {wikiPages && wikiPages.length === 0 && (
+        <div className="dashboard-import-info">
+          <h3>No wiki pages yet</h3>
+          <p>Click "Compile Wiki" to generate interlinked wiki pages from all posts, pages, and sources using GPT-4.1 mini.</p>
+          <p className="note">
+            Requires OPENAI_API_KEY in Convex environment variables. Daily auto-compilation runs at 4:00 AM UTC.
+          </p>
+        </div>
+      )}
+
+      {/* Wiki index */}
+      {wikiIndex && (
+        <div
+          style={{
+            marginTop: "1.5rem",
+            padding: "1rem",
+            border: "1px solid var(--border-color)",
+            borderRadius: "8px",
+            background: "var(--bg-secondary)",
+          }}
+        >
+          <h4 style={{ margin: "0 0 0.5rem" }}>Wiki Index</h4>
+          <pre
+            style={{
+              maxHeight: "200px",
+              overflow: "auto",
+              fontSize: "0.8rem",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              lineHeight: 1.5,
+              margin: 0,
+              padding: "0.75rem",
+              background: "var(--bg-primary)",
+              borderRadius: "6px",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            {wikiIndex.content}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function KnowledgeBasesSection({
+  addToast,
+}: {
+  addToast: (message: string, type?: ToastType) => void;
+}) {
+  const [showCreate, setShowCreate] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [sourceType, setSourceType] = useState<"upload" | "obsidian">("upload");
+  const [selectedKbId, setSelectedKbId] = useState<Id<"knowledgeBases"> | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<Array<{ filename: string; content: string }>>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const kbs = useQuery(api.knowledgeBases.listKnowledgeBases) ?? [];
+  const createKb = useMutation(api.knowledgeBases.create);
+  const updateKb = useMutation(api.knowledgeBases.update);
+  const removeKb = useMutation(api.knowledgeBases.remove);
+  const uploadFilesMutation = useMutation(api.kbUpload.uploadFiles);
+
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+    setIsCreating(true);
+    try {
+      await createKb({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        visibility,
+        sourceType,
+      });
+      addToast("Knowledge base created");
+      setShowCreate(false);
+      setTitle("");
+      setDescription("");
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : "Failed to create", "error");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList) return;
+    const files: Array<{ filename: string; content: string }> = [];
+    for (const file of Array.from(fileList)) {
+      if (!file.name.endsWith(".md")) continue;
+      const text = await file.text();
+      files.push({ filename: file.name, content: text });
+    }
+    setUploadFiles(files);
+  };
+
+  const handleUpload = async () => {
+    if (!selectedKbId || uploadFiles.length === 0) return;
+    setIsUploading(true);
+    try {
+      await uploadFilesMutation({
+        kbId: selectedKbId,
+        files: uploadFiles,
+      });
+      addToast(`Uploaded ${uploadFiles.length} files`);
+      setUploadFiles([]);
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : "Upload failed", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleToggleApi = async (kbId: Id<"knowledgeBases">, enabled: boolean) => {
+    try {
+      await updateKb({
+        id: kbId,
+        apiEnabled: enabled,
+        apiVisibility: enabled ? "public" : "off",
+      });
+      addToast(enabled ? "API enabled" : "API disabled");
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : "Failed to update", "error");
+    }
+  };
+
+  const handleToggleVisibility = async (kbId: Id<"knowledgeBases">, vis: "public" | "private") => {
+    try {
+      await updateKb({ id: kbId, visibility: vis });
+      addToast(`Visibility set to ${vis}`);
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : "Failed to update", "error");
+    }
+  };
+
+  const handleDelete = async (kbId: Id<"knowledgeBases">) => {
+    try {
+      await removeKb({ id: kbId });
+      if (selectedKbId === kbId) setSelectedKbId(null);
+      addToast("Knowledge base deleted");
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : "Failed to delete", "error");
+    }
+  };
+
+  return (
+    <div className="dashboard-import-section" style={{ maxWidth: "720px" }}>
+      <div className="dashboard-import-header">
+        <FolderOpen size={32} weight="light" />
+        <h2>Knowledge Bases</h2>
+        <p>Create and manage separate wikis from uploaded markdown or Obsidian vaults</p>
+      </div>
+
+      {/* Create form */}
+      {showCreate ? (
+        <div
+          style={{
+            marginBottom: "1.5rem",
+            padding: "1rem",
+            border: "1px solid var(--border-color)",
+            borderRadius: "8px",
+            background: "var(--bg-secondary)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <h3 style={{ margin: 0, fontSize: "1rem" }}>New knowledge base</h3>
+            <button
+              onClick={() => setShowCreate(false)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--text-primary)",
+                opacity: 0.6,
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="dashboard-import-form">
+            <div className="dashboard-import-input-group">
+              <FileText size={18} />
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Knowledge base title"
+                className="dashboard-import-input"
+              />
+            </div>
+            <div className="dashboard-import-input-group">
+              <Info size={18} />
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Description (optional)"
+                className="dashboard-import-input"
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "0.5rem" }}>
+            <label style={{ fontSize: "0.85rem", opacity: 0.7 }}>Visibility:</label>
+            <select
+              value={visibility}
+              onChange={(e) => setVisibility(e.target.value as "public" | "private")}
+              style={{
+                padding: "0.4rem 0.6rem",
+                borderRadius: "6px",
+                border: "1px solid var(--border-color)",
+                background: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+                fontSize: "0.85rem",
+              }}
+            >
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+            <label style={{ fontSize: "0.85rem", opacity: 0.7, marginLeft: "0.5rem" }}>Type:</label>
+            <select
+              value={sourceType}
+              onChange={(e) => setSourceType(e.target.value as "upload" | "obsidian")}
+              style={{
+                padding: "0.4rem 0.6rem",
+                borderRadius: "6px",
+                border: "1px solid var(--border-color)",
+                background: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+                fontSize: "0.85rem",
+              }}
+            >
+              <option value="upload">Markdown Upload</option>
+              <option value="obsidian">Obsidian Vault</option>
+            </select>
+          </div>
+          <button
+            className="dashboard-import-btn"
+            onClick={handleCreate}
+            disabled={isCreating || !title.trim()}
+            style={{ marginTop: "0.75rem" }}
+          >
+            {isCreating ? (
+              <>
+                <SpinnerGap size={16} className="animate-spin" />
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <Plus size={16} />
+                <span>Create Knowledge Base</span>
+              </>
+            )}
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+          <button
+            className="dashboard-import-btn"
+            onClick={() => setShowCreate(true)}
+          >
+            <Plus size={16} />
+            <span>New Knowledge Base</span>
+          </button>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {kbs.length === 0 && !showCreate && (
+        <div
+          style={{
+            padding: "2rem",
+            textAlign: "center",
+            border: "1px dashed var(--border-color)",
+            borderRadius: "8px",
+            color: "var(--text-secondary)",
+          }}
+        >
+          No knowledge bases yet. Create one to upload markdown files or Obsidian vaults.
+        </div>
+      )}
+
+      {/* KB list table */}
+      {kbs.length > 0 && (
+        <div style={{ marginTop: "0.5rem" }}>
+          <h3 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>
+            Knowledge Bases ({kbs.length})
+          </h3>
+          <div className="dashboard-list-table">
+            <div
+              className="dashboard-list-table-header"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 80px 80px 80px 100px",
+                gap: "0.5rem",
+                padding: "0.5rem 0.75rem",
+                fontSize: "0.75rem",
+                textTransform: "uppercase",
+                opacity: 0.6,
+                fontWeight: 600,
+              }}
+            >
+              <span>Title</span>
+              <span>Pages</span>
+              <span>Visibility</span>
+              <span>API</span>
+              <span>Actions</span>
+            </div>
+            {kbs.map((kb) => (
+              <div key={kb._id}>
+                <div
+                  onClick={() => setSelectedKbId(selectedKbId === kb._id ? null : kb._id)}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 80px 80px 80px 100px",
+                    gap: "0.5rem",
+                    padding: "0.6rem 0.75rem",
+                    borderBottom: "1px solid var(--border-color)",
+                    cursor: "pointer",
+                    background: selectedKbId === kb._id ? "var(--bg-secondary)" : "transparent",
+                    fontSize: "0.85rem",
+                    transition: "background 0.15s",
+                  }}
+                >
+                  <span
+                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                    title={kb.title}
+                  >
+                    <strong>{kb.title}</strong>
+                    {kb.description && (
+                      <span style={{ marginLeft: "0.5rem", fontSize: "0.8em", opacity: 0.5 }}>
+                        {kb.description}
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ fontSize: "0.85rem" }}>{kb.pageCount ?? 0}</span>
+                  <span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleVisibility(kb._id, kb.visibility === "public" ? "private" : "public");
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--text-primary)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        fontSize: "0.8rem",
+                        padding: 0,
+                      }}
+                      title={`Toggle to ${kb.visibility === "public" ? "private" : "public"}`}
+                    >
+                      {kb.visibility === "public" ? (
+                        <><Globe size={14} style={{ color: "var(--success-color, #22c55e)" }} /> Public</>
+                      ) : (
+                        <><Lock size={14} style={{ color: "var(--warning-color, #f59e0b)" }} /> Private</>
+                      )}
+                    </button>
+                  </span>
+                  <span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleApi(kb._id, !kb.apiEnabled);
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: kb.apiEnabled ? "var(--success-color, #22c55e)" : "var(--text-secondary)",
+                        fontSize: "0.8rem",
+                        padding: 0,
+                      }}
+                      title={kb.apiEnabled ? "Disable API" : "Enable API"}
+                    >
+                      {kb.apiEnabled ? "On" : "Off"}
+                    </button>
+                  </span>
+                  <span style={{ display: "flex", gap: "0.25rem" }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(kb._id);
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--text-secondary)",
+                        padding: "0.15rem",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                      title="Delete knowledge base"
+                    >
+                      <Trash size={14} />
+                    </button>
+                  </span>
+                </div>
+
+                {/* Expanded detail panel */}
+                {selectedKbId === kb._id && (
+                  <div
+                    style={{
+                      padding: "1rem",
+                      borderBottom: "1px solid var(--border-color)",
+                      background: "var(--bg-secondary)",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+                      <div style={{ flex: 1, minWidth: "200px" }}>
+                        <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                          <UploadSimple size={16} /> Upload markdown files
+                        </h4>
+                        <input
+                          type="file"
+                          accept=".md"
+                          multiple
+                          onChange={handleFileSelect}
+                          style={{
+                            fontSize: "0.85rem",
+                            marginBottom: "0.5rem",
+                            display: "block",
+                            width: "100%",
+                          }}
+                        />
+                        {uploadFiles.length > 0 && (
+                          <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                            {uploadFiles.length} file(s) selected
+                          </p>
+                        )}
+                        <button
+                          className="dashboard-import-btn"
+                          onClick={handleUpload}
+                          disabled={isUploading || uploadFiles.length === 0}
+                          style={{ fontSize: "0.85rem" }}
+                        >
+                          {isUploading ? (
+                            <>
+                              <SpinnerGap size={14} className="animate-spin" />
+                              <span>Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <UploadSimple size={14} />
+                              <span>Upload</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {kb.apiEnabled && (
+                        <div style={{ flex: 1, minWidth: "200px" }}>
+                          <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.9rem" }}>API endpoint</h4>
+                          <code
+                            style={{
+                              display: "block",
+                              fontSize: "0.8rem",
+                              padding: "0.5rem 0.75rem",
+                              background: "var(--bg-primary)",
+                              border: "1px solid var(--border-color)",
+                              borderRadius: "6px",
+                              wordBreak: "break-all",
+                            }}
+                          >
+                            /api/kb/pages?slug={kb.slug}
+                          </code>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: "0.75rem", fontSize: "0.8rem", opacity: 0.5 }}>
+                      Source type: {kb.sourceType} / Created: {new Date(kb.createdAt).toLocaleDateString()}
+                      {kb.lastCompiledAt && <> / Last compiled: {new Date(kb.lastCompiledAt).toLocaleDateString()}</>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

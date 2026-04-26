@@ -10,6 +10,20 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { v } from "convex/values";
 
+function rateLimitResponse(retryAfter?: number): Response {
+  return new Response(
+    JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        ...(retryAfter ? { "Retry-After": String(Math.ceil(retryAfter / 1000)) } : {}),
+        "Access-Control-Allow-Origin": "*",
+      },
+    },
+  );
+}
+
 // Initialize Persistent Text Streaming component
 const streaming = new PersistentTextStreaming(components.persistentTextStreaming);
 
@@ -43,6 +57,15 @@ export async function handleStreamResponse(
       status: 401,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
+  }
+
+  // Tier 1 rate limit: LLM calls cost real dollars
+  const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+    name: "askAiStream",
+    key: identity.subject,
+  });
+  if (!rl.ok) {
+    return rateLimitResponse(rl.retryAfter);
   }
 
   let body: { streamId?: string };
@@ -193,7 +216,7 @@ ${context}
 Please provide a helpful answer based on the context above.`;
 
       // Generate response with selected model
-      if (model === "gpt-4o") {
+      if (model === "gpt-4.1-mini") {
         const openaiApiKey = process.env.OPENAI_API_KEY;
         if (!openaiApiKey) {
           await appendChunk("**Error:** OPENAI_API_KEY not configured.");
@@ -202,7 +225,7 @@ Please provide a helpful answer based on the context above.`;
 
         const openai = new OpenAI({ apiKey: openaiApiKey });
         const stream = await openai.chat.completions.create({
-          model: "gpt-4o",
+          model: "gpt-4.1-mini",
           messages: [
             { role: "system", content: RAG_SYSTEM_PROMPT },
             { role: "user", content: fullPrompt },

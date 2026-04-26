@@ -8,6 +8,20 @@ import { registerRoutes } from "convex-fs";
 import { fs } from "./fs";
 import { auth } from "./auth";
 
+function rateLimitedResponse(retryAfter?: number): Response {
+  return new Response(
+    JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        ...(retryAfter ? { "Retry-After": String(Math.ceil(retryAfter / 1000)) } : {}),
+        "Access-Control-Allow-Origin": "*",
+      },
+    },
+  );
+}
+
 const http = httpRouter();
 
 // Register Convex Auth routes for default auth mode.
@@ -21,15 +35,18 @@ http.route({
   pathPrefix: "/raw/",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "rawMarkdown",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
     const url = new URL(request.url);
-    // /raw/documentation.md -> documentation
     const slug = url.pathname.replace(/^\/raw\//, "").replace(/\.md$/, "");
 
     if (!slug) {
       return new Response("Not found", { status: 404 });
     }
 
-    // Try post first, then page
     const post = await ctx.runQuery(internal.posts.getPostBySlugWithContent, { slug });
     if (post) {
       const frontmatter = [
@@ -100,7 +117,13 @@ const SITE_NAME = "markdown sync framework";
 http.route({
   path: "/rss.xml",
   method: "GET",
-  handler: httpAction(handleRssFeed),
+  handler: httpAction(async (ctx) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "rssFeed",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+    return handleRssFeed(ctx);
+  }),
 });
 
 http.route({
@@ -123,7 +146,13 @@ http.route({
 http.route({
   path: "/rss-full.xml",
   method: "GET",
-  handler: httpAction(handleRssFullFeed),
+  handler: httpAction(async (ctx) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "rssFullFeed",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+    return handleRssFullFeed(ctx);
+  }),
 });
 
 http.route({
@@ -147,6 +176,11 @@ http.route({
   path: "/sitemap.xml",
   method: "GET",
   handler: httpAction(async (ctx) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "sitemap",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
     const posts = await ctx.runQuery(internal.posts.getAllPostsInternal);
     const pages = await ctx.runQuery(internal.pages.getAllPagesInternal);
     const tags = await ctx.runQuery(internal.posts.getAllTagsInternal);
@@ -229,6 +263,11 @@ http.route({
   path: "/api/posts",
   method: "GET",
   handler: httpAction(async (ctx) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "apiPosts",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
     const posts = await ctx.runQuery(internal.posts.getAllPostsInternal);
 
     const response = {
@@ -279,6 +318,11 @@ http.route({
   path: "/api/post",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "apiPost",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
     const url = new URL(request.url);
     const slug = url.searchParams.get("slug");
     const format = url.searchParams.get("format") || "json";
@@ -365,7 +409,11 @@ http.route({
   path: "/api/export",
   method: "GET",
   handler: httpAction(async (ctx) => {
-    // Single batch query instead of N+1 per-post fetches
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "apiExport",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
     const posts = await ctx.runQuery(internal.posts.getAllPostsWithContentInternal);
 
     const response = {
@@ -601,6 +649,284 @@ http.route({
   path: "/ask-ai-stream",
   method: "OPTIONS",
   handler: httpAction(handleStreamResponseOptions),
+});
+
+// Knowledge Base API: list all public KBs
+http.route({
+  path: "/api/kb",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "kbApi",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
+    const kbs = await ctx.runQuery(internal.knowledgeBases.listPublicKbsForApi, {});
+    return new Response(JSON.stringify({ knowledgeBases: kbs }, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=60",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
+http.route({
+  path: "/api/kb",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
+// Knowledge Base API: per-KB pages and page detail
+// /api/kb/pages?slug=my-kb  -> list all pages in a KB
+// /api/kb/page?kb=my-kb&slug=page-slug -> get a single page
+http.route({
+  path: "/api/kb/pages",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "kbApi",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
+    const url = new URL(request.url);
+    const kbSlug = url.searchParams.get("slug");
+    if (!kbSlug) {
+      return new Response(JSON.stringify({ error: "Missing slug parameter" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    const kb = await ctx.runQuery(internal.knowledgeBases.getBySlugInternal, { slug: kbSlug });
+    if (!kb || !kb.apiEnabled || kb.apiVisibility === "off") {
+      return new Response(JSON.stringify({ error: "Knowledge base not found or API disabled" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Check visibility: private API requires auth header
+    if (kb.apiVisibility === "private") {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return new Response(JSON.stringify({ error: "Authentication required" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+    }
+
+    const pages = await ctx.runQuery(internal.knowledgeBases.listPagesForKb, { kbId: kb._id });
+    return new Response(JSON.stringify({ knowledgeBase: kbSlug, pages }, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=60",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
+http.route({
+  path: "/api/kb/pages",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
+http.route({
+  path: "/api/kb/page",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "kbApi",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
+    const url = new URL(request.url);
+    const kbSlug = url.searchParams.get("kb");
+    const pageSlug = url.searchParams.get("slug");
+
+    if (!kbSlug || !pageSlug) {
+      return new Response(JSON.stringify({ error: "Missing kb or slug parameter" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    const kb = await ctx.runQuery(internal.knowledgeBases.getBySlugInternal, { slug: kbSlug });
+    if (!kb || !kb.apiEnabled || kb.apiVisibility === "off") {
+      return new Response(JSON.stringify({ error: "Knowledge base not found or API disabled" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    if (kb.apiVisibility === "private") {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return new Response(JSON.stringify({ error: "Authentication required" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+    }
+
+    const page = await ctx.runQuery(internal.knowledgeBases.getPageInKb, {
+      kbId: kb._id,
+      slug: pageSlug,
+    });
+
+    if (!page) {
+      return new Response(JSON.stringify({ error: "Page not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    return new Response(JSON.stringify(page, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=60",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
+http.route({
+  path: "/api/kb/page",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
+// Virtual filesystem: directory tree
+http.route({
+  path: "/vfs/tree",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "vfsTree",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
+    await ctx.auth.getUserIdentity();
+    const tree = await ctx.runQuery(internal.virtualFs.buildPathTree, {});
+    return new Response(JSON.stringify(tree, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=60",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
+// Virtual filesystem: execute shell commands
+http.route({
+  path: "/vfs/exec",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const rl = await ctx.runMutation(internal.rateLimits.checkHttpRateLimit, {
+      name: "vfsExec",
+    });
+    if (!rl.ok) return rateLimitedResponse(rl.retryAfter);
+
+    await ctx.auth.getUserIdentity();
+    let body: { command?: string; cwd?: string };
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ stdout: "", stderr: "invalid JSON body", exitCode: 1 }),
+        { status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } },
+      );
+    }
+
+    if (!body.command || typeof body.command !== "string") {
+      return new Response(
+        JSON.stringify({ stdout: "", stderr: "missing command field", exitCode: 1 }),
+        { status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } },
+      );
+    }
+
+    const result = await ctx.runQuery(internal.virtualFs.executeCommand, {
+      command: body.command,
+      cwd: body.cwd || "/",
+    });
+
+    return new Response(JSON.stringify(result, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
+// CORS preflight for virtual filesystem endpoints
+http.route({
+  path: "/vfs/tree",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
+});
+
+http.route({
+  path: "/vfs/exec",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }),
 });
 
 // ConvexFS routes for file uploads/downloads

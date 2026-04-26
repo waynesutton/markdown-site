@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ConvexReactClient, useConvex, useQuery } from "convex/react";
-import { client as createConvexAuthClient } from "@robelest/convex-auth/client";
 import { api } from "../../convex/_generated/api";
+import { getConvexAuthClient } from "../utils/convexAuthClient";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -401,9 +401,9 @@ export default function Home() {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
-      const authClient = createConvexAuthClient({
-        convex: convex as unknown as ConvexReactClient,
-      });
+      const authClient = getConvexAuthClient(
+        convex as unknown as ConvexReactClient,
+      );
       await authClient.signOut();
       dismissDashboardNotice();
       navigate("/dashboard", { replace: true });
@@ -450,7 +450,6 @@ export default function Home() {
             className="home-logo"
             width={48}
             height={48}
-            fetchPriority="high"
           />
         )}
         <h1 className="home-name">{siteConfig.name}</h1>

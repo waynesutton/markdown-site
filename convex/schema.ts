@@ -35,8 +35,10 @@ export default defineSchema({
     docsSectionGroupOrder: v.optional(v.number()), // Order of group itself (lower = first)
     docsSectionGroupIcon: v.optional(v.string()), // Phosphor icon name for sidebar group
     docsLanding: v.optional(v.boolean()), // Use as /docs landing page
+    slides: v.optional(v.boolean()), // Enable slide presentation mode (--- separates slides)
     lastSyncedAt: v.number(),
-    source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))), // Content source: "dashboard" (created in UI) or "sync" (from markdown files)
+    source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"), v.literal("demo"))), // Content source: "dashboard" (created in UI), "sync" (from markdown files), or "demo" (anonymous demo mode, cleaned up every 30 minutes)
+    demo: v.optional(v.boolean()), // Marks content as demo sample (recognized by app and database)
     embedding: v.optional(v.array(v.float64())), // Vector embedding for semantic search (1536 dimensions, OpenAI text-embedding-ada-002)
   })
     .index("by_slug", ["slug"])
@@ -91,8 +93,10 @@ export default defineSchema({
     docsSectionGroupOrder: v.optional(v.number()), // Order of group itself (lower = first)
     docsSectionGroupIcon: v.optional(v.string()), // Phosphor icon name for sidebar group
     docsLanding: v.optional(v.boolean()), // Use as /docs landing page
+    slides: v.optional(v.boolean()), // Enable slide presentation mode (--- separates slides)
     lastSyncedAt: v.number(),
-    source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))), // Content source: "dashboard" (created in UI) or "sync" (from markdown files)
+    source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"), v.literal("demo"))), // Content source: "dashboard" (created in UI), "sync" (from markdown files), or "demo" (anonymous demo mode, cleaned up every 30 minutes)
+    demo: v.optional(v.boolean()), // Marks content as demo sample (recognized by app and database)
     embedding: v.optional(v.array(v.float64())), // Vector embedding for semantic search (1536 dimensions, OpenAI text-embedding-ada-002)
   })
   .index("by_slug", ["slug"])
@@ -342,6 +346,154 @@ export default defineSchema({
     key: v.string(), // Setting key: "enabled"
     value: v.boolean(), // Setting value
   }).index("by_key", ["key"]),
+
+  // External sources ingested for wiki compilation and RAG
+  sources: defineTable({
+    slug: v.string(),
+    url: v.optional(v.string()),
+    title: v.string(),
+    content: v.string(),
+    sourceType: v.string(), // "article", "paper", "repo", "note", "transcript"
+    summary: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    ingestedAt: v.number(),
+    processed: v.boolean(),
+    embedding: v.optional(v.array(v.float64())),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_processed", ["processed"])
+    .index("by_ingestedat", ["ingestedAt"])
+    .searchIndex("search_content", {
+      searchField: "content",
+      filterFields: ["processed"],
+    })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+      filterFields: ["processed"],
+    }),
+
+  // Source ingest jobs for queued background processing
+  sourceIngestJobs: defineTable({
+    ownerSubject: v.optional(v.string()),
+    url: v.optional(v.string()),
+    title: v.optional(v.string()),
+    sourceType: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    sourceId: v.optional(v.id("sources")),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_createdat", ["createdAt"]),
+
+  // Knowledge bases: containers for wiki page collections
+  // Each KB can be the site wiki, an uploaded project, or an Obsidian vault
+  knowledgeBases: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    description: v.optional(v.string()),
+    ownerSubject: v.string(),
+    visibility: v.union(v.literal("public"), v.literal("private")),
+    apiEnabled: v.boolean(),
+    apiVisibility: v.union(v.literal("public"), v.literal("private"), v.literal("off")),
+    sourceType: v.union(v.literal("site"), v.literal("upload"), v.literal("obsidian")),
+    pageCount: v.optional(v.number()),
+    lastCompiledAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_ownersubject", ["ownerSubject"])
+    .index("by_visibility", ["visibility"])
+    .index("by_createdat", ["createdAt"]),
+
+  // Upload jobs for importing markdown files into a knowledge base
+  kbUploadJobs: defineTable({
+    kbId: v.id("knowledgeBases"),
+    ownerSubject: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    fileCount: v.optional(v.number()),
+    processedCount: v.optional(v.number()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_kbid", ["kbId"])
+    .index("by_status", ["status"]),
+
+  // Wiki pages compiled by LLM from posts, pages, and sources
+  // kbId is optional: null/undefined = site wiki (backward compatible)
+  wikiPages: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    content: v.string(),
+    pageType: v.string(), // "concept", "entity", "comparison", "overview", "synthesis"
+    category: v.optional(v.string()),
+    backlinks: v.optional(v.array(v.string())),
+    sourceSlugs: v.optional(v.array(v.string())),
+    lastCompiledAt: v.number(),
+    lastCompiledBy: v.optional(v.string()),
+    embedding: v.optional(v.array(v.float64())),
+    kbId: v.optional(v.id("knowledgeBases")),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_pagetype", ["pageType"])
+    .index("by_category", ["category"])
+    .index("by_lastcompiledat", ["lastCompiledAt"])
+    .index("by_kbid_and_slug", ["kbId", "slug"])
+    .searchIndex("search_content", {
+      searchField: "content",
+      filterFields: ["pageType", "kbId"],
+    })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+      filterFields: ["pageType", "kbId"],
+    }),
+
+  // Wiki index documents (main index and changelog)
+  // kbId scopes the index to a specific knowledge base
+  wikiIndex: defineTable({
+    key: v.string(),
+    content: v.string(),
+    lastUpdatedAt: v.number(),
+    kbId: v.optional(v.id("knowledgeBases")),
+  })
+    .index("by_key", ["key"])
+    .index("by_kbid_and_key", ["kbId", "key"]),
+
+  // Wiki compilation jobs for queued background processing
+  wikiCompilationJobs: defineTable({
+    ownerSubject: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    trigger: v.string(), // "manual", "cron", "ingest", "lint"
+    scope: v.optional(v.string()),
+    pagesCreated: v.optional(v.number()),
+    pagesUpdated: v.optional(v.number()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+    kbId: v.optional(v.id("knowledgeBases")),
+  })
+    .index("by_status", ["status"])
+    .index("by_createdat", ["createdAt"])
+    .index("by_kbid", ["kbId"]),
 
   // Dashboard admin access control
   // Access can be granted by auth subject and/or email for compatibility

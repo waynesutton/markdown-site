@@ -110,7 +110,7 @@ askAI: {
   defaultModel: "claude-sonnet-4-20250514",
   models: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
   ],
 },
 ```
@@ -197,14 +197,20 @@ Run sync operations from the dashboard without opening a terminal:
 **Development:**
 
 - `npm run sync` - Sync markdown content
-- `npm run sync:discovery` - Update discovery files (AGENTS.md, llms.txt)
-- `npm run sync:all` - Sync content + discovery files together
+- `npm run sync:discovery` - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages)
+- `npm run sync:wiki` - Sync wiki from content/blog and content/pages
+- `npm run sync:all` - Sync content + wiki + discovery files together
 
 **Production:**
 
 - `npm run sync:prod` - Sync markdown content
 - `npm run sync:discovery:prod` - Update discovery files
-- `npm run sync:all:prod` - Sync content + discovery files together
+- `npm run sync:wiki:prod` - Sync wiki to production
+- `npm run sync:all:prod` - Sync content + wiki + discovery files together
+
+**Knowledge base sync:**
+
+- `npm run sync:wiki -- --kb=<id>` - Sync wiki into a specific knowledge base
 
 ### Sync server
 
@@ -240,7 +246,7 @@ This starts a local HTTP server on `localhost:3001` that allows the dashboard to
 
 ### Header sync buttons
 
-Quick sync buttons in the dashboard header let you run `npm run sync:all` (dev and prod) with one click. These buttons automatically use the sync server when available, or show the command in a modal when the server is offline.
+Quick sync buttons in the dashboard header let you run `npm run sync:all` (dev and prod) with one click. This syncs content, wiki, and discovery files together. These buttons automatically use the sync server when available, or show the command in a modal when the server is offline.
 
 ## Dashboard features
 

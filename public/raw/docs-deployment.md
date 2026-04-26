@@ -2,12 +2,14 @@
 
 ---
 Type: page
-Date: 2026-03-21
+Date: 2026-04-26
 ---
 
 ## Deployment
 
 This app uses **Convex self-hosting** as the default deployment mode. The static React/Vite build is uploaded to Convex storage and served directly from the Convex CDN. No external hosting provider needed.
+
+The default hosting path uses the [Convex Static Hosting component](https://www.convex.dev/components/static-hosting). In this repo, `@convex-dev/self-hosting` is registered in `convex/convex.config.ts`, exposes upload helpers from `convex/staticHosting.ts`, and registers the static routes from `convex/http.ts`.
 
 ### Default: Convex self-hosting
 
@@ -27,6 +29,15 @@ npm run deploy
 
 The `deploy` script runs `npx @convex-dev/self-hosting deploy` which builds the app and uploads the static assets to Convex in one step.
 
+Two-step production deploys are also supported:
+
+```bash
+npx convex deploy
+npm run deploy:static
+```
+
+Use the one-step `npm run deploy` path for normal production releases. Use the two-step path when you intentionally want to deploy backend functions separately from static assets.
+
 **Custom domain:** Set your custom domain in the Convex dashboard under Project Settings > Domains. Point your DNS (Cloudflare or registrar) to the records Convex provides. Set `SITE_URL` in your Convex environment variables to match.
 
 **Environment variables (Convex dashboard):**
@@ -35,6 +46,12 @@ The `deploy` script runs `npx @convex-dev/self-hosting deploy` which builds the 
 | -------- | ----------- |
 | `SITE_URL` | Your production URL (e.g., `https://yourdomain.com`) |
 | `CONVEX_SITE_URL` | Auto-set by Convex (your `.convex.site` URL) |
+| `JWT_PRIVATE_KEY` | Ed25519 PKCS8 private key used by `@robelest/convex-auth` to sign session JWTs |
+| `JWKS` | Matching OKP Ed25519 public key set for JWT verification |
+| `AUTH_SECRET_ENCRYPTION_KEY` | Secret used by Robel Auth for encrypted auth data |
+| `AUTH_GITHUB_ID` | GitHub OAuth app client ID |
+| `AUTH_GITHUB_SECRET` | GitHub OAuth app client secret |
+| `DASHBOARD_PRIMARY_ADMIN_EMAIL` | The GitHub primary email that gets full dashboard admin access |
 
 ### Authentication: Convex auth (default)
 
@@ -47,6 +64,8 @@ https://<your-deployment>.convex.site/api/auth/callback/github
 ```
 
 See [Dashboard](/docs-dashboard) for admin setup instructions.
+
+For browser apps, use `@robelest/convex-auth/browser`, not the framework-neutral `@robelest/convex-auth/client`. The browser entrypoint supplies local storage, URL handling, and HTTP defaults needed for OAuth callback exchange.
 
 ### Convex production deploy
 
@@ -130,7 +149,8 @@ export default defineSchema({
 - Check `published: true` in frontmatter
 - Run `npm run sync` for development
 - Run `npm run sync:prod` for production
-- Use `npm run sync:all` or `npm run sync:all:prod` to sync content and update discovery files together
+- Run `npm run sync:wiki` or `npm run sync:wiki:prod` for wiki
+- Use `npm run sync:all` or `npm run sync:all:prod` to sync content, wiki, and discovery files together
 - Verify in Convex dashboard
 
 **RSS/Sitemap errors (Convex self-hosting)**
@@ -155,3 +175,13 @@ export default defineSchema({
 - Run `npx convex dev --once` to push backend state if HTTP actions are disabled
 - Run `npm run deploy` again if assets appear stale (clear browser cache too)
 - Verify `npx @convex-dev/self-hosting setup` was run at least once
+- Confirm the Static Hosting component is registered in `convex/convex.config.ts`
+- Confirm `registerStaticRoutes(http, components.selfHosting)` is present in `convex/http.ts`
+- Reference the [Convex Static Hosting component docs](https://www.convex.dev/components/static-hosting) for the latest setup path
+
+**GitHub auth callback stuck on `?code=...`**
+
+- Confirm the frontend imports Robel Auth from `@robelest/convex-auth/browser`
+- Confirm `JWT_PRIVATE_KEY` and `JWKS` are Ed25519 compatible
+- Remove stale `?code=...` from the URL and retry GitHub login
+- Verify `DASHBOARD_PRIMARY_ADMIN_EMAIL` matches the GitHub primary email exactly

@@ -65,7 +65,7 @@ export const listAll = query({
       featuredOrder: v.optional(v.number()),
       authorName: v.optional(v.string()),
       authorImage: v.optional(v.string()),
-      source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))),
+      source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"), v.literal("demo"))),
     }),
   ),
   handler: async (ctx) => {
@@ -199,6 +199,8 @@ export const getBlogFeaturedPosts = query({
 
     const publishedFeatured: typeof posts = [];
     for (const post of posts) {
+      // Demo posts are never eligible for the blog featured section.
+      if (post.source === "demo") continue;
       if (post.published && !post.unlisted) {
         publishedFeatured.push(post);
       }
@@ -244,6 +246,8 @@ export const getFeaturedPosts = query({
 
     const featuredPosts: typeof posts = [];
     for (const post of posts) {
+      // Demo posts are never eligible for the homepage featured section.
+      if (post.source === "demo") continue;
       if (post.published && !post.unlisted) {
         featuredPosts.push(post);
       }
@@ -295,6 +299,7 @@ export const getPostBySlug = query({
       newsletter: v.optional(v.boolean()),
       contactForm: v.optional(v.boolean()),
       docsSection: v.optional(v.boolean()),
+      slides: v.optional(v.boolean()),
     }),
     v.null(),
   ),
@@ -336,6 +341,7 @@ export const getPostBySlug = query({
       newsletter: post.newsletter,
       contactForm: post.contactForm,
       docsSection: post.docsSection,
+      slides: post.slides,
     };
   },
 });
@@ -570,6 +576,7 @@ export const syncPostsPublic = mutation({
         docsSectionGroupOrder: v.optional(v.number()),
         docsSectionGroupIcon: v.optional(v.string()),
         docsLanding: v.optional(v.boolean()),
+        slides: v.optional(v.boolean()),
       }),
     ),
   },
@@ -607,8 +614,8 @@ export const syncPostsPublic = mutation({
       const existing = existingBySlug.get(post.slug);
 
       if (existing) {
-        // Skip dashboard-created posts - don't overwrite them
-        if (existing.source === "dashboard") {
+        // Skip dashboard-created and demo posts - don't overwrite them
+        if (existing.source === "dashboard" || existing.source === "demo") {
           skipped++;
           continue;
         }
@@ -674,9 +681,9 @@ export const syncPostsPublic = mutation({
       });
     }
 
-    // Delete posts that no longer exist in the repo (but not dashboard posts)
+    // Delete posts that no longer exist in the repo (but not dashboard or demo posts)
     for (const existing of existingPosts) {
-      if (!incomingSlugs.has(existing.slug) && existing.source !== "dashboard") {
+      if (!incomingSlugs.has(existing.slug) && existing.source !== "dashboard" && existing.source !== "demo") {
         await ctx.db.delete(existing._id);
         deleted++;
       }

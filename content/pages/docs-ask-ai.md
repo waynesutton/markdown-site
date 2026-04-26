@@ -37,7 +37,7 @@ Press `Cmd+J` or `Cmd+/` (Mac) or `Ctrl+J` or `Ctrl+/` (Windows/Linux) to open t
                                                          v
 +------------------+    +-------------------+    +------------------+
 |  Streaming       |<---|  AI Model         |<---|  RAG Context     |
-|  Response with   |    |  Claude/GPT-4o    |    |  Build prompt    |
+|  Response with   |    |  Claude/GPT-4.1 mini    |    |  Build prompt    |
 |  Source Links    |    |  generates answer |    |  with content    |
 +------------------+    +-------------------+    +------------------+
 ```
@@ -54,7 +54,7 @@ Press `Cmd+J` or `Cmd+/` (Mac) or `Ctrl+J` or `Ctrl+/` (Windows/Linux) to open t
 | Feature            | Description                                            |
 | ------------------ | ------------------------------------------------------ |
 | Streaming          | Responses appear word-by-word in real-time             |
-| Model Selection    | Choose between Claude Sonnet 4 or GPT-4o               |
+| Model Selection    | Choose between Claude Sonnet 4 or GPT-4.1 mini               |
 | Source Citations   | Every response includes links to source content        |
 | Markdown Rendering | Responses support full markdown formatting             |
 | Internal Links     | Links to your pages use React Router (no page reload)  |
@@ -76,7 +76,7 @@ askAI: {
   defaultModel: "claude-sonnet-4-20250514",
   models: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
   ],
 },
 ```
@@ -122,9 +122,10 @@ After setting environment variables, run `npm run sync` to generate embeddings f
 | ------------------------- | ----------------------------------------------- |
 | `convex/askAI.ts`         | Session mutations and queries (regular runtime) |
 | `convex/askAI.node.ts`    | HTTP streaming action (Node.js runtime)         |
+| `convex/rateLimits.ts`    | Rate limit: 10 req/min per user on /ask-ai-stream |
 | `convex/schema.ts`        | askAISessions table definition                  |
 | `convex/http.ts`          | /ask-ai-stream endpoint registration            |
-| `convex/convex.config.ts` | persistentTextStreaming component               |
+| `convex/convex.config.ts` | persistentTextStreaming and rateLimiter components |
 
 **Database:**
 

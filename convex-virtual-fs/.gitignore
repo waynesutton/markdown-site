@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env.local
+.env.production.local
+src/component/_generated/

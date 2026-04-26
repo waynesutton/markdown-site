@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid dots -->
+  <g opacity="0.08">
+    <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="1" fill="white"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#dots)"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="100" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="700" fill="#f0f0f0" letter-spacing="-0.5">markdown slides</text>
+  <text x="600" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#888">Write markdown. Present fullscreen. One frontmatter field.</text>
+
+  <!-- Slide 1 (active) -->
+  <rect x="140" y="200" width="320" height="210" rx="10" fill="#181818" stroke="#444" stroke-width="2"/>
+  <rect x="140" y="200" width="320" height="3" rx="1.5" fill="#e8e8e8"/>
+  <!-- Slide 1 content lines -->
+  <text x="170" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#e8e8e8"># Welcome</text>
+  <rect x="170" y="258" width="180" height="6" rx="3" fill="#444"/>
+  <rect x="170" y="274" width="140" height="6" rx="3" fill="#333"/>
+  <rect x="170" y="290" width="200" height="6" rx="3" fill="#333"/>
+  <!-- Slide number -->
+  <text x="300" y="390" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#666">1 / 4</text>
+
+  <!-- Arrow between slides -->
+  <g transform="translate(510, 305)">
+    <polyline points="-12,-8 0,0 -12,8" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Slide 2 -->
+  <rect x="560" y="200" width="320" height="210" rx="10" fill="#141414" stroke="#2a2a2a" stroke-width="1.5"/>
+  <rect x="560" y="200" width="320" height="3" rx="1.5" fill="#888"/>
+  <!-- Slide 2 content lines -->
+  <text x="590" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#999">## Code example</text>
+  <!-- Code block mock -->
+  <rect x="590" y="254" width="260" height="80" rx="6" fill="#0d0d0d" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="604" y="274" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#6a9955">// query</text>
+  <text x="604" y="290" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#dcdcaa">export const</text>
+  <text x="604" y="306" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#569cd6">  list = query</text>
+  <text x="604" y="322" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#808080">});</text>
+  <text x="720" y="390" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#555">2 / 4</text>
+
+  <!-- Slide 3 (faded, peeking) -->
+  <rect x="940" y="210" width="200" height="190" rx="10" fill="#121212" stroke="#222" stroke-width="1" opacity="0.5"/>
+  <rect x="940" y="210" width="200" height="3" rx="1.5" fill="#555" opacity="0.5"/>
+  <rect x="960" y="236" width="120" height="6" rx="3" fill="#333" opacity="0.5"/>
+  <rect x="960" y="252" width="100" height="6" rx="3" fill="#2a2a2a" opacity="0.5"/>
+  <rect x="960" y="268" width="140" height="6" rx="3" fill="#2a2a2a" opacity="0.5"/>
+
+  <!-- Progress bar -->
+  <rect x="140" y="440" width="740" height="3" rx="1.5" fill="#222"/>
+  <rect x="140" y="440" width="370" height="3" rx="1.5" fill="#888"/>
+
+  <!-- Keyboard hints -->
+  <g transform="translate(300, 500)">
+    <rect x="-30" y="-14" width="60" height="28" rx="6" fill="#181818" stroke="#333" stroke-width="1"/>
+    <text x="0" y="5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#999">&#x2190;</text>
+  </g>
+  <g transform="translate(380, 500)">
+    <rect x="-30" y="-14" width="60" height="28" rx="6" fill="#181818" stroke="#333" stroke-width="1"/>
+    <text x="0" y="5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#999">&#x2192;</text>
+  </g>
+  <g transform="translate(480, 500)">
+    <rect x="-40" y="-14" width="80" height="28" rx="6" fill="#181818" stroke="#333" stroke-width="1"/>
+    <text x="0" y="5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#999">space</text>
+  </g>
+  <g transform="translate(590, 500)">
+    <rect x="-30" y="-14" width="60" height="28" rx="6" fill="#181818" stroke="#333" stroke-width="1"/>
+    <text x="0" y="5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#999">esc</text>
+  </g>
+
+  <!-- Frontmatter badge -->
+  <rect x="420" y="550" width="360" height="30" rx="8" fill="#181818" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="600" y="570" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#888">slides: true</text>
+
+  <!-- Bottom bar -->
+  <text x="600" y="610" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#555">markdown.fast</text>
+</svg>

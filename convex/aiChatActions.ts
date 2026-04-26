@@ -19,12 +19,11 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 // Model validator for multi-model support
 const modelValidator = v.union(
   v.literal("claude-sonnet-4-20250514"),
-  v.literal("gpt-4o"),
+  v.literal("gpt-4.1-mini"),
   v.literal("gemini-2.0-flash")
 );
 
-// Type for model selection
-type AIModel = "claude-sonnet-4-20250514" | "gpt-4o" | "gemini-2.0-flash";
+type AIModel = "claude-sonnet-4-20250514" | "gpt-4.1-mini" | "gemini-2.0-flash";
 
 type ChatAttachment = {
   type: "image" | "link";

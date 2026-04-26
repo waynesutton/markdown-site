@@ -2,7 +2,7 @@
 
 After forking this repo, update these files with your site information. Choose one of three options:
 
-**Important**: Keep your `fork-config.json` file after configuring. The `sync:discovery` commands will use it to update discovery files (`AGENTS.md`, `CLAUDE.md`, `public/llms.txt`) with your configured values.
+**Important**: Keep your `fork-config.json` file after configuring. The `sync:discovery` commands will use it to update discovery files (`AGENTS.md`, `CLAUDE.md`, `public/llms.txt`) with your configured values. Discovery sync also fetches wiki pages from Convex and includes a wiki knowledge base section in `llms.txt` and `AGENTS.md`, and copies `AGENTS.md` to `public/AGENTS.md` for web access.
 
 ## Option 0: GitHub template button
 
@@ -904,7 +904,7 @@ npm run sync-server
 - Execute sync commands from dashboard UI
 - Real-time output streaming in dashboard terminal view
 - Server status indicator (online/offline)
-- Whitelisted commands only (sync, sync:prod, sync:discovery, sync:discovery:prod, sync:all, sync:all:prod)
+- Whitelisted commands only (sync, sync:prod, sync:discovery, sync:discovery:prod, sync:wiki, sync:wiki:prod, sync:all, sync:all:prod)
 
 ---
 
@@ -1288,7 +1288,7 @@ Configure the AI writing assistant. The Dashboard AI Agent supports multiple pro
         "name": "Claude Sonnet 4",
         "provider": "anthropic"
       },
-      { "id": "gpt-4o", "name": "GPT-4o", "provider": "openai" },
+      { "id": "gpt-4.1-mini", "name": "GPT-4.1 mini", "provider": "openai" },
       {
         "id": "gemini-2.0-flash",
         "name": "Gemini 2.0 Flash",
@@ -1325,7 +1325,7 @@ aiDashboard: {
   defaultTextModel: "claude-sonnet-4-20250514", // Default model for chat
   textModels: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
     { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "google" },
   ],
   imageModels: [
@@ -1340,7 +1340,7 @@ aiDashboard: {
 | Variable            | Provider  | Features                                 |
 | ------------------- | --------- | ---------------------------------------- |
 | `ANTHROPIC_API_KEY` | Anthropic | Claude Sonnet 4 chat                     |
-| `OPENAI_API_KEY`    | OpenAI    | GPT-4o chat                              |
+| `OPENAI_API_KEY`    | OpenAI    | GPT-4.1 mini chat                              |
 | `GOOGLE_AI_API_KEY` | Google    | Gemini 2.0 Flash chat + image generation |
 
 **Optional system prompt variables:**
@@ -1386,7 +1386,7 @@ Enable an Ask AI header chat button that opens a modal for asking questions abou
     "defaultModel": "claude-sonnet-4-20250514",
     "models": [
       { "id": "claude-sonnet-4-20250514", "name": "Claude Sonnet 4", "provider": "anthropic" },
-      { "id": "gpt-4o", "name": "GPT-4o", "provider": "openai" }
+      { "id": "gpt-4.1-mini", "name": "GPT-4.1 mini", "provider": "openai" }
     ]
   }
 }
@@ -1402,7 +1402,7 @@ askAI: {
   defaultModel: "claude-sonnet-4-20250514",
   models: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
   ],
 },
 ```
@@ -1418,7 +1418,7 @@ askAI: {
 - Header button opens a chat modal
 - Retrieves relevant content using semantic search
 - Streaming responses with markdown rendering
-- Multi-model selector (Claude Sonnet 4, GPT-4o)
+- Multi-model selector (Claude Sonnet 4, GPT-4.1 mini)
 - Conversation history within session
 
 ---
@@ -1515,7 +1515,7 @@ Update these files:
 3. Run `npm run dev` to test locally
 4. Deploy with Convex self-hosting when ready (`npm run deploy`)
 
-**Note**: Keep your `fork-config.json` file. When you run `npm run sync:discovery` or `npm run sync:all`, it reads from `fork-config.json` to update discovery files with your site information.
+**Note**: Keep your `fork-config.json` file. When you run `npm run sync:discovery` or `npm run sync:all` (which includes content, wiki, and discovery sync), it reads from `fork-config.json` to update discovery files with your site information.
 
 ---
 
@@ -1531,14 +1531,18 @@ Discovery files (`AGENTS.md`, `CLAUDE.md`, and `public/llms.txt`) can be automat
 | ----------------------------- | ----------------------------------------------------- |
 | `npm run sync:discovery`      | Update discovery files with local Convex data         |
 | `npm run sync:discovery:prod` | Update discovery files with production Convex data    |
-| `npm run sync:all`            | Sync content + discovery files together (development) |
-| `npm run sync:all:prod`       | Sync content + discovery files together (production)  |
+| `npm run sync:wiki`           | Sync wiki from content/blog and content/pages (dev)   |
+| `npm run sync:wiki:prod`      | Sync wiki to production                               |
+| `npm run sync:wiki -- --kb=<id>` | Sync wiki into a specific knowledge base           |
+| `npm run sync:all`            | Sync content + wiki + discovery files (development)   |
+| `npm run sync:all:prod`       | Sync content + wiki + discovery files (production)    |
 
 ### When to run
 
 - **`npm run sync`**: Run when you add, edit, or remove markdown content
 - **`npm run sync:discovery`**: Run when you change site configuration or want to update discovery files with latest post counts
-- **`npm run sync:all`**: Run both syncs together (recommended for complete updates)
+- **`npm run sync:wiki`**: Run when you want to rebuild the wiki from content/blog and content/pages
+- **`npm run sync:all`**: Run all syncs together (recommended for complete updates)
 
 ### What gets updated
 

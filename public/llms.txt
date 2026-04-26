@@ -1,6 +1,6 @@
 # llms.txt - Information for AI assistants and LLMs
 # Learn more: https://llmstxt.org/
-# Last updated: 2026-03-21T00:12:49.190Z
+# Last updated: 2026-04-26T22:56:14.181Z
 
 > Your content is instantly available to browsers, LLMs, and AI agents.
 
@@ -9,8 +9,9 @@
 - URL: https://yoursite.example.com
 - Description: Your content is instantly available to browsers, LLMs, and AI agents. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
 - Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source, AI, LLM, AEO, GEO
-- Total Posts: 21
-- Latest Post: 2026-03-20
+- Total Posts: 24
+- Wiki Pages: 43
+- Latest Post: 2026-04-14
 - GitHub: https://github.com/waynesutton/markdown-site
 
 # API Endpoints
@@ -38,6 +39,15 @@ Standard RSS feed with post descriptions.
 GET /rss-full.xml
 Full content RSS feed with complete markdown for each post.
 
+## Virtual Filesystem
+GET /vfs/tree
+Returns JSON tree of all content paths (blog, pages, docs, sources, wiki).
+
+POST /vfs/exec
+Execute shell-like commands against all site content.
+Send JSON body: {"command": "ls /blog"} or {"command": "grep convex /blog"}
+Supported commands: ls, cat, grep, find, tree, head, wc, pwd, cd
+
 ## Other
 GET /sitemap.xml
 Dynamic XML sitemap for search engines.
@@ -53,6 +63,92 @@ AI plugin manifest for tool integration.
 1. Fetch /api/export for all posts with full content in one request
 2. Or fetch /api/posts for the list, then /api/post?slug={slug}&format=md for each
 3. Subscribe to /rss-full.xml for updates with complete content
+4. Use /vfs/tree to browse the full content tree
+5. Use /vfs/exec with shell commands to search and read specific content
+
+# Wiki Knowledge Base (43 pages)
+
+Compiled knowledge base with interlinked wiki pages.
+Access via: /vfs/exec with {"command": "cat /wiki/{slug}.md"}
+
+## General
+- Wiki resources (/wiki/wiki-wiki-resources)
+- Projects (/wiki/wiki-projects)
+- Newsletter (/wiki/wiki-newsletter)
+- Home Intro (/wiki/wiki-home-intro)
+- Footer (/wiki/wiki-footer)
+- Documentation (/wiki/wiki-documentation)
+- Semantic Search (/wiki/wiki-docs-semantic-search)
+- Search (/wiki/wiki-docs-search)
+- Media Upload Setup (/wiki/wiki-docs-media-setup)
+- Frontmatter (/wiki/wiki-docs-frontmatter)
+- Deployment (/wiki/wiki-docs-deployment)
+- Dashboard (/wiki/wiki-docs-dashboard)
+- Content (/wiki/wiki-docs-content)
+- Configuration (/wiki/wiki-docs-configuration)
+- Ask AI (/wiki/wiki-docs-ask-ai)
+- Contact (/wiki/wiki-contact)
+- Changelog (/wiki/wiki-changelog)
+- About (/wiki/wiki-about)
+
+## Convex
+- Wiki, knowledge bases, and virtual filesystem (/wiki/wiki-wiki-knowledge-bases-and-virtual-filesystem)
+- Setup Guide (/wiki/wiki-setup-guide)
+- Convex first: new defaults for markdown.fast (/wiki/wiki-convex-first-architecture)
+- How convex-doctor took markdown.fast from 42 to 100 (/wiki/wiki-convex-doctor-score-42-to-100)
+
+## Features
+- Visitor tracking and stats improvements (/wiki/wiki-visitor-tracking-and-stats-improvements)
+- New features: search, featured section, and logo gallery (/wiki/wiki-new-features-search-featured-logos)
+
+## Images
+- Using Images in Blog Posts (/wiki/wiki-using-images-in-posts)
+
+## Git
+- Team Workflows (/wiki/wiki-team-workflows-git-version-control)
+- Git commit message best practices (/wiki/wiki-git-commit-message-best-practices)
+
+## Slides
+- Slide template example (/wiki/wiki-slide-template-example)
+- Markdown slides (/wiki/wiki-markdown-slides)
+
+## Release
+- v1.18.0 release: 12 versions of shipping (/wiki/wiki-raw-markdown-and-copy-improvements)
+
+## Netlify
+- How we fixed AI crawlers blocked by Netlify edge functions (/wiki/wiki-netlify-edge-excludedpath-ai-crawlers)
+
+## Markdown
+- Writing Markdown with Code Examples (/wiki/wiki-markdown-with-code-examples)
+
+## Dashboard
+- How to use the Markdown sync dashboard (/wiki/wiki-how-to-use-the-markdown-sync-dashboard)
+
+## Mcp
+- How to Use the MCP Server with MarkDown Sync (/wiki/wiki-how-to-use-mcp-server)
+
+## Tutorial
+- How to use Firecrawl with Markdown Sync (/wiki/wiki-how-to-use-firecrawl)
+- How to Use Code Blocks (/wiki/wiki-how-to-use-code-blocks)
+- How to Publish a Blog Post (/wiki/wiki-how-to-publish)
+
+## Agentmail
+- How to use AgentMail with Markdown Sync (/wiki/wiki-how-to-use-agentmail)
+
+## Workos
+- How to setup WorkOS with Markdown Sync (/wiki/wiki-how-to-setup-workos)
+
+## Cursor
+- How I added WorkOS to my Convex app with Cursor (/wiki/wiki-workos-with-convex-cursor)
+
+## Updates
+- Happy holidays and thank you (/wiki/wiki-happy-holidays-2025)
+
+## Configuration
+- Configure your fork in one command (/wiki/wiki-fork-configuration-guide)
+
+## Opencode
+- OpenCode Integration (/wiki/wiki-docs-opencode)
 
 # Response Schema
 
@@ -76,6 +172,10 @@ Each post contains:
 - Frontend: React, TypeScript, Vite
 - Hosting: Netlify with edge functions
 - Content: Markdown with frontmatter
+
+# Discovery Files
+- /llms.txt - This file (LLM discovery)
+- /AGENTS.md - AI agent instructions and codebase overview
 
 # Links
 - GitHub: https://github.com/waynesutton/markdown-site

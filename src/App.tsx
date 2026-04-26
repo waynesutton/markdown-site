@@ -18,6 +18,7 @@ const AuthorPage = lazy(() => import("./pages/AuthorPage"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const NewsletterAdmin = lazy(() => import("./pages/NewsletterAdmin"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Wiki = lazy(() => import("./pages/Wiki"));
 const Callback = lazy(() => import("./pages/Callback"));
 
 // Minimal loading fallback to prevent layout shift
@@ -119,6 +120,8 @@ function App() {
               element={<DocsPage />}
             />
           )}
+          {/* Wiki page route */}
+          <Route path="/wiki" element={<Wiki />} />
           {/* Tag page route - displays posts filtered by tag */}
           <Route path="/tags/:tag" element={<TagPage />} />
           {/* Author page route - displays posts by a specific author */}

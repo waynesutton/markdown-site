@@ -23,9 +23,10 @@ type ActionLikeCtx = AuthCtx & {
   runQuery: ActionCtx["runQuery"];
 };
 
-const STRICT_ADMIN_EMAIL = process.env.DASHBOARD_PRIMARY_ADMIN_EMAIL
-  ?.toLowerCase()
-  .trim();
+export function getStrictDashboardAdminEmail(): string | undefined {
+  const value = process.env.DASHBOARD_PRIMARY_ADMIN_EMAIL?.toLowerCase().trim();
+  return value && value.length > 0 ? value : undefined;
+}
 
 // Extract the user ID from a subject string.
 // Subject format from @robelest/convex-auth: "userId|sessionId"
@@ -81,13 +82,22 @@ export async function isDashboardAdmin(
 ): Promise<boolean> {
   // First try to get email from identity, then fall back to looking up from auth component
   let normalizedEmail = identity.email?.toLowerCase().trim();
-  
+
   if (!normalizedEmail) {
     // Email not in identity, look it up from the auth component's user table
     const userEmail = await getUserEmailFromAuthComponent(ctx, identity.subject);
     normalizedEmail = userEmail?.toLowerCase().trim();
   }
 
+  // Strict mode: when DASHBOARD_PRIMARY_ADMIN_EMAIL is set, that email is the
+  // ONLY admin. The dashboardAdmins table is bypassed entirely. This is what
+  // forks should configure when they want exactly one human admin.
+  const strictAdminEmail = getStrictDashboardAdminEmail();
+  if (strictAdminEmail) {
+    return normalizedEmail === strictAdminEmail;
+  }
+
+  // Fallback: dashboardAdmins table allowlist when no strict env email is set.
   let matchedBySubject = false;
   for (const candidate of subjectCandidates(identity.subject)) {
     const bySubject = await ctx.db
@@ -109,18 +119,7 @@ export async function isDashboardAdmin(
     matchedByEmail = Boolean(byEmail);
   }
 
-  const isAdmin = matchedBySubject || matchedByEmail;
-  
-  if (!isAdmin) {
-    return false;
-  }
-
-  // Optional strict gate for deployments that want exactly one admin email.
-  // Leave env unset to rely on dashboardAdmins table only.
-  if (!STRICT_ADMIN_EMAIL) {
-    return true;
-  }
-  return normalizedEmail === STRICT_ADMIN_EMAIL;
+  return matchedBySubject || matchedByEmail;
 }
 
 export async function requireDashboardAdmin(ctx: AuthLikeCtx): Promise<Identity> {

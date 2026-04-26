@@ -5,6 +5,7 @@ import convexAuth from "@robelest/convex-auth/convex.config";
 import selfHosting from "@convex-dev/self-hosting/convex.config";
 import r2 from "@convex-dev/r2/convex.config";
 import fs from "convex-fs/convex.config.js";
+import rateLimiter from "@convex-dev/rate-limiter/convex.config.js";
 
 const app = defineApp();
 
@@ -34,6 +35,9 @@ app.use(r2);
 
 // ConvexFS for file storage with Bunny CDN
 app.use(fs);
+
+// Rate limiter component for application-level rate limiting
+app.use(rateLimiter);
 
 export default app;
 

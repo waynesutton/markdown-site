@@ -191,7 +191,7 @@ function buildForkConfig(answers: WizardAnswers): Record<string, unknown> {
       defaultTextModel: 'claude-sonnet-4-20250514',
       textModels: [
         { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', provider: 'anthropic' },
-        { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai' },
+        { id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', provider: 'openai' },
         { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'google' },
       ],
       imageModels: [
@@ -274,7 +274,7 @@ function buildForkConfig(answers: WizardAnswers): Record<string, unknown> {
       defaultModel: 'claude-sonnet-4-20250514',
       models: [
         { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', provider: 'anthropic' },
-        { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai' },
+        { id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', provider: 'openai' },
       ],
     },
   };

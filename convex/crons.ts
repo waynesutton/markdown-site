@@ -44,5 +44,24 @@ crons.cron(
   {}
 );
 
+// Wiki compilation: Run daily at 4:00 AM UTC
+// Compiles content into wiki pages using LLM
+// Requires OPENAI_API_KEY. Skips if a compilation is already running.
+crons.cron(
+  "wiki compilation",
+  "0 4 * * *", // 4:00 AM UTC daily
+  internal.wikiJobs.scheduledCompilation,
+  {}
+);
+
+// Clean up anonymous demo content every 30 minutes
+// Deletes all posts and pages with source="demo" created by anonymous dashboard visitors
+crons.interval(
+  "cleanup demo content",
+  { minutes: 30 },
+  internal.demo.cleanupDemoContent,
+  {}
+);
+
 export default crons;
 

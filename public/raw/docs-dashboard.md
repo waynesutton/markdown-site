@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-03-21
+Date: 2026-04-26
 ---
 
 ## Dashboard
@@ -140,7 +140,7 @@ The Dashboard includes a dedicated AI Agent section with tab-based UI for Chat a
 
 **Chat Tab:**
 
-- Multi-model selector: Claude Sonnet 4, GPT-4o, Gemini 2.0 Flash
+- Multi-model selector: Claude Sonnet 4, GPT-4.1 mini, Gemini 2.0 Flash
 - Per-session chat history stored in Convex
 - Markdown rendering for AI responses
 - Copy functionality for AI responses
@@ -160,7 +160,7 @@ The Dashboard includes a dedicated AI Agent section with tab-based UI for Chat a
 | Variable            | Description                                        |
 | ------------------- | -------------------------------------------------- |
 | `ANTHROPIC_API_KEY` | Required for Claude Sonnet 4                       |
-| `OPENAI_API_KEY`    | Required for GPT-4o                                |
+| `OPENAI_API_KEY`    | Required for GPT-4.1 mini                                |
 | `GOOGLE_AI_API_KEY` | Required for Gemini 2.0 Flash and image generation |
 
 **Note:** Only configure the API keys for models you want to use. If a key is not set, users see a helpful setup message when they try to use that model.
@@ -179,7 +179,7 @@ askAI: {
   defaultModel: "claude-sonnet-4-20250514",
   models: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
   ],
 },
 ```
@@ -198,6 +198,85 @@ askAI: {
 - Multi-model selector
 - Source citations linking to relevant posts/pages
 - Conversation history within session
+
+### Sources
+
+The Sources tab under the Knowledge section lets you ingest external URLs into the source pipeline.
+
+- Enter a URL to scrape content using Firecrawl
+- Content is converted to markdown with OpenAI embeddings
+- View all ingested sources with status indicators (pending, processing, complete, error)
+- Preview scraped content directly in the dashboard
+- Sources feed into the wiki compilation pipeline
+
+**Requirements:** `FIRECRAWL_API_KEY` and `OPENAI_API_KEY` set in Convex environment variables.
+
+### Wiki
+
+The Wiki tab under the Knowledge section provides tools for managing the LLM-compiled wiki.
+
+- **Compile:** Trigger wiki compilation using GPT-4.1 mini to synthesize content from sources and existing pages
+- **Lint:** Run wiki lint checks for quality and consistency
+- **Job Status:** Real-time polling of compilation and lint job progress
+- **Lint Report:** View detailed lint findings after a lint run
+- **Wiki Pages:** Browse all compiled wiki pages with rendered markdown preview
+- **Backlinks:** Navigate between pages using backlink connections
+- **Wiki Index:** View the master index of all wiki content
+
+Compilation runs automatically via a daily cron job (4:00 AM UTC) or can be triggered manually from the dashboard.
+
+**Accessing wiki data:**
+
+Wiki queries from the Convex client (`api.wiki.listWikiPages`, `api.wiki.getWikiPageBySlug`, etc.) require an authenticated user session. These power the `/wiki` page and dashboard UI.
+
+For unauthenticated access from external agents or scripts, use the virtual filesystem HTTP endpoints instead. Wiki pages are available under `/wiki` in the VFS:
+
+```bash
+curl -X POST https://yoursite.example.com/vfs/exec \
+  -H "Content-Type: application/json" \
+  -d '{"command": "cat /wiki/convex.md"}'
+```
+
+No API key or login needed. The VFS reads directly from the same Convex database. VFS endpoints are rate limited to 30 requests per minute globally.
+
+### Knowledge bases
+
+The Knowledge Bases tab under the Knowledge section lets you create and manage separate wiki-like collections.
+
+**Creating a knowledge base:**
+
+- Set a title, optional description, visibility (public/private), and source type (site, upload, or Obsidian)
+- Slugs are generated automatically from the title
+
+**Managing knowledge bases:**
+
+- Toggle visibility between public and private
+- Toggle API access on/off per knowledge base
+- View page count for each KB
+- Delete a knowledge base (removes all associated wiki pages and index entries)
+
+**Uploading content:**
+
+- Select markdown files from your machine
+- Files are parsed for frontmatter, titles, categories, and backlinks
+- Content is upserted into the selected knowledge base
+- Upload progress tracked via job status polling
+
+**API access:**
+
+When API is enabled for a KB, the endpoint URL is displayed in the dashboard. Supports public access or authenticated-only depending on the KB's API visibility setting. KB API endpoints are rate limited to 30 requests per minute.
+
+### Anonymous demo mode
+
+Visitors who are not signed in see the dashboard in demo mode.
+
+- Full read access to all dashboard sections
+- Can create, edit, and delete temporary demo posts and pages
+- Demo content is tagged with `source: "demo"` and shows an amber badge
+- Content sanitization strips scripts, iframes, and event handlers
+- A cron job runs every 30 minutes to clean up all demo content
+- "Sign in with GitHub" button to upgrade to full admin access
+- Admin-only features (like production sync) are gated behind authentication
 
 ### Newsletter management
 
@@ -285,12 +364,16 @@ This creates a file in `content/blog/` that requires syncing.
 - UI with buttons for all sync operations
 - Development sync commands:
   - `npm run sync` - Sync markdown content
-  - `npm run sync:discovery` - Update discovery files (AGENTS.md, llms.txt)
-  - `npm run sync:all` - Sync content + discovery files together
+  - `npm run sync:discovery` - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages)
+  - `npm run sync:wiki` - Sync wiki from content/blog and content/pages
+  - `npm run sync:all` - Sync content + wiki + discovery files together
 - Production sync commands:
   - `npm run sync:prod` - Sync markdown content
   - `npm run sync:discovery:prod` - Update discovery files
-  - `npm run sync:all:prod` - Sync content + discovery files together
+  - `npm run sync:wiki:prod` - Sync wiki to production
+  - `npm run sync:all:prod` - Sync content + wiki + discovery files together
+- Knowledge base sync:
+  - `npm run sync:wiki -- --kb=<id>` - Sync wiki into a specific knowledge base
 - Server status indicator shows if sync server is online
 - Copy and Execute buttons for each command
 - Real-time terminal output when sync server is running
@@ -312,7 +395,7 @@ This creates a file in `content/blog/` that requires syncing.
 - Quick sync buttons in dashboard header (right side)
 - `npm run sync:all` (dev) button
 - `npm run sync:all:prod` (prod) button
-- One-click sync for all content and discovery files
+- One-click sync for all content, wiki, and discovery files
 - Automatically use sync server when available, fallback to command modal
 
 ### Dashboard features
@@ -387,14 +470,20 @@ Sync command scripts are located in `scripts/` (sync-posts.ts, sync-discovery-fi
 **Development:**
 
 - <span class="copy-command">npm run sync</span> - Sync markdown content to development Convex
-- <span class="copy-command">npm run sync:discovery</span> - Update discovery files (AGENTS.md, llms.txt) with development data
-- <span class="copy-command">npm run sync:all</span> - Run both content sync and discovery sync (development)
+- <span class="copy-command">npm run sync:discovery</span> - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages, copies AGENTS.md to public/)
+- <span class="copy-command">npm run sync:wiki</span> - Sync wiki from content/blog and content/pages
+- <span class="copy-command">npm run sync:all</span> - Sync content + wiki + discovery files (development)
 
 **Production:**
 
 - <span class="copy-command">npm run sync:prod</span> - Sync markdown content to production Convex
 - <span class="copy-command">npm run sync:discovery:prod</span> - Update discovery files with production data
-- <span class="copy-command">npm run sync:all:prod</span> - Run both content sync and discovery sync (production)
+- <span class="copy-command">npm run sync:wiki:prod</span> - Sync wiki to production
+- <span class="copy-command">npm run sync:all:prod</span> - Sync content + wiki + discovery files (production)
+
+**Knowledge base sync:**
+
+- <span class="copy-command">npm run sync:wiki -- --kb=&lt;id&gt;</span> - Sync wiki into a specific knowledge base
 
 **Sync Server:**
 
@@ -475,7 +564,7 @@ The Version Control card in Config shows:
 | Variable            | Description                                        |
 | ------------------- | -------------------------------------------------- |
 | `ANTHROPIC_API_KEY` | Required for Claude Sonnet 4 (AI Agent)            |
-| `OPENAI_API_KEY`    | Required for GPT-4o (AI Agent)                     |
+| `OPENAI_API_KEY`    | Required for GPT-4.1 mini (AI Agent)                     |
 | `GOOGLE_AI_API_KEY` | Required for Gemini 2.0 Flash and image generation |
 | `FIRECRAWL_API_KEY` | Required for direct URL import                     |
 

@@ -2,7 +2,218 @@
 
 ## To Do
 
+(No pending tasks)
+
+## Completed
+
+### Production readiness docs for Convex static hosting (2026-04-26)
+
+- [x] Checked upstream self-hosting guidance with `.cursor/skills/convex-self-hosting/scripts/check-upstream.sh`
+- [x] Confirmed `@convex-dev/self-hosting@0.1.1` is installed and current with npm
+- [x] Confirmed `convex/convex.config.ts` registers `app.use(selfHosting)`
+- [x] Confirmed `convex/staticHosting.ts` exposes upload and deployment helpers
+- [x] Confirmed `convex/http.ts` registers `registerStaticRoutes(http, components.selfHosting)`
+- [x] Checked production Convex env values for GitHub auth, Ed25519 JWT keys, `SITE_URL`, and `DASHBOARD_PRIMARY_ADMIN_EMAIL`
+- [x] Verified production build with `npm run build`
+- [x] Updated `content/blog/convex-first-architecture.md` with the Convex Static Hosting component link and strict admin email setup
+- [x] Updated `content/pages/docs-deployment.md` with Static Hosting docs, env requirements, and auth callback troubleshooting
+- [x] Updated `content/pages/docs.md` with deploy command and Static Hosting component link
+
+### Robel auth preview.30 upgrade and admin email lockdown (2026-04-26)
+
+- [x] Wrote PRD at `prds/robel-auth-preview-30-and-admin-lockdown.md`
+- [x] Updated `.cursor/skills/robel-auth/SKILL.md` with preview.30 reality check (lowercase factories shipped, `arctic` no longer needed, `password()` is a factory, `client` imports from `/client` or `/browser`)
+- [x] Added "Denied session pattern" section to the skill for app-level allowlists
+- [x] Bumped `@robelest/convex-auth` to `^0.0.4-preview.30` in `package.json`
+- [x] Removed direct `arctic` dependency
+- [x] Rewrote `convex/auth.ts` to use `password()` and `github({ clientId, clientSecret })` lowercase factories; removed manual GitHub profile callback
+- [x] Switched `createAuth` import to `@robelest/convex-auth/server` (the `/component` entry's d.ts does not re-export it in preview.30)
+- [x] Tightened `convex/dashboardAuth.ts` so `DASHBOARD_PRIMARY_ADMIN_EMAIL`, when set, is the sole admin gate and the `dashboardAdmins` table is bypassed
+- [x] Added `DeniedAccessDemo` to `src/pages/Dashboard.tsx`: renders `<DashboardContent isDemo />` with a mismatch banner and a "Sign out and retry" button for both `convex-auth` and `workos` modes
+- [x] Added `src/utils/convexAuthClient.ts` to share one Robel auth client per `ConvexReactClient`, preventing duplicate OAuth callback verifier consumption and repeated `Invalid verification code` logs
+- [x] Switched `src/utils/convexAuthClient.ts` from `@robelest/convex-auth/client` to the docs-recommended `@robelest/convex-auth/browser` entrypoint so browser storage, location handling, and HTTP defaults are active
+- [x] Routed `src/AppWithWorkOS.tsx`, `src/pages/Home.tsx`, and `src/pages/Dashboard.tsx` through `getConvexAuthClient()`
+- [x] Changed strict admin email lookup in `convex/dashboardAuth.ts` to read `DASHBOARD_PRIMARY_ADMIN_EMAIL` at request time instead of module load
+- [x] Added `getCurrentDashboardAuthDebug` and `strictAdminEmailConfigured` in `convex/authAdmin.ts` for safe denied-state diagnostics
+- [x] Added denied-dashboard banner showing the signed-in GitHub email, expected admin email, and a "Sign out and retry" button
+- [x] Removed custom OAuth callback param cleanup from `src/AppWithWorkOS.tsx`; `@robelest/convex-auth` owns `?code=` exchange and cleanup through `handleCodeFlow()`
+- [x] Added guarded stale callback cleanup in `src/AppWithWorkOS.tsx` that waits five seconds and only removes `?code=` if the user is still unauthenticated
+- [x] Removed unsupported `fetchPriority` image props that caused React DOM warnings
+- [x] Narrowed Dashboard GitHub sign-in on `result.kind === "redirect"` for the new `SignInResult` shape
+- [x] Cleaned 3 pre-existing TS6133 warnings (`ConvexError` import in `convex/wiki.ts`, `source` param in `scripts/sync-wiki.ts`, `sourceDetail` query in `Dashboard.tsx`)
+- [x] Verified `npx tsc --noEmit` passes with zero errors
+
+### Markdown slide presentations (2026-04-14)
+
+- [x] Added `slides: v.optional(v.boolean())` to posts and pages tables in `convex/schema.ts`
+- [x] Added `slides` to `syncPostsPublic` and `syncPagesPublic` mutation validators
+- [x] Added `slides` to all frontmatter interfaces and parse functions in `scripts/sync-posts.ts`
+- [x] Created `src/components/SlidePresentation.tsx` with fullscreen overlay, keyboard nav, progress bar, slide counter
+- [x] Added Present button to three rendering paths in `src/pages/Post.tsx` (page, docs post, standard post)
+- [x] Added slide presentation CSS to `src/styles/global.css`
+- [x] Created blog post: "Markdown slides" (not featured)
+- [x] Created slide template example with 10 working slides (`slides: true`)
+- [x] Updated `changelog-page.md` with v2.29.0 entry
+- [x] Updated `home.md` features list with markdown slides
+- [x] Updated `changelog.md` with keepachangelog entry
+- [x] Updated `files.md` with new and modified file descriptions
+
+### Application-level rate limiting (2026-04-14)
+
+- [x] Installed `@convex-dev/rate-limiter` component and registered in `convex/convex.config.ts`
+- [x] Created `convex/rateLimits.ts` with centralized rate limit definitions across 4 tiers (19 rate limits)
+- [x] `checkHttpRateLimit` internal mutation bridge for HTTP action rate limiting
+- [x] Tier 1: Rate limited money endpoints: Ask AI stream, source ingest, wiki compile/lint, AI image gen, AI chat
+- [x] Tier 2: Rate limited heavy read endpoints: VFS exec/tree, API export, full-content RSS
+- [x] Tier 3: Rate limited public mutations: heartbeat, page views, newsletter subscribe
+- [x] Tier 4: Rate limited standard read endpoints: API posts/post, sitemap, KB endpoints, RSS, raw markdown
+- [x] All rate-limited HTTP endpoints return 429 with `Retry-After` headers
+- [x] Mutations use `throws: true` for authenticated endpoints, silent `return null` for anonymous endpoints
+- [x] Verified `npx convex codegen` and `npm run build` pass with zero errors
+- [x] Added rate limiting docs and patterns to `convex-virtual-fs/` README
+- [x] Updated `changelog.md`, `changelog-page.md`, `TASK.md`, `files.md`
+
+### Footer AI discovery links and sync wiki integration (2026-04-14)
+
+- [x] Added `llms.txt` and `AGENTS.md` links to SocialFooter component with Robot and FileText icons
+- [x] Added CSS styles for `.social-footer-ai-links` and `.social-footer-ai-link` with hover/opacity transitions and mobile responsive layout
+- [x] Updated `sync-discovery-files.ts` to fetch wiki pages from Convex and include wiki knowledge base section in `llms.txt`
+- [x] Updated `sync-discovery-files.ts` to include wiki page listing in `AGENTS.md`
+- [x] Added logic to copy `AGENTS.md` to `public/` so it is web-accessible at `/AGENTS.md`
+- [x] Updated `files.md`, `changelog.md`, `TASK.md`, `changelog-page.md`
+
+### @convex-dev/virtual-fs component (2026-04-14)
+
+- [x] Created `convex-virtual-fs/` folder with full Convex component structure
+- [x] Component schema: `files` table with `by_path` index, `search_content` and `search_title` search indexes
+- [x] Component files: `files.ts` (upsert, batchUpsert, remove, removeDir, get, count, clear), `shell.ts` (ls, cat, head, tail, grep, find, tree, wc, stat, pwd, cd, echo, help), `http.ts` (/tree, /exec, /file with CORS)
+- [x] Client class: `VirtualFs` with typed wrapper methods for all operations
+- [x] Test helpers: `src/test.ts` with `register()` for convex-test
+- [x] Example app: `example/convex/` with convex.config.ts, schema.ts, and example.ts showing sync patterns
+- [x] Build config: package.json, tsconfig.json, tsconfig.build.json, .gitignore matching official template
+- [x] Docs: README.md with use cases, quick start, full API reference, shell commands table, patterns, and limitations
+- [x] PUBLISHING.md with npm publish instructions
+- [x] CHANGELOG.md with 0.1.0 initial release notes
+- [x] Apache-2.0 LICENSE
+
+## Completed
+
+### Demo mode, wiki UI, and sidebar polish (2026-04-13)
+
+- [x] Demo cleanup cron changed from 1 hour to every 30 minutes in `convex/crons.ts`
+- [x] Demo error messages updated from "every hour" to "every 30 minutes" in `convex/demo.ts`
+- [x] Demo banner updated: "Demo mode: your content resets every 30 minutes. Admins have full access. Fork and set up your own" with repo link
+- [x] Added `demo: true` boolean field to posts and pages schema for frontmatter labeling
+- [x] Demo post/page creation sets `demo: true` alongside `source: "demo"`
+- [x] Demo list queries return `demo` field
+- [x] Content docs updated from "hourly" to "every 30 minutes" in `home.md` and `docs.md`
+- [x] Wiki long name wrapping: removed `white-space: nowrap`, added `overflow-wrap: anywhere` on nav items, card titles, article headers, and categories
+- [x] Wiki card overflow fix: added `min-width: 0` and `overflow: hidden` on `.wiki-card`
+- [x] Dashboard config: added `wikiShowInNav` toggle checkbox and wiki entry in generated `hardcodedNavItems`
+- [x] Wiki route remains accessible at `/wiki` regardless of nav toggle
+- [x] Wiki left sidebar restyled to match docs sidebar: border-right, uppercase header with letter spacing, nav items with left border accent, category groups with dividers
+- [x] Wiki right sidebar TOC restyled to match docs TOC: label with bottom border, items with left border accent and hover states
+- [x] Removed inline styles from wiki right sidebar graph title
+- [x] Updated `files.md`, `changelog.md`, `TASK.md`, `changelog-page.md`
+
+### Docs, dashboard, and wiki UI polish (2026-04-14)
+
+- [x] Add sync:wiki and sync:wiki:prod docs to all content pages, blog posts, README, AGENTS.md, CLAUDE.md, FORK_CONFIG.md, skill files
+- [x] Add sync:wiki and sync:wiki:prod to sync-server.ts whitelist
+- [x] Update home page features list with wiki, knowledge bases, knowledge graph, VFS, dashboard, demo mode
+- [x] Add Wiki, Knowledge Bases, VFS, and Demo mode sections to docs.md with API table updates
+- [x] Add Sources, Wiki, Knowledge Bases, and Demo mode sections to docs-dashboard.md
+- [x] Add wiki/KB/VFS/demo features to about.md
+- [x] Restyle Knowledge Bases dashboard section to match Sources/Wiki pattern (import-section layout, list-table grid, import-btn buttons)
+- [x] Remove unused `selectedKb` variable
+- [x] Wiki sidebar CSS polish: header matches docs sidebar, nav items with border-left active state, category sections with dividers, TOC matches docs pattern
+- [x] Demo mode banner updated to 30-minute cleanup, fork link added
+- [x] Dashboard config: added wikiShowInNav toggle
+- [x] Demo cleanup cron changed from hourly to every 30 minutes
+- [x] Schema: added `demo` optional boolean field to posts and pages tables
+- [x] Schema: updated source field comments to say "30 minutes" instead of "hourly"
+
+### Pre-deploy: docs, blog post, model migration, homepage (2026-04-13)
+
+- [x] Add "Accessing wiki data" section to `docs.md`, `docs-dashboard.md`, and `AGENTS.md`
+- [x] Write blog post `content/blog/wiki-knowledge-bases-and-virtual-filesystem.md`
+- [x] Create SVG featured image at `public/images/wiki-kb-vfs.svg`
+- [x] Rewrite README features section and "Recent updates" to match homepage
+- [x] Update AGENTS.md key features list with all current capabilities
+- [x] Migrate all `gpt-4o` references to `gpt-4.1-mini` across 6 backend files, frontend config, fork config, create-markdown-sync, and 8 content docs
+- [x] Rewrite homepage tagline to include wikis and knowledge bases
+- [x] Fix stale "Hourly" in `docs-dashboard.md`, add 30-minute detail to `about.md`
+- [x] Update `changelog.md`, `changelog-page.md`, `TASK.md`, `files.md`
+
+### Knowledge bases / LLM knowledge bases (2026-04-05)
+
+- [x] Write PRD at `prds/knowledge-bases.md`
+- [x] Add `knowledgeBases` and `kbUploadJobs` tables to schema
+- [x] Add optional `kbId` to `wikiPages`, `wikiIndex`, `wikiCompilationJobs`
+- [x] Create `convex/knowledgeBases.ts` with CRUD mutations and internal queries
+- [x] Create `convex/kbUpload.ts` with file upload, processing, backlink extraction
+- [x] Update `convex/wiki.ts` to scope all queries by optional kbId
+- [x] Add `searchWikiPages` full-text search query
+- [x] Add `/api/kb`, `/api/kb/pages`, `/api/kb/page` HTTP endpoints
+- [x] Add KB management section to Dashboard (create, list, upload, visibility/API toggles)
+- [x] Add KB switcher to public Wiki page
+- [x] Add `--kb=<id>` flag to `scripts/sync-wiki.ts`
+- [x] `npx convex codegen` passes
+- [x] `npm run build` passes
+- [x] `npx convex-doctor@latest` at **100/100** with **0 errors**, **0 warnings**
+- [x] Updated `files.md`, `changelog.md`, `changelog-page.md`, `TASK.md`
+
 ## Current Status
+
+Session updates complete on 2026-04-14.
+
+- **Wiki sync command** (2026-04-05)
+  - Created `scripts/sync-wiki.ts` that reads all markdown from `content/blog/` and `content/pages/`
+  - Converts each published post/page into a wiki page with inferred type, category, and backlinks
+  - Added `npm run sync:wiki` and `npm run sync:wiki:prod` to package.json
+  - Updated `npm run sync:all` and `sync:all:prod` to include wiki sync
+  - Added public `syncWikiPages` mutation to `convex/wiki.ts` with auth signal
+  - `convex-doctor` maintained at **100/100** with **0 errors**, **0 warnings**
+
+- **Anonymous dashboard demo mode** (2026-04-05)
+  - Added demo mode for unauthenticated dashboard visitors (no login required to explore)
+  - Demo users can view all posts, pages, and wiki content (read-only on admin content)
+  - Demo users can create, edit, and delete their own temporary posts/pages (tagged `source: "demo"`)
+  - Content sanitization strips scripts, iframes, event handlers, and dangerous HTML
+  - Demo slugs auto-prefixed with `demo-` to prevent collisions with admin content
+  - Hourly cron job (`cleanupDemoContent`) deletes all demo posts and pages
+  - AI, file uploads, config, sync, import, newsletter, sources, and media sections blocked for demo users
+  - Persistent amber banner in dashboard: "Demo mode: your content resets every hour"
+  - Sign-in with GitHub button in sidebar footer for demo users to upgrade to full admin
+  - "Dashboard" text label added next to nav icon in Layout.tsx (desktop and mobile)
+  - Demo source badge (amber) shown alongside existing dashboard/sync badges
+  - Extended `source` union on posts/pages schema to include `"demo"`
+  - Created `convex/demo.ts` with demo CRUD mutations, sanitization, and cleanup
+  - Updated `convex/crons.ts` with hourly demo content cleanup
+  - Updated `convex/posts.ts` and `convex/pages.ts` sync to skip `source: "demo"` content
+  - `convex-doctor` maintained at **100/100** with **0 errors**, **0 warnings**
+  - Created PRD at `prds/anonymous-demo-mode.md`
+
+Session updates complete on 2026-04-04.
+
+- **Virtual filesystem, source ingest, and LLM wiki** (2026-04-04)
+  - Phase 1: Created `convex/virtualFs.ts` with shell command emulation (ls, cat, grep, find, tree, head, wc, pwd, cd) over Convex content
+  - Phase 1: Added `/vfs/tree` and `/vfs/exec` HTTP endpoints to `convex/http.ts`
+  - Phase 2: Added `sources` and `sourceIngestJobs` tables to `convex/schema.ts`
+  - Phase 2: Created `convex/sources.ts` with queued job pattern for source ingestion
+  - Phase 2: Created `convex/sourceActions.ts` with Firecrawl scraping and OpenAI embedding generation
+  - Phase 3: Added `wikiPages`, `wikiIndex`, and `wikiCompilationJobs` tables to `convex/schema.ts`
+  - Phase 3: Created `convex/wiki.ts` with wiki page CRUD, batch upsert, lint, and index regeneration
+  - Phase 3: Created `convex/wikiCompiler.ts` with LLM compilation pipeline (GPT-4o)
+  - Phase 3: Created `convex/wikiJobs.ts` with queued compilation and lint job pattern
+  - Phase 3: Added daily wiki compilation cron to `convex/crons.ts`
+  - All three content types (sources, wiki) integrated into virtualFs directory tree
+  - Refactored `virtualFs.ts` to use shared helper functions (no `ctx.runQuery` within same file)
+  - Batched wiki page upserts, index regeneration, and job finalization into single transactions
+  - Batched source processing and job finalization into single transactions
+  - `convex-doctor` maintained at **100/100** with **0 errors**, **0 warnings**, **21 infos**
+  - Created PRD at `prds/virtual-filesystem.md`
+  - Created `content/pages/wiki-resources.md` with reference links
 
 Session updates complete on 2026-03-20.
 
@@ -224,6 +435,29 @@ Session updates complete on 2026-02-16.
 - Ask AI modal and docs navigation smoke-tested locally.
 
 ## Completed
+
+- [x] Virtual filesystem, source ingest pipeline, and LLM wiki (2026-04-04)
+  - [x] Created PRD at `prds/virtual-filesystem.md`
+  - [x] Created `content/pages/wiki-resources.md` with reference links
+  - [x] Phase 1: Created `convex/virtualFs.ts` with path tree, readFile, grep, and shell command emulation
+  - [x] Phase 1: Added `/vfs/tree` and `/vfs/exec` HTTP routes to `convex/http.ts`
+  - [x] Phase 2: Added `sources` and `sourceIngestJobs` tables to `convex/schema.ts`
+  - [x] Phase 2: Created `convex/sources.ts` with ingest mutations and queries
+  - [x] Phase 2: Created `convex/sourceActions.ts` with Firecrawl + embedding worker
+  - [x] Phase 3: Added `wikiPages`, `wikiIndex`, `wikiCompilationJobs` tables to `convex/schema.ts`
+  - [x] Phase 3: Created `convex/wiki.ts` with wiki page CRUD and index management
+  - [x] Phase 3: Created `convex/wikiCompiler.ts` with LLM compilation pipeline
+  - [x] Phase 3: Created `convex/wikiJobs.ts` with queued job pattern
+  - [x] Phase 3: Added wiki compilation cron to `convex/crons.ts`
+  - [x] Refactored virtualFs.ts to use helper functions (convex-doctor compliance)
+  - [x] Batched wiki upserts + index regeneration + job finalization into single mutations
+  - [x] Batched source processing + job finalization into single mutations
+  - [x] Verified `npx convex codegen`, `npm run build`, and `npx convex-doctor@latest` at **100/100**, **0 errors**, **0 warnings**
+  - [x] Dashboard Sources tab: ingest form (URL + title + type), source list with status, source detail viewer
+  - [x] Dashboard Wiki tab: compile/lint buttons with job polling, latest job status, lint report viewer, wiki pages list with detail/backlinks/rendered markdown, wiki index display
+  - [x] Added `Database`, `BookOpen`, `TreeStructure`, `Globe` Phosphor icons
+  - [x] Added "Knowledge" nav section with Sources and Wiki items
+  - [x] Final verification: `npx convex codegen`, `npm run build`, `npx convex-doctor@latest` all pass (100/100, 0 errors, 0 warnings)
 
 - [x] Convex doctor sixteenth pass (2026-03-20 20:15 UTC)
   - [x] Created PRD at `prds/convex-doctor-sixteenth-pass.md`

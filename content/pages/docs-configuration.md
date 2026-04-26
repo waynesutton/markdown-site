@@ -184,7 +184,7 @@ excerpt: "Short description for card view."
 image: "/images/thumbnail.png"
 ```
 
-Then run `npm run sync` or `npm run sync:all`. No redeploy needed.
+Then run `npm run sync` or `npm run sync:all` (which also syncs wiki and discovery files). No redeploy needed.
 
 | Field           | Description                                  |
 | --------------- | -------------------------------------------- |
@@ -436,7 +436,7 @@ Mobile sizes defined in `@media (max-width: 768px)` block.
 2. Push to GitHub
 3. Run `npm run deploy` (Convex self-hosting) or wait for Netlify to rebuild (Netlify legacy mode)
 
-The `npm run sync` command only syncs markdown text content. Use `npm run sync:discovery` to update discovery files (AGENTS.md, llms.txt) when site configuration changes.
+The `npm run sync` command only syncs markdown text content. Use `npm run sync:discovery` to update discovery files (AGENTS.md, CLAUDE.md, llms.txt) when site configuration changes. Discovery sync also fetches wiki pages from Convex and includes them in `llms.txt` and `AGENTS.md`, and copies `AGENTS.md` to `public/` for web access.
 
 **Adding images to posts:** You can add images using markdown syntax `![alt](src)` or HTML `<img>` tags. The site uses `rehypeRaw` and `rehypeSanitize` to safely render HTML in markdown content. See [Using Images in Blog Posts](/using-images-in-posts) for complete examples and best practices.
 
@@ -467,7 +467,7 @@ askAI: {
   defaultModel: "claude-sonnet-4-20250514",
   models: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
   ],
 },
 ```

@@ -23,14 +23,20 @@ Sync command scripts are located in `scripts/` (sync-posts.ts, sync-discovery-fi
 **Development:**
 
 - <span class="copy-command">npm run sync</span> - Sync markdown content
-- <span class="copy-command">npm run sync:discovery</span> - Update discovery files (AGENTS.md, llms.txt)
-- <span class="copy-command">npm run sync:all</span> - Sync content + discovery files together
+- <span class="copy-command">npm run sync:discovery</span> - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages)
+- <span class="copy-command">npm run sync:wiki</span> - Sync wiki from content/blog and content/pages
+- <span class="copy-command">npm run sync:all</span> - Sync content + wiki + discovery files together
 
 **Production:**
 
 - <span class="copy-command">npm run sync:prod</span> - Sync markdown content
 - <span class="copy-command">npm run sync:discovery:prod</span> - Update discovery files
-- <span class="copy-command">npm run sync:all:prod</span> - Sync content + discovery files together
+- <span class="copy-command">npm run sync:wiki:prod</span> - Sync wiki to production
+- <span class="copy-command">npm run sync:all:prod</span> - Sync content + wiki + discovery files together
+
+**Knowledge base sync:**
+
+- <span class="copy-command">npm run sync:wiki -- --kb=&lt;id&gt;</span> - Sync wiki into a specific knowledge base
 
 **Export dashboard content:**
 
@@ -80,6 +86,7 @@ It's a hybrid: developer workflow for publishing + real-time delivery like a dyn
 
 **Themes and UI:**
 
+- Markdown slide presentations from frontmatter (`slides: true`) with fullscreen mode and keyboard navigation
 - Four theme options (dark, light, tan, cloud)
 - Font switcher (serif, sans, monospace) with localStorage persistence
 - Mobile menu with hamburger navigation on smaller screens
@@ -118,13 +125,24 @@ It's a hybrid: developer workflow for publishing + real-time delivery like a dyn
 - AI Agent chat powered by Anthropic Claude (toggle in Write page or right sidebar)
 - Firecrawl content importer (`npm run import <url>`) for external articles
 
+**Wiki and knowledge bases:**
+
+- LLM-compiled wiki at `/wiki` built from your site content
+- Create multiple knowledge bases from uploaded markdown or Obsidian vaults
+- Per-KB visibility (public/private) and API access controls
+- Full-text search scoped by knowledge base
+- Interactive knowledge graph visualization per KB
+- Virtual filesystem at `/vfs/exec` for shell-like access to all content
+
 **Dashboard and admin:**
 
 - Dashboard at `/dashboard` for content management and site configuration
 - Posts and pages editor with live preview and frontmatter sidebar
+- Sources tab for URL ingestion, Wiki tab for compilation, Knowledge Bases tab for KB management
 - Sync commands UI for executing syncs from browser
 - Newsletter management with AgentMail integration and admin UI
 - Real-time analytics at `/stats` with visitor map
+- Anonymous demo mode for visitors to explore without signing in (content resets every 30 minutes)
 
 **Newsletter and contact:**
 

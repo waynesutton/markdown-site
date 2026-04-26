@@ -21,6 +21,8 @@ docsSection: false
 
 The markdown.fast framework has a new default architecture. Everything runs on Convex. No Netlify. No WorkOS. One backend for database, auth, and static file hosting.
 
+Static hosting uses the [Convex Static Hosting component](https://www.convex.dev/components/static-hosting). It uploads the Vite build output to Convex storage and serves the app from Convex HTTP routes, so the frontend and backend ship together.
+
 ## What changed
 
 Three defaults flipped:
@@ -49,6 +51,8 @@ npm run deploy
 
 The `setup` command configures your project for static hosting. The `dev --once` command pushes the backend schema. The `deploy` command builds your React app and uploads it to Convex storage.
 
+This repo uses `@convex-dev/self-hosting`, which is documented in the [Convex Static Hosting component page](https://www.convex.dev/components/static-hosting). The component is registered in `convex/convex.config.ts`, exposes upload helpers from `convex/staticHosting.ts`, and registers static routes from `convex/http.ts`.
+
 Your site is live at `your-project.convex.site`. Point a custom domain in the Convex dashboard.
 
 ## Auth without external services
@@ -62,12 +66,13 @@ Set up GitHub OAuth in two steps:
 
 The callback URL is `https://your-project.convex.site/api/auth/callback/github`.
 
-Dashboard admin access works through a bootstrap command. Run it once after setting up OAuth:
+Dashboard admin access defaults to `DASHBOARD_PRIMARY_ADMIN_EMAIL`. Set it to the GitHub primary email that should own the dashboard:
 
 ```bash
-npx convex run authAdmin:bootstrapDashboardAdmin \
-  '{"bootstrapKey":"your-secret","email":"you@example.com"}'
+npx convex env set DASHBOARD_PRIMARY_ADMIN_EMAIL "you@example.com" --prod
 ```
+
+The older `DASHBOARD_ADMIN_BOOTSTRAP_KEY` path still exists for forks that want to manage a `dashboardAdmins` table instead of using strict single-email admin mode.
 
 ## What about RSS and sitemap
 

@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { rateLimiter } from "./rateLimits";
 
 const imageModelValidator = v.union(
   v.literal("gemini-2.0-flash-exp-image-generation"),
@@ -43,6 +44,12 @@ export const requestImageGeneration = mutation({
   }),
   handler: async (ctx, args) => {
     const identity = await requireAuthenticatedIdentity(ctx);
+
+    await rateLimiter.limit(ctx, "aiImageGen", {
+      key: identity.subject,
+      throws: true,
+    });
+
     const prompt = args.prompt.trim();
     if (!prompt) {
       throw new ConvexError("Prompt is required");

@@ -177,8 +177,9 @@ const results = await ctx.db
 | `convex/posts.ts` | Post queries/mutations |
 | `convex/pages.ts` | Page queries/mutations |
 | `convex/stats.ts` | Analytics (heartbeat, pageViews) |
+| `convex/rateLimits.ts` | Rate limit definitions (4 tiers, 19 limits) and HTTP action bridge |
 | `convex/search.ts` | Full text search |
-| `convex/http.ts` | HTTP endpoints |
+| `convex/http.ts` | HTTP endpoints (all rate limited) |
 | `convex/rss.ts` | RSS feed generation |
 | `convex/crons.ts` | Scheduled jobs |
 

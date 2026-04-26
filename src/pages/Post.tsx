@@ -13,9 +13,10 @@ import ContactForm from "../components/ContactForm";
 import { extractHeadings } from "../utils/extractHeadings";
 import { useSidebar } from "../context/SidebarContext";
 import { format, parseISO } from "date-fns";
-import { ArrowLeft, Link as LinkIcon, Rss, Tag } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Rss, Tag, Presentation } from "lucide-react";
 import { XLogo, LinkedinLogo } from "@phosphor-icons/react";
 import { useState, useEffect, useRef, useCallback } from "react";
+import SlidePresentation from "../components/SlidePresentation";
 import siteConfig from "../config/siteConfig";
 
 // Local storage key for related posts view mode preference
@@ -89,6 +90,7 @@ export default function Post({
   const footerPage = useQuery(api.pages.getPageBySlug, { slug: "footer" });
 
   const [copied, setCopied] = useState(false);
+  const [showSlides, setShowSlides] = useState(false);
 
   // State for related posts view mode toggle (list or thumbnails)
   const [relatedPostsViewMode, setRelatedPostsViewMode] = useState<"list" | "thumbnails">(
@@ -444,7 +446,6 @@ export default function Post({
                   src={page.image}
                   alt={page.title}
                   className="post-header-image-img"
-                  fetchPriority="high"
                 />
               </div>
             )}
@@ -518,7 +519,6 @@ export default function Post({
                   src={page.image}
                   alt={page.title}
                   className="post-header-image-img"
-                  fetchPriority="high"
                 />
               </div>
             )}
@@ -528,6 +528,15 @@ export default function Post({
                 {/* Show CopyPageDropdown aligned with title when sidebars are enabled */}
                 {hasAnySidebar && (
                   <div className="post-header-actions">
+                    {page.slides && (
+                      <button
+                        className="slide-present-btn"
+                        onClick={() => setShowSlides(true)}
+                      >
+                        <Presentation size={16} />
+                        <span>Present</span>
+                      </button>
+                    )}
                     <CopyPageDropdown
                       title={page.title}
                       content={page.content}
@@ -538,6 +547,16 @@ export default function Post({
                   </div>
                 )}
               </div>
+              {page.slides && !hasAnySidebar && (
+                <button
+                  className="slide-present-btn"
+                  onClick={() => setShowSlides(true)}
+                  style={{ marginTop: "8px" }}
+                >
+                  <Presentation size={16} />
+                  <span>Present</span>
+                </button>
+              )}
               {/* Author avatar and name for pages (optional) */}
               {(page.authorImage || page.authorName) && (
                 <div className="post-meta-header">
@@ -563,6 +582,14 @@ export default function Post({
             </header>
 
             <BlogPost content={page.content} slug={page.slug} pageType="page" />
+
+            {showSlides && page.slides && (
+              <SlidePresentation
+                content={page.content}
+                title={page.title}
+                onClose={() => setShowSlides(false)}
+              />
+            )}
 
             {/* Contact form - shown when contactForm: true in frontmatter (only if not inline) */}
             {siteConfig.contactForm?.enabled &&
@@ -671,6 +698,15 @@ export default function Post({
       >
         <article className="docs-article">
           <div className="docs-article-actions">
+            {post.slides && (
+              <button
+                className="slide-present-btn"
+                onClick={() => setShowSlides(true)}
+              >
+                <Presentation size={16} />
+                <span>Present</span>
+              </button>
+            )}
             <CopyPageDropdown
               title={post.title}
               content={post.content}
@@ -687,7 +723,6 @@ export default function Post({
                 src={post.image}
                 alt={post.title}
                 className="post-header-image-img"
-                fetchPriority="high"
               />
             </div>
           )}
@@ -698,6 +733,14 @@ export default function Post({
             )}
           </header>
           <BlogPost content={post.content} slug={post.slug} pageType="post" />
+
+          {showSlides && post.slides && (
+            <SlidePresentation
+              content={post.content}
+              title={post.title}
+              onClose={() => setShowSlides(false)}
+            />
+          )}
           {siteConfig.footer.enabled &&
             (post.showFooter !== undefined
               ? post.showFooter
@@ -765,7 +808,6 @@ export default function Post({
                 src={post.image}
                 alt={post.title}
                 className="post-header-image-img"
-                fetchPriority="high"
               />
             </div>
           )}
@@ -775,6 +817,15 @@ export default function Post({
               {/* Show CopyPageDropdown aligned with title when sidebars are enabled */}
               {hasAnySidebar && (
                 <div className="post-header-actions">
+                  {post.slides && (
+                    <button
+                      className="slide-present-btn"
+                      onClick={() => setShowSlides(true)}
+                    >
+                      <Presentation size={16} />
+                      <span>Present</span>
+                    </button>
+                  )}
                   <CopyPageDropdown
                     title={post.title}
                     content={post.content}
@@ -819,6 +870,18 @@ export default function Post({
                   <span className="post-read-time">{post.readTime}</span>
                 </>
               )}
+              {post.slides && !hasAnySidebar && (
+                <>
+                  <span className="post-meta-separator">·</span>
+                  <button
+                    className="slide-present-btn"
+                    onClick={() => setShowSlides(true)}
+                  >
+                    <Presentation size={16} />
+                    <span>Present</span>
+                  </button>
+                </>
+              )}
             </div>
             {post.description && (
               <p className="post-description">{post.description}</p>
@@ -826,6 +889,14 @@ export default function Post({
           </header>
           {/* Blog post content - raw markdown or rendered */}
           <BlogPost content={post.content} slug={post.slug} pageType="post" />
+
+          {showSlides && post.slides && (
+            <SlidePresentation
+              content={post.content}
+              title={post.title}
+              onClose={() => setShowSlides(false)}
+            />
+          )}
 
           <footer className="post-footer">
             <div className="post-share">

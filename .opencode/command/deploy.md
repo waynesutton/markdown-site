@@ -16,7 +16,8 @@ npm run sync:all:prod
 
 This syncs:
 - All posts and pages
-- Discovery files (AGENTS.md, llms.txt)
+- Wiki from content/blog and content/pages
+- Discovery files (AGENTS.md, CLAUDE.md, llms.txt with wiki pages)
 - Raw markdown files
 
 ### 2. Deploy Convex functions

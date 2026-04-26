@@ -273,7 +273,10 @@ function updateAgentsMd(
   postCount: number,
   pageCount: number,
   latestPostDate?: string,
+  wikiPages?: Array<{ slug: string; title: string; pageType: string; category?: string }>,
 ): string {
+  const wikiCount = wikiPages?.length ?? 0;
+
   // Update Project overview section
   const projectOverviewRegex = /## Project overview\n\n([^\n]+)/;
   const newOverview = `## Project overview\n\n${siteConfig.description || siteConfig.bio}. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.`;
@@ -281,7 +284,7 @@ function updateAgentsMd(
   content = content.replace(projectOverviewRegex, newOverview);
 
   // Build Current Status section
-  const statusSection = `\n## Current Status\n\n- **Site Name**: ${siteConfig.name}\n- **Site Title**: ${siteConfig.title}\n- **Site URL**: ${siteUrl}\n- **Total Posts**: ${postCount}\n- **Total Pages**: ${pageCount}${latestPostDate ? `\n- **Latest Post**: ${latestPostDate}` : ""}\n- **Last Updated**: ${new Date().toISOString()}\n`;
+  const statusSection = `\n## Current Status\n\n- **Site Name**: ${siteConfig.name}\n- **Site Title**: ${siteConfig.title}\n- **Site URL**: ${siteUrl}\n- **Total Posts**: ${postCount}\n- **Total Pages**: ${pageCount}\n- **Wiki Pages**: ${wikiCount}${latestPostDate ? `\n- **Latest Post**: ${latestPostDate}` : ""}\n- **Last Updated**: ${new Date().toISOString()}\n`;
 
   // Check if Current Status section exists
   if (content.includes("## Current Status")) {
@@ -305,6 +308,42 @@ function updateAgentsMd(
     }
   }
 
+  // Build and insert/replace Wiki Pages section
+  if (wikiPages && wikiPages.length > 0) {
+    const grouped: Record<string, Array<{ slug: string; title: string }>> = {};
+    for (const page of wikiPages) {
+      const key = page.category || page.pageType || "general";
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push({ slug: page.slug, title: page.title });
+    }
+
+    let wikiSection = `## Wiki knowledge base\n\n${wikiCount} compiled wiki pages. Access via VFS:\n\n\`\`\`bash\ncurl -X POST ${siteUrl}/vfs/exec -H "Content-Type: application/json" -d '{"command": "ls /wiki"}'\n\`\`\`\n\n`;
+    for (const [category, pages] of Object.entries(grouped)) {
+      wikiSection += `**${category}:**\n`;
+      for (const page of pages) {
+        wikiSection += `- ${page.title} (\`/wiki/${page.slug}\`)\n`;
+      }
+      wikiSection += "\n";
+    }
+
+    // Replace existing section or insert before "## Content import" or at end
+    if (content.includes("## Wiki knowledge base")) {
+      const wikiRegex = /## Wiki knowledge base\n\n([\s\S]*?)(?=\n## |$)/;
+      content = content.replace(wikiRegex, wikiSection.trim() + "\n");
+    } else {
+      // Insert before "## Content import" if it exists, otherwise before "## Environment files"
+      const insertBefore = content.indexOf("## Content import") > -1
+        ? content.indexOf("## Content import")
+        : content.indexOf("## Environment files") > -1
+          ? content.indexOf("## Environment files")
+          : content.length;
+      content =
+        content.slice(0, insertBefore) +
+        "\n" + wikiSection +
+        content.slice(insertBefore);
+    }
+  }
+
   return content;
 }
 
@@ -314,8 +353,30 @@ function generateLlmsTxt(
   siteUrl: string,
   postCount: number,
   latestPostDate?: string,
+  wikiPages?: Array<{ slug: string; title: string; pageType: string; category?: string }>,
 ): string {
   const githubUrl = getGitHubUrl(siteConfig);
+  const wikiCount = wikiPages?.length ?? 0;
+
+  // Build wiki section if pages exist
+  let wikiSection = "";
+  if (wikiPages && wikiPages.length > 0) {
+    const grouped: Record<string, Array<{ slug: string; title: string }>> = {};
+    for (const page of wikiPages) {
+      const key = page.category || page.pageType || "general";
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push({ slug: page.slug, title: page.title });
+    }
+
+    wikiSection = `\n# Wiki Knowledge Base (${wikiCount} pages)\n\nCompiled knowledge base with interlinked wiki pages.\nAccess via: /vfs/exec with {"command": "cat /wiki/{slug}.md"}\n`;
+
+    for (const [category, pages] of Object.entries(grouped)) {
+      wikiSection += `\n## ${category}\n`;
+      for (const page of pages) {
+        wikiSection += `- ${page.title} (/wiki/${page.slug})\n`;
+      }
+    }
+  }
 
   return `# llms.txt - Information for AI assistants and LLMs
 # Learn more: https://llmstxt.org/
@@ -329,6 +390,7 @@ function generateLlmsTxt(
 - Description: ${siteConfig.description || siteConfig.bio} Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
 - Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source, AI, LLM, AEO, GEO
 - Total Posts: ${postCount}
+- Wiki Pages: ${wikiCount}
 ${latestPostDate ? `- Latest Post: ${latestPostDate}\n` : ""}- GitHub: ${githubUrl}
 
 # API Endpoints
@@ -356,6 +418,15 @@ Standard RSS feed with post descriptions.
 GET /rss-full.xml
 Full content RSS feed with complete markdown for each post.
 
+## Virtual Filesystem
+GET /vfs/tree
+Returns JSON tree of all content paths (blog, pages, docs, sources, wiki).
+
+POST /vfs/exec
+Execute shell-like commands against all site content.
+Send JSON body: {"command": "ls /blog"} or {"command": "grep convex /blog"}
+Supported commands: ls, cat, grep, find, tree, head, wc, pwd, cd
+
 ## Other
 GET /sitemap.xml
 Dynamic XML sitemap for search engines.
@@ -371,7 +442,9 @@ AI plugin manifest for tool integration.
 1. Fetch /api/export for all posts with full content in one request
 2. Or fetch /api/posts for the list, then /api/post?slug={slug}&format=md for each
 3. Subscribe to /rss-full.xml for updates with complete content
-
+4. Use /vfs/tree to browse the full content tree
+5. Use /vfs/exec with shell commands to search and read specific content
+${wikiSection}
 # Response Schema
 
 Each post contains:
@@ -394,6 +467,10 @@ Each post contains:
 - Frontend: React, TypeScript, Vite
 - Hosting: Netlify with edge functions
 - Content: Markdown with frontmatter
+
+# Discovery Files
+- /llms.txt - This file (LLM discovery)
+- /AGENTS.md - AI agent instructions and codebase overview
 
 # Links
 - GitHub: ${githubUrl}
@@ -435,6 +512,8 @@ async function syncDiscoveryFiles() {
   let pageCount = 0;
   let latestPostDate: string | undefined;
 
+  let wikiPages: Array<{ slug: string; title: string; pageType: string; category?: string }> = [];
+
   try {
     const [posts, pages] = await Promise.all([
       client.query(api.posts.getAllPosts),
@@ -452,8 +531,22 @@ async function syncDiscoveryFiles() {
       latestPostDate = sortedPosts[0].date;
     }
 
+    // Fetch wiki pages for discovery files
+    try {
+      const wikiResult = await client.query(api.wiki.listWikiPages, {});
+      wikiPages = wikiResult.map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        pageType: p.pageType,
+        category: p.category,
+      }));
+    } catch {
+      console.warn("Could not fetch wiki pages (wiki may not be compiled yet)");
+    }
+
     console.log(`Found ${postCount} published posts`);
     console.log(`Found ${pageCount} published pages`);
+    console.log(`Found ${wikiPages.length} wiki pages`);
     if (latestPostDate) {
       console.log(`Latest post: ${latestPostDate}`);
     }
@@ -476,7 +569,7 @@ async function syncDiscoveryFiles() {
       "# AGENTS.md\n\nInstructions for AI coding agents working on this codebase.\n\n## Project overview\n\nAn open-source publishing framework.\n";
   }
 
-  // Update AGENTS.md with app-specific data
+  // Update AGENTS.md with app-specific data (including wiki pages)
   console.log("Updating AGENTS.md with current app data...");
   const updatedAgentsContent = updateAgentsMd(
     agentsContent,
@@ -485,9 +578,15 @@ async function syncDiscoveryFiles() {
     postCount,
     pageCount,
     latestPostDate,
+    wikiPages,
   );
   fs.writeFileSync(agentsPath, updatedAgentsContent, "utf-8");
   console.log(`  Updated: ${agentsPath}`);
+
+  // Copy AGENTS.md to public/ so it's web-accessible at /AGENTS.md
+  const publicAgentsPath = path.join(PUBLIC_DIR, "AGENTS.md");
+  fs.writeFileSync(publicAgentsPath, updatedAgentsContent, "utf-8");
+  console.log(`  Copied:  ${publicAgentsPath}`);
 
   // Read and update CLAUDE.md
   const claudePath = path.join(ROOT_DIR, "CLAUDE.md");
@@ -506,22 +605,24 @@ async function syncDiscoveryFiles() {
     console.log(`  Updated: ${claudePath}`);
   }
 
-  // Generate llms.txt
+  // Generate llms.txt (including wiki pages)
   console.log("\nGenerating llms.txt...");
   const llmsContent = generateLlmsTxt(
     siteConfig,
     siteUrl,
     postCount,
     latestPostDate,
+    wikiPages,
   );
   const llmsPath = path.join(PUBLIC_DIR, "llms.txt");
   fs.writeFileSync(llmsPath, llmsContent, "utf-8");
   console.log(`  Updated: ${llmsPath}`);
 
   console.log("\nDiscovery files sync complete!");
-  console.log(`  Updated AGENTS.md with app-specific context`);
+  console.log(`  Updated AGENTS.md with app-specific context (${wikiPages.length} wiki pages)`);
+  console.log(`  Copied AGENTS.md to public/ for web access`);
   console.log(`  Updated CLAUDE.md with current status`);
-  console.log(`  Updated llms.txt with ${postCount} posts`);
+  console.log(`  Updated llms.txt with ${postCount} posts and ${wikiPages.length} wiki pages`);
 }
 
 // Run the sync

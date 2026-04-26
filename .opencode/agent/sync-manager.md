@@ -26,10 +26,13 @@ You are the sync and deployment specialist for the markdown publishing framework
 |---------|-------------|---------|
 | `npm run sync` | Development | Sync markdown to dev Convex |
 | `npm run sync:prod` | Production | Sync markdown to prod Convex |
-| `npm run sync:discovery` | Development | Update AGENTS.md, llms.txt |
-| `npm run sync:discovery:prod` | Production | Update discovery files |
-| `npm run sync:all` | Development | Sync everything |
-| `npm run sync:all:prod` | Production | Sync everything |
+| `npm run sync:discovery` | Development | Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages) |
+| `npm run sync:discovery:prod` | Production | Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages) |
+| `npm run sync:wiki` | Development | Wiki from content/blog + content/pages |
+| `npm run sync:wiki:prod` | Production | Wiki to production |
+| `npm run sync:wiki -- --kb=<id>` | Development | Wiki into a specific knowledge base |
+| `npm run sync:all` | Development | Content + wiki + discovery |
+| `npm run sync:all:prod` | Production | Content + wiki + discovery |
 
 ## Import External Content
 

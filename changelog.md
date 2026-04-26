@@ -6,6 +6,126 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `@robelest/convex-auth` to `^0.0.4-preview.30`. Removed direct `arctic` dependency since the published package now ships first-party `github()` provider with built-in profile fetch
+- Rewrote `convex/auth.ts` to use lowercase factory functions: `password()` and `github({ clientId, clientSecret })` instead of `new Password()` and `OAuth(new GitHub(...), { profile })`
+- Switched `createAuth` import to `@robelest/convex-auth/server` (the `/component` entry imports but does not re-export `createAuth` in preview.30, while `/server` does)
+- `convex/dashboardAuth.ts` `isDashboardAdmin()` now treats `DASHBOARD_PRIMARY_ADMIN_EMAIL` as the sole admin gate when set. The `dashboardAdmins` table is bypassed entirely so that a single env var enforces "exactly one human admin" without database state. The table fallback only runs when the env var is unset
+- Non-admin authenticated dashboard users now render the demo view with a denied-state banner. The banner shows the signed-in GitHub email, the expected `DASHBOARD_PRIMARY_ADMIN_EMAIL`, and a visible "Sign out and retry" button
+- Frontend auth client setup now uses `getConvexAuthClient()` in `src/utils/convexAuthClient.ts` to keep a singleton Robel auth client per `ConvexReactClient`. This prevents multiple components from verifying the same OAuth callback code and spamming `Invalid verification code`
+- `getConvexAuthClient()` now imports from `@robelest/convex-auth/browser`, the docs-recommended entrypoint for web apps. This supplies local storage, URL handling, and `ConvexHttpClient` defaults that the framework-neutral `/client` entrypoint does not provide
+- `DASHBOARD_PRIMARY_ADMIN_EMAIL` is now read at request time instead of captured at module load, so Convex env updates are picked up without stale strict-admin state
+- Denied dashboard users now see a safe debug banner showing the signed-in GitHub email and expected strict admin email, plus a visible "Sign out and retry" button
+- OAuth callback cleanup now stays owned by `@robelest/convex-auth` during normal login. The app only removes stale failed callback params after a five-second unauthenticated grace period, so old broken `?code=` URLs do not poison retries
+- Removed unsupported React `fetchPriority` props from image tags to silence the DOM warning in local development
+- `SignInResult` no longer exposes a top-level `redirect` property. Dashboard GitHub sign-in now narrows on `result.kind === "redirect"` before reading `result.redirect`
+- Earlier in this unreleased block: bumped from preview.11 through preview.25 with manual GitHub profile callback and `arctic`. Preview.30 supersedes that interim state and removes the workaround
+- Demo mode Write tab uses dedicated `DEMO_POST_FIELDS` and `DEMO_PAGE_FIELDS` frontmatter lists that hide admin-only fields (`showInNav`, `featured`, `featuredOrder`, `blogFeatured`, `order`, `docsSection`, layout, navbar). `generateWriteTemplate(type, isDemo)` emits a demo-safe template with the 30-minute reset note
+
+### Fixed
+
+- Blank page on load caused by the auth client throwing during SPA-mode init when localStorage held a stale `__convexAuthRefreshToken`
+- Repeated `[convex-auth] Invalid verification code` logs caused by multiple Robel auth client instances trying to consume the same OAuth callback verifier
+- Strict admin mode incorrectly falling into first-admin bootstrap when no `dashboardAdmins` rows existed. When `DASHBOARD_PRIMARY_ADMIN_EMAIL` is configured, denied users now go to demo mode with the mismatch banner
+- Convex push failure `Class constructor T1 cannot be invoked without 'new'` caused by calling `Password()` instead of `new Password()` (no longer relevant in preview.30 since `password()` is a factory)
+- Three pre-existing TS6133 unused-variable warnings cleaned up: dropped unused `ConvexError` import in `convex/wiki.ts`, prefixed unused `source` parameter in `scripts/sync-wiki.ts`, removed unused `sourceDetail` query in `src/pages/Dashboard.tsx`
+
+### Documentation
+
+- Linked the Convex Static Hosting component docs from `content/blog/convex-first-architecture.md`, `content/pages/docs-deployment.md`, and `content/pages/docs.md`
+- Documented the production static hosting shape: `@convex-dev/self-hosting` in `convex/convex.config.ts`, upload helpers in `convex/staticHosting.ts`, and `registerStaticRoutes(http, components.selfHosting)` in `convex/http.ts`
+- Updated deployment docs with production env requirements for Robel Auth, GitHub OAuth, and `DASHBOARD_PRIMARY_ADMIN_EMAIL`
+- Updated `.cursor/skills/robel-auth/SKILL.md` "Published package reality check" section for `0.0.4-preview.30`: lowercase factory exports are now real, `arctic` is no longer required for GitHub, `password()` is a factory function (not a class), and `client` imports from `@robelest/convex-auth/client` or `/browser`. Older release notes preserved as legacy migration context
+- Added "Denied session pattern" section to the skill documenting the upstream-recommended `signOut + render denied UI` flow for app-level allowlists
+- Created `prds/robel-auth-preview-30-and-admin-lockdown.md` documenting the upgrade and admin email lockdown
+
+### Added
+
+- Markdown slide presentations: `slides: true` frontmatter enables fullscreen presentation mode on any post or page
+- New `SlidePresentation` component with keyboard navigation (arrows, space, escape, home, end), progress bar, and slide counter
+- Content splits on `---` horizontal rules into slides; code blocks are safely skipped during parsing
+- Present button in post/page header when slides are enabled
+- New blog post: "Markdown slides" documenting the feature
+- New slide template example post with a working 10-slide deck
+- `slides` field added to posts and pages tables in `convex/schema.ts`, sync mutations in `convex/posts.ts` and `convex/pages.ts`, and `scripts/sync-posts.ts`
+- Application-level rate limiting across all 4 tiers using `@convex-dev/rate-limiter` component
+  - Tier 1: Ask AI stream, source ingest, wiki compilation, AI image generation, AI chat (LLM cost protection)
+  - Tier 2: VFS exec/tree, API export, full-content RSS (compute-heavy reads)
+  - Tier 3: Heartbeat, page views, newsletter subscribe (public mutation abuse prevention)
+  - Tier 4: API posts/post, sitemap, KB endpoints, RSS, raw markdown (standard reads)
+- `convex/rateLimits.ts` with centralized rate limit definitions and HTTP action bridge mutation
+- Rate limiter component registered in `convex/convex.config.ts`
+- HTTP 429 responses with `Retry-After` headers on all rate-limited endpoints
+- Rate limiting documentation and patterns added to `convex-virtual-fs/` README
+- `llms.txt` and `AGENTS.md` links in SocialFooter between social icons and copyright, with Robot and FileText Phosphor icons
+- Sync discovery script now fetches wiki pages from Convex and includes wiki knowledge base section in both `llms.txt` and `AGENTS.md`
+- `AGENTS.md` automatically copied to `public/` directory during sync so it is web-accessible at `/AGENTS.md`
+- `convex-virtual-fs/` standalone Convex component package (`@convex-dev/virtual-fs`) with shell commands, HTTP endpoints, client class, test helpers, example app, and full docs for publishing to npm
+- New blog post: "Wiki, knowledge bases, and virtual filesystem" covering LLM wiki, KBs, VFS, and demo mode
+- SVG featured image at `public/images/wiki-kb-vfs.svg` for the new blog post
+- README features section rewritten to match homepage feature list with all current capabilities
+- README "Recent updates" section updated with wiki, KBs, VFS, demo mode, and convex-doctor 100/100
+- "Accessing wiki data" section added to `docs.md`, `docs-dashboard.md`, and `AGENTS.md` documenting authenticated vs. unauthenticated access patterns
+- AGENTS.md key features list expanded with knowledge bases, semantic search, Ask AI, demo mode, newsletter, and knowledge graph
+- Homepage tagline rewritten to include wikis and knowledge bases with link to docs
+
+### Changed
+
+- Migrated all OpenAI model references from deprecated `gpt-4o` to `gpt-4.1-mini` across 6 Convex backend files, frontend config, fork config, create-markdown-sync, and 8 content docs
+- Wiki compiler now uses `gpt-4.1-mini` for compilation
+- AI chat and Ask AI backends updated to `gpt-4.1-mini` model validator and API calls
+- Dashboard wiki section copy updated from GPT-4o to GPT-4.1 mini
+
+### Fixed
+
+- `docs-dashboard.md` demo mode section still said "Hourly" instead of "every 30 minutes"
+- `about.md` demo mode missing 30-minute cleanup detail
+
+- Knowledge bases system: create, manage, and share multiple LLM knowledge bases from the dashboard
+- Upload markdown files or Obsidian vaults as knowledge base projects via `convex/kbUpload.ts`
+- Per-KB visibility (public/private) and API controls (public/private/off) in `convex/knowledgeBases.ts`
+- HTTP API endpoints: `/api/kb`, `/api/kb/pages`, `/api/kb/page` for per-KB content access
+- KB switcher in public Wiki page lets visitors browse between site wiki and uploaded knowledge bases
+- Wiki full-text search scoped by knowledge base via `searchWikiPages` query
+- `--kb=<id>` flag for `npm run sync:wiki` to sync content into a specific knowledge base
+- Knowledge graph visualization scoped per knowledge base
+- New schema tables: `knowledgeBases`, `kbUploadJobs` with full indexes
+- `kbId` foreign key added to `wikiPages`, `wikiIndex`, `wikiCompilationJobs` for backward-compatible scoping
+- convex-doctor score maintained at 100/100 after all changes
+
+- Wiki sync command: `npm run sync:wiki` and `npm run sync:wiki:prod` to build wiki from local markdown content
+- Wiki sync script at `scripts/sync-wiki.ts` reads `content/blog/` and `content/pages/`, infers types/categories, extracts backlinks
+- Public `syncWikiPages` mutation in `convex/wiki.ts` for CLI-driven wiki population
+- `sync:all` and `sync:all:prod` now include wiki sync automatically
+
+- Anonymous dashboard demo mode for unauthenticated visitors to explore all dashboard features
+- Demo users can create, edit, and delete temporary posts/pages (tagged `source: "demo"`)
+- Content sanitization in `convex/demo.ts` strips scripts, iframes, event handlers, and dangerous HTML
+- Hourly cron job to clean up all demo content automatically
+- "Dashboard" text label added to nav icon in Layout.tsx (desktop and mobile)
+- Demo source badge (amber) for demo-created content in post/page lists
+- Sign-in with GitHub button in demo sidebar footer for upgrading to full admin
+- PRD at `prds/anonymous-demo-mode.md`
+
+- Virtual filesystem HTTP interface (`/vfs/tree`, `/vfs/exec`) for shell-like access to all site content via `convex/virtualFs.ts`
+- Source ingest pipeline with queued job pattern: `convex/sources.ts`, `convex/sourceActions.ts` (Firecrawl scraping + OpenAI embeddings)
+- LLM wiki compilation system: `convex/wiki.ts`, `convex/wikiCompiler.ts`, `convex/wikiJobs.ts` (GPT-4o driven synthesis)
+- Five new database tables: `sources`, `sourceIngestJobs`, `wikiPages`, `wikiIndex`, `wikiCompilationJobs`
+- Daily wiki compilation cron job (4:00 AM UTC) in `convex/crons.ts`
+- Wiki resources page at `content/pages/wiki-resources.md` with reference links
+- PRD at `prds/virtual-filesystem.md` covering all three phases
+- Dashboard "Sources" tab with URL ingest form, source list, status indicators, and content preview
+- Dashboard "Wiki" tab with compile/lint buttons, job status polling, lint report viewer, wiki pages list with rendered markdown detail, backlink navigation, and wiki index display
+- New "Knowledge" sidebar section in Dashboard with Sources and Wiki nav items
+
+### Changed
+
+- `convex/virtualFs.ts` uses shared helper functions for `buildPathTree`, `readFile`, and `grepContent` so `executeCommand` avoids `ctx.runQuery` within the same file (convex-doctor `perf/helper-vs-run` compliance)
+- Wiki compilation batches all page upserts, index regeneration, and job finalization into single mutations (convex-doctor `perf/loop-run-mutation` and `perf/sequential-run-calls` compliance)
+- Source processing batches `markSourceProcessed` and job finalization into one mutation
+- `convex-doctor` maintained at **100/100** with **0 errors**, **0 warnings** after all new files
+
 ### Security
 
 - Added auth-awareness to `search`, `recordPageView`, `heartbeat`, and `versions.isEnabled` so intentional public flows remain non-blocking while clearing more `convex-doctor` auth warnings

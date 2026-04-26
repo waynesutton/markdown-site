@@ -34,6 +34,8 @@ const ALLOWED_COMMANDS: Record<string, { script: string; env?: Record<string, st
   "sync:prod": { script: "sync:prod" },
   "sync:discovery": { script: "sync:discovery" },
   "sync:discovery:prod": { script: "sync:discovery:prod" },
+  "sync:wiki": { script: "sync:wiki" },
+  "sync:wiki:prod": { script: "sync:wiki:prod" },
   "sync:all": { script: "sync:all" },
   "sync:all:prod": { script: "sync:all:prod" },
 };

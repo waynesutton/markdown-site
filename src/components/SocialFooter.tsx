@@ -9,6 +9,8 @@ import {
   TiktokLogo,
   DiscordLogo,
   Globe,
+  Robot,
+  FileText,
   type Icon,
 } from "@phosphor-icons/react";
 
@@ -59,6 +61,32 @@ export default function SocialFooter() {
               </a>
             );
           })}
+        </div>
+
+        {/* AI discovery links (llms.txt and AGENTS.md) */}
+        <div className="social-footer-ai-links">
+          <a
+            href="/llms.txt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-footer-ai-link"
+            aria-label="LLMs.txt"
+            title="LLM discovery file"
+          >
+            <Robot size={14} weight="regular" />
+            <span>llms.txt</span>
+          </a>
+          <a
+            href="/AGENTS.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-footer-ai-link"
+            aria-label="AGENTS.md"
+            title="AI agent instructions"
+          >
+            <FileText size={14} weight="regular" />
+            <span>AGENTS.md</span>
+          </a>
         </div>
 
         {/* Copyright on the right */}

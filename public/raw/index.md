@@ -1,12 +1,10 @@
 # Homepage
 
-The open-source markdown publishing framework for developers and AI agents to ship **[docs](/docs)**, or **[blogs](/blog)** or **[websites](/)** that's always in sync.
+Ship **[docs](/docs)**, **[blogs](/blog)**, **[wikis](/wiki)**, **[slides](/slide-template-example)**, and **[knowledge bases](/docs#wiki-and-knowledge-bases)** from markdown. Always in sync.
+
+Open-source publishing framework for developers and AI agents. Write content, run sync, every browser updates instantly.
 
 **[Fork it](https://github.com/waynesutton/markdown-site)** or [npm](https://www.npmjs.com/package/create-markdown-sync) **<span class="copy-command">npx create-markdown-sync my-site</span>**, customize it, ship it.
-
-<!-- This is a comments
-Your content is instantly available to browsers, LLMs, and AI
-agents. -->
 
 ## Features
 
@@ -14,24 +12,42 @@ agents. -->
 
 **File-based publishing** — Write markdown locally, content syncs everywhere with version control.
 
+**LLM wiki and knowledge bases** — Build searchable wikis from your content. Upload Obsidian vaults or markdown folders as knowledge base projects with per-KB API access.
+
+**Knowledge graph** — Interactive visualization of how your wiki pages and knowledge bases connect.
+
+**Virtual filesystem** — Shell-like HTTP interface for ls, cat, grep, tree across all site content.
+
 **URL content import** — Import urls to scrape any webpage into markdown with Firecrawl.
 
 **Newsletter automation** — Built-in subscription forms and admin dashboard powered by AgentMail.
+
+**Markdown slides** — Add `slides: true` to frontmatter. Present any post as a fullscreen slide deck with keyboard navigation.
 
 **Multiple output formats** — JSON via API endpoints, raw .md files, and RSS feeds.
 
 **Real-time team sync** — Multiple developers run npm run sync from different machines.
 
-**Sync Commands** - Sync discovery commands to update AGENTS.md, CLAUDE.md, and llms.txt
+**Sync commands** — Sync content, wiki, and discovery files with one command. Update AGENTS.md, CLAUDE.md, and llms.txt with wiki knowledge base pages.
 
-**Semantic search** - Find content by meaning, not just keywords.
+**Semantic search** — Find content by meaning, not just keywords.
 
-**Ask AI** - Chat with your site content. Get answers with sources.
+**Ask AI** — Chat with your site content. Get answers with sources.
+
+**Admin dashboard** — Full content management with live preview, analytics, config editor, sync buttons, and knowledge base management.
+
+**Anonymous demo mode** Visitors can explore the dashboard without signing in. Demo content resets every 30 minutes.
 
 ---
 
-## Blog Posts (22)
+## Blog Posts (25)
 
+- **[Markdown slides](/raw/markdown-slides.md)** - Turn any markdown post or page into a fullscreen slide presentation with one frontmatter field
+  - Date: 2026-04-14 | Reading time: 3 min read | Tags: slides, markdown, features
+- **[Slide template example](/raw/slide-template-example.md)** - A working example of markdown slides you can present directly from this page
+  - Date: 2026-04-14 | Reading time: 2 min read | Tags: slides, template, markdown
+- **[Wiki, knowledge bases, and virtual filesystem](/raw/wiki-knowledge-bases-and-virtual-filesystem.md)** - markdown.fast now compiles your content into a searchable wiki, lets you upload Obsidian vaults as knowledge bases, and exposes everything through a shell-like HTTP API.
+  - Date: 2026-04-13 | Reading time: 5 min read | Tags: convex, wiki, knowledge-bases, virtual-filesystem, features
 - **[How convex-doctor took markdown.fast from 42 to 100](/raw/convex-doctor-score-42-to-100.md)** - I had the most stars on the convex-doctor benchmark and the worst score. Here's how I fixed 364 findings across 17 passes to reach a perfect 100.
   - Date: 2026-03-20 | Reading time: 7 min read | Tags: convex, developer-tools, code-quality, static-analysis
 - **[Convex first: new defaults for markdown.fast](/raw/convex-first-architecture.md)** - Self-hosted static files, built-in auth, and one-command deploys. No external services required.
@@ -77,7 +93,7 @@ agents. -->
 - **[Using Images in Blog Posts](/raw/using-images-in-posts.md)** - Learn how to add header images, inline images, and Open Graph images to your markdown posts.
   - Date: 2025-12-14 | Reading time: 4 min read | Tags: images, tutorial, markdown, open-graph
 
-## Pages (17)
+## Pages (18)
 
 - **[Footer](/raw/footer.md)**
 - **[Home Intro](/raw/home-intro.md)**
@@ -95,11 +111,12 @@ agents. -->
 - **[Changelog](/raw/changelog.md)**
 - **[Deployment](/raw/docs-deployment.md)**
 - **[Newsletter](/raw/newsletter.md)**
+- **[Wiki resources](/raw/wiki-resources.md)**
 - **[Media Upload Setup](/raw/docs-media-setup.md)**
 
 ---
 
-**Total Content:** 22 posts, 17 pages
+**Total Content:** 25 posts, 18 pages
 
 All content is available as raw markdown files at `/raw/{slug}.md`
 
@@ -107,4 +124,4 @@ All content is available as raw markdown files at `/raw/{slug}.md`
 
 Built with [Convex](https://convex.dev) for real-time sync and deployed with Convex self-hosting by default. Legacy Netlify hosting remains available for compatibility. Read the [project on GitHub](https://github.com/waynesutton/markdown-site) to fork and deploy your own. View [real-time site stats](/stats).
 
-Created by [Wayne](https://x.com/waynesutton) with Convex, Cursor, and Claude Opus 4.5. Follow on [Twitter/X](https://x.com/waynesutton), [LinkedIn](https://www.linkedin.com/in/waynesutton/), and [GitHub](https://github.com/waynesutton). This project is licensed under the MIT [License](https://github.com/waynesutton/markdown-site?tab=MIT-1-ov-file).
+Created by [Wayne](https://x.com/waynesutton) with Convex, Cursor, and Claude. Follow on [Twitter/X](https://x.com/waynesutton), [LinkedIn](https://www.linkedin.com/in/waynesutton/), and [GitHub](https://github.com/waynesutton). This project is licensed under the MIT [License](https://github.com/waynesutton/markdown-site?tab=MIT-1-ov-file).

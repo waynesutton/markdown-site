@@ -87,14 +87,20 @@ The setup takes about 10 minutes:
 **Development:**
 
 - `npm run sync` - Sync markdown content
-- `npm run sync:discovery` - Update discovery files (AGENTS.md, llms.txt)
-- `npm run sync:all` - Sync content + discovery files together
+- `npm run sync:discovery` - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages)
+- `npm run sync:wiki` - Sync wiki from content/blog and content/pages
+- `npm run sync:all` - Sync content + wiki + discovery files together
 
 **Production:**
 
 - `npm run sync:prod` - Sync markdown content
 - `npm run sync:discovery:prod` - Update discovery files
-- `npm run sync:all:prod` - Sync content + discovery files together
+- `npm run sync:wiki:prod` - Sync wiki to production
+- `npm run sync:all:prod` - Sync content + wiki + discovery files together
+
+**Knowledge base sync:**
+
+- `npm run sync:wiki -- --kb=<id>` - Sync wiki into a specific knowledge base
 
 **Import external content:** Run `npm run import <url>` to scrape and create local markdown drafts. Then sync to dev or prod. There is no separate import command for production because import creates local files only.
 

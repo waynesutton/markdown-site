@@ -7,6 +7,7 @@ import {
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { requireDashboardAdmin } from "./dashboardAuth";
+import { rateLimiter } from "./rateLimits";
 
 const NEWSLETTER_ADMIN_QUERY_LIMIT = 2000;
 
@@ -36,7 +37,8 @@ export const subscribe = mutation({
   handler: async (ctx, args) => {
     await ctx.auth.getUserIdentity();
 
-    // Normalize email: lowercase and trim whitespace
+    await rateLimiter.limit(ctx, "newsletterSubscribe", { throws: true });
+
     const email = args.email.toLowerCase().trim();
 
     // Validate email format

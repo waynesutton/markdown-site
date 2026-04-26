@@ -52,7 +52,7 @@ export const listAll = query({
       featuredOrder: v.optional(v.number()),
       authorName: v.optional(v.string()),
       authorImage: v.optional(v.string()),
-      source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"))),
+      source: v.optional(v.union(v.literal("dashboard"), v.literal("sync"), v.literal("demo"))),
     }),
   ),
   handler: async (ctx) => {
@@ -115,6 +115,10 @@ export const getAllPages = query({
 
     const visiblePages: typeof pages = [];
     for (const page of pages) {
+      // Demo content is never eligible for the navbar, regardless of
+      // frontmatter. This is a safety net on top of the demo mutation
+      // hardcoding showInNav: false.
+      if (page.source === "demo") continue;
       // Default to visible for backwards compatibility.
       if (page.showInNav !== false) {
         visiblePages.push(page);
@@ -165,6 +169,8 @@ export const getFeaturedPages = query({
 
     const featuredPages: typeof pages = [];
     for (const page of pages) {
+      // Demo pages never appear in the homepage featured section.
+      if (page.source === "demo") continue;
       if (page.published) {
         featuredPages.push(page);
       }
@@ -213,6 +219,7 @@ export const getPageBySlug = query({
       newsletter: v.optional(v.boolean()),
       textAlign: v.optional(v.string()),
       docsSection: v.optional(v.boolean()),
+      slides: v.optional(v.boolean()),
     }),
     v.null(),
   ),
@@ -252,6 +259,7 @@ export const getPageBySlug = query({
       newsletter: page.newsletter,
       textAlign: page.textAlign,
       docsSection: page.docsSection,
+      slides: page.slides,
     };
   },
 });
@@ -393,6 +401,7 @@ export const syncPagesPublic = mutation({
         docsSectionGroupOrder: v.optional(v.number()),
         docsSectionGroupIcon: v.optional(v.string()),
         docsLanding: v.optional(v.boolean()),
+        slides: v.optional(v.boolean()),
       }),
     ),
   },
@@ -430,8 +439,8 @@ export const syncPagesPublic = mutation({
       const existing = existingBySlug.get(page.slug);
 
       if (existing) {
-        // Skip dashboard-created pages - don't overwrite them
-        if (existing.source === "dashboard") {
+        // Skip dashboard-created and demo pages - don't overwrite them
+        if (existing.source === "dashboard" || existing.source === "demo") {
           skipped++;
           continue;
         }
@@ -493,9 +502,9 @@ export const syncPagesPublic = mutation({
       });
     }
 
-    // Delete pages that no longer exist in the repo (but not dashboard pages)
+    // Delete pages that no longer exist in the repo (but not dashboard or demo pages)
     for (const existing of existingPages) {
-      if (!incomingSlugs.has(existing.slug) && existing.source !== "dashboard") {
+      if (!incomingSlugs.has(existing.slug) && existing.source !== "dashboard" && existing.source !== "demo") {
         await ctx.db.delete(existing._id);
         deleted++;
       }
@@ -531,6 +540,8 @@ export const getAllPagesInternal = internalQuery({
 
     const visiblePages: typeof pages = [];
     for (const page of pages) {
+      // Demo content is never surfaced in navigation.
+      if (page.source === "demo") continue;
       if (page.showInNav !== false) {
         visiblePages.push(page);
       }

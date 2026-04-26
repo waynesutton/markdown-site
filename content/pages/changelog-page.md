@@ -13,6 +13,196 @@ All notable changes to this project.
 
 ---
 
+## v2.31.0
+
+Released April 14, 2026
+
+**Convex auth upgrade to 0.0.4-preview.25**
+
+- Upgraded `@robelest/convex-auth` to the latest preview with `createAuth` factory API
+- Migrated `convex/auth.ts` off the deprecated `Auth` class and `Portal` helper
+- GitHub OAuth continues to use `arctic`'s `GitHub` wrapped in `OAuth()` since the preview package does not ship a first-party `github()` provider yet
+- SPA client now requires `api: api.auth` when calling `createConvexAuthClient`. Added the argument to all four call sites so sign in, sign out, and refresh token flows work
+- Fixed blank page on load caused by the auth client rejecting during SPA init when localStorage held a stale refresh token
+- Documented the drift between `auth.estifanos.com` docs and the published preview in the `robel-auth` skill so future updates inspect `node_modules` exports first
+
+---
+
+## v2.30.0
+
+Released April 14, 2026
+
+**Demo mode frontmatter hardening**
+
+- Demo users now see a trimmed frontmatter field picker that only shows fields the demo mutation actually accepts
+- Hidden fields include `showInNav`, `featured`, `featuredOrder`, `blogFeatured`, `order`, and `docsSection` so demo content cannot be forced into the navbar or featured sections
+- Demo Write tab template now opens with a shorter frontmatter block and a note that demo content resets every 30 minutes
+
+---
+
+## v2.29.0
+
+Released April 14, 2026
+
+**Markdown slide presentations**
+
+- Added `slides: true` frontmatter option for posts and pages to enable presentation mode
+- New `SlidePresentation` component renders fullscreen slide decks from markdown content
+- Content splits on `---` horizontal rules into individual slides (code blocks are safely skipped)
+- Keyboard navigation: arrow keys, space, escape, home, end
+- Progress bar, slide counter, and arrow button navigation
+- Present button appears in post header when slides are enabled
+- Full markdown rendering on slides including syntax-highlighted code blocks, tables, images, and blockquotes
+- New blog post: "Markdown slides" documenting the feature
+- New blog post: "Slide template example" with a working slide deck you can present
+- Added `slides` field to posts and pages tables in schema, sync mutations, and sync script
+
+---
+
+## v2.28.0
+
+Released April 14, 2026
+
+**Application-level rate limiting across all endpoints**
+
+- Added `@convex-dev/rate-limiter` component with 4-tier protection covering every public endpoint
+- Tier 1: LLM cost protection on Ask AI, source ingest, wiki compilation, AI image gen, AI chat
+- Tier 2: Compute protection on VFS exec/tree, API export, full-content RSS
+- Tier 3: Abuse prevention on heartbeat, page views, newsletter subscribe
+- Tier 4: Standard protection on API posts/post, sitemap, KB endpoints, RSS, raw markdown
+- Centralized rate limit definitions in `convex/rateLimits.ts` with HTTP action bridge mutation
+- All rate-limited endpoints return HTTP 429 with `Retry-After` headers
+- Rate limiting docs and patterns added to `convex-virtual-fs/` README
+
+---
+
+## v2.27.0
+
+Released April 14, 2026
+
+**Footer AI discovery links and sync wiki integration**
+
+- Added `llms.txt` and `AGENTS.md` links to site footer with Robot and FileText icons
+- Sync discovery script now fetches wiki pages and includes wiki knowledge base section in both `llms.txt` and `AGENTS.md`
+- `AGENTS.md` copied to `public/` during sync for web access at `/AGENTS.md`
+
+---
+
+## v2.26.0
+
+Released April 13, 2026
+
+**Pre-deploy: docs, model migration, blog post, homepage**
+
+- Migrated all OpenAI model references from deprecated `gpt-4o` to `gpt-4.1-mini` across backend, frontend, config, and docs
+- New blog post: "Wiki, knowledge bases, and virtual filesystem"
+- "Accessing wiki data" section added to docs, dashboard docs, and AGENTS.md documenting auth vs. unauthenticated access
+- README features section rewritten to match homepage, "Recent updates" refreshed
+- AGENTS.md key features list expanded with all current capabilities
+- Homepage tagline rewritten to include wikis and knowledge bases
+- Fixed stale "Hourly" references in demo mode docs
+
+---
+
+## v2.25.0
+
+Released April 13, 2026
+
+**Demo mode, wiki UI, and sidebar polish**
+
+- Demo content cleanup cron changed from hourly to every 30 minutes
+- Demo banner now says "your content resets every 30 minutes" with fork repo link
+- Added `demo` boolean field to schema for explicit frontmatter labeling of demo content
+- Wiki long names now wrap properly instead of overflowing cards and nav items
+- Dashboard config gets a "Show wiki in nav" toggle
+- Wiki left sidebar restyled to match docs sidebar pattern (uppercase header, left border active state, group dividers)
+- Wiki right sidebar TOC restyled to match docs TOC pattern (label border, left border accent items)
+
+---
+
+## v2.24.0
+
+Released April 5, 2026
+
+**Knowledge bases and LLM knowledge base projects**
+
+Added a full knowledge base management system. Admins can create multiple KB projects, upload markdown files or Obsidian vaults, control visibility and API access per KB, and share them on the public wiki page. Each KB gets its own knowledge graph and searchable index. convex-doctor score stays at 100/100.
+
+**New features:**
+
+- Knowledge base CRUD: create, update, delete KBs with visibility and API settings
+- Markdown file upload: drag and drop `.md` files into any KB from the dashboard
+- Per-KB API endpoints: `/api/kb`, `/api/kb/pages?slug=<kb>`, `/api/kb/page?kb=<kb>&slug=<page>`
+- KB switcher on the public Wiki page for browsing between site wiki and uploaded KBs
+- Full-text search scoped by knowledge base
+- Knowledge graph visualization per KB
+- `--kb=<id>` flag for `npm run sync:wiki` CLI command
+- New tables: `knowledgeBases`, `kbUploadJobs`
+- `kbId` foreign key on `wikiPages`, `wikiIndex`, `wikiCompilationJobs`
+
+**Files added:**
+
+- `convex/knowledgeBases.ts`
+- `convex/kbUpload.ts`
+- `prds/knowledge-bases.md`
+
+**Files changed:**
+
+- `convex/schema.ts` (new tables, kbId fields, indexes)
+- `convex/wiki.ts` (kbId scoping on all queries, search, sync)
+- `convex/http.ts` (KB API endpoints)
+- `src/pages/Dashboard.tsx` (KB management section)
+- `src/pages/Wiki.tsx` (KB switcher)
+- `src/styles/global.css` (KB switcher styles)
+- `scripts/sync-wiki.ts` (--kb flag)
+
+---
+
+## v2.23.0
+
+Released April 4, 2026
+
+**Virtual filesystem, source ingest pipeline, and LLM wiki**
+
+Added a shell-like virtual filesystem HTTP interface, a Firecrawl powered source ingestion pipeline with OpenAI embeddings, and an LLM driven wiki compilation system. All new code passes convex-doctor at 100/100 with 0 errors and 0 warnings.
+
+**New features:**
+
+- `/vfs/tree` and `/vfs/exec` HTTP endpoints for shell command emulation (ls, cat, grep, find, tree, head, wc, pwd, cd)
+- Source ingest with queued job pattern: submit a URL, Firecrawl scrapes it, OpenAI generates embeddings
+- LLM wiki compilation: GPT-4.1 mini synthesizes interlinked wiki pages from all site content
+- Wiki linting: automated checks for backlinks, content length, and title presence
+- Daily wiki compilation cron job at 4:00 AM UTC
+- Five new database tables: `sources`, `sourceIngestJobs`, `wikiPages`, `wikiIndex`, `wikiCompilationJobs`
+- Wiki resources page with reference links
+
+**Performance:**
+
+- Virtual filesystem uses shared helper functions to avoid `ctx.runQuery` within the same module
+- Wiki compilation batches all page upserts, index regeneration, and job finalization into single mutations
+- Source processing batches mark-processed and job finalization into one mutation
+
+**Dashboard:**
+
+- New "Knowledge" sidebar section with Sources and Wiki tabs
+- Sources tab: ingest form (URL + title + type selector), source list with processing status, content preview panel
+- Wiki tab: compile/lint buttons with real-time job polling, latest job status bar, lint report viewer, wiki pages list with rendered markdown detail, backlink navigation, wiki index display
+
+**Files added:**
+
+- `convex/virtualFs.ts`, `convex/sources.ts`, `convex/sourceActions.ts`
+- `convex/wiki.ts`, `convex/wikiCompiler.ts`, `convex/wikiJobs.ts`
+- `content/pages/wiki-resources.md`, `prds/virtual-filesystem.md`
+
+**Files changed:**
+
+- `convex/schema.ts` (5 new tables with indexes)
+- `convex/http.ts` (2 new routes + OPTIONS handlers)
+- `convex/crons.ts` (daily wiki compilation cron)
+- `src/pages/Dashboard.tsx` (SourcesSection + WikiSection components, Knowledge nav section)
+
+---
+
 ## v2.22.0
 
 Released March 20, 2026
@@ -875,7 +1065,7 @@ New header button that opens a chat modal for asking questions about site conten
 - Header button with sparkle icon (before search button)
 - Keyboard shortcuts: Cmd+J or Cmd+/ (Mac), Ctrl+J or Ctrl+/ (Windows/Linux)
 - Real-time streaming responses via Convex Persistent Text Streaming
-- Model selector: Claude Sonnet 4 (default) or GPT-4o
+- Model selector: Claude Sonnet 4 (default) or GPT-4.1 mini
 - Markdown rendering with syntax highlighting
 - Internal links use React Router for seamless navigation
 - Source citations with links to referenced content
@@ -901,7 +1091,7 @@ askAI: {
   defaultModel: "claude-sonnet-4-20250514",
   models: [
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "openai" },
   ],
 },
 ```
@@ -1303,7 +1493,7 @@ Released January 1, 2026
 - AI Agent section with tab-based UI (Chat and Image Generation tabs)
 - Multi-model selector for text chat
   - Claude Sonnet 4 (Anthropic)
-  - GPT-4o (OpenAI)
+  - GPT-4.1 mini (OpenAI)
   - Gemini 2.0 Flash (Google)
 - Lazy API key validation: errors only shown when user tries to use a specific model
 - Each provider has friendly setup instructions with links to get API keys
@@ -1341,7 +1531,7 @@ Released January 1, 2026
 **Environment Variables:**
 
 - `ANTHROPIC_API_KEY`: Required for Claude models
-- `OPENAI_API_KEY`: Required for GPT-4o
+- `OPENAI_API_KEY`: Required for GPT-4.1 mini
 - `GOOGLE_AI_API_KEY`: Required for Gemini text chat and image generation
 
 Updated files: `convex/aiImageGeneration.ts`, `convex/aiChatActions.ts`, `convex/aiChats.ts`, `convex/schema.ts`, `src/components/AIChatView.tsx`, `src/pages/Dashboard.tsx`, `src/config/siteConfig.ts`, `src/styles/global.css`, `files.md`, `TASK.md`, `changelog.md`, `content/pages/changelog-page.md`

@@ -19,14 +19,20 @@ Sync command scripts are located in `scripts/` (sync-posts.ts, sync-discovery-fi
 **Development:**
 
 - `npm run sync` - Sync markdown content
-- `npm run sync:discovery` - Update discovery files (AGENTS.md, llms.txt)
-- `npm run sync:all` - Sync content + discovery files together
+- `npm run sync:discovery` - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages, copies AGENTS.md to public/)
+- `npm run sync:wiki` - Sync wiki from content/blog and content/pages
+- `npm run sync:all` - Sync content + wiki + discovery files together
 
 **Production:**
 
 - `npm run sync:prod` - Sync markdown content
 - `npm run sync:discovery:prod` - Update discovery files
-- `npm run sync:all:prod` - Sync content + discovery files together
+- `npm run sync:wiki:prod` - Sync wiki to production
+- `npm run sync:all:prod` - Sync content + wiki + discovery files together
+
+**Knowledge base sync:**
+
+- `npm run sync:wiki -- --kb=<id>` - Sync wiki into a specific knowledge base
 
 **Export dashboard content:**
 
@@ -74,9 +80,39 @@ These files are automatically updated during `npm run sync:discovery` with curre
 
 ## Features
 
-See the full feature list on the [About page](https://www.markdown.fast/about).
+**AI agent integration** - API endpoints, raw markdown files, skills.md and MCP server included.
 
-Key features include real-time sync, four theme options, full-text search, analytics dashboard, MCP server for AI tools, newsletter integration, and SEO optimization with RSS feeds, sitemaps, and structured data.
+**File-based publishing** - Write markdown locally, content syncs everywhere with version control.
+
+**LLM wiki and knowledge bases** - Build searchable wikis from your content. Upload Obsidian vaults or markdown folders as knowledge base projects with per-KB API access.
+
+**Knowledge graph** - Interactive visualization of how your wiki pages and knowledge bases connect.
+
+**Virtual filesystem** - Shell-like HTTP interface for `ls`, `cat`, `grep`, `tree` across all site content at `/vfs/exec`. No auth required.
+
+**URL content import** - Import and scrape any webpage into markdown with Firecrawl.
+
+**Newsletter automation** - Built-in subscription forms and admin dashboard powered by AgentMail.
+
+**Multiple output formats** - JSON via API endpoints, raw `.md` files, and RSS feeds.
+
+**Real-time team sync** - Multiple developers run `npm run sync` from different machines. All connected browsers update instantly.
+
+**Sync commands** - Sync content, wiki, and discovery files with one command. Update AGENTS.md, CLAUDE.md, and llms.txt automatically.
+
+**Semantic search** - Find content by meaning, not just keywords, with OpenAI embeddings.
+
+**Ask AI** - Chat with your site content. Get answers with sources via Cmd+J.
+
+**Admin dashboard** - Full content management with live preview, analytics, config editor, sync buttons, and knowledge base management.
+
+**Anonymous demo mode** - Visitors can explore the dashboard without signing in. Demo content resets every 30 minutes.
+
+**Four themes** - Dark, light, tan, and cloud with font switcher (serif, sans, monospace).
+
+**Full text search** - Command+K shortcut with result highlighting across posts, pages, and wiki.
+
+See the full feature list on the [About page](https://www.markdown.fast/about).
 
 ## Fork Configuration
 
@@ -270,15 +306,17 @@ See [FORK_CONFIG.md](./FORK_CONFIG.md#setting-up-your-admin-email-required-for-f
 
 React 18, TypeScript, Vite, Convex (self hosted), `@robelest/convex-auth`, `@convex-dev/self-hosting`. Legacy mode: Netlify + WorkOS.
 
-## Recent Updates (v2.21.0)
+## Recent updates
 
+- **Application-level rate limiting** across all public endpoints using `@convex-dev/rate-limiter` with 4-tier protection (LLM cost, heavy reads, public mutations, standard reads)
+- **LLM wiki** compiled by GPT-4.1 mini from your site content with backlinks, categories, and knowledge graph
+- **Knowledge bases** for uploading Obsidian vaults or markdown folders with per-KB API access and visibility controls
+- **Virtual filesystem** at `/vfs/tree` and `/vfs/exec` for unauthenticated shell-like access to all content
+- **Anonymous demo mode** at `/dashboard` with 30-minute auto-cleanup
+- **Wiki sync commands** (`npm run sync:wiki`, `npm run sync:all`) for CLI-driven wiki population
 - **Convex self hosting** as default deployment via `@convex-dev/self-hosting`
 - **@robelest/convex-auth** as default authentication with GitHub OAuth
-- **Server-side dashboard admin** authorization with `dashboardAdmins` table
-- **Multi-mode architecture** supporting convex-auth, workos, and none auth modes
-- **Lightweight rich text editor** replacing Quill (zero vulnerabilities)
-- **Validation scripts** for environment and deployment verification
-- **One-click deploy improvements** with updated fork configuration
+- **convex-doctor score: 100/100** across security, performance, correctness, schema, and architecture
 
 See the [Changelog](https://www.markdown.fast/changelog) for the full version history.
 

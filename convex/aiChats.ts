@@ -6,6 +6,7 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { rateLimiter } from "./rateLimits";
 
 // Message validator for reuse
 const messageValidator = v.object({
@@ -35,7 +36,7 @@ const attachmentValidator = v.object({
 
 const modelValidator = v.union(
   v.literal("claude-sonnet-4-20250514"),
-  v.literal("gpt-4o"),
+  v.literal("gpt-4.1-mini"),
   v.literal("gemini-2.0-flash"),
 );
 
@@ -301,6 +302,12 @@ export const requestAIResponse = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const identity = await requireAuthenticatedIdentity(ctx);
+
+    await rateLimiter.limit(ctx, "aiChatResponse", {
+      key: identity.subject,
+      throws: true,
+    });
+
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
       throw new ConvexError("Chat not found");

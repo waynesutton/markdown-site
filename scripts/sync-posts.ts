@@ -54,6 +54,7 @@ interface PostFrontmatter {
   docsSectionGroupOrder?: number; // Order of group itself (lower = first)
   docsSectionGroupIcon?: string; // Phosphor icon name for sidebar group
   docsLanding?: boolean; // Use as /docs landing page
+  slides?: boolean; // Enable slide presentation mode (--- separates slides)
 }
 
 interface ParsedPost {
@@ -88,6 +89,7 @@ interface ParsedPost {
   docsSectionGroupOrder?: number; // Order of group itself (lower = first)
   docsSectionGroupIcon?: string; // Phosphor icon name for sidebar group
   docsLanding?: boolean; // Use as /docs landing page
+  slides?: boolean; // Enable slide presentation mode (--- separates slides)
 }
 
 // Page frontmatter (for static pages like About, Projects, Contact)
@@ -119,6 +121,7 @@ interface PageFrontmatter {
   docsSectionGroupOrder?: number; // Order of group itself (lower = first)
   docsSectionGroupIcon?: string; // Phosphor icon name for sidebar group
   docsLanding?: boolean; // Use as /docs landing page
+  slides?: boolean; // Enable slide presentation mode (--- separates slides)
 }
 
 interface ParsedPage {
@@ -150,6 +153,7 @@ interface ParsedPage {
   docsSectionGroupOrder?: number; // Order of group itself (lower = first)
   docsSectionGroupIcon?: string; // Phosphor icon name for sidebar group
   docsLanding?: boolean; // Use as /docs landing page
+  slides?: boolean; // Enable slide presentation mode (--- separates slides)
 }
 
 // Calculate reading time based on word count
@@ -206,6 +210,7 @@ function parseMarkdownFile(filePath: string): ParsedPost | null {
       docsSectionGroupOrder: frontmatter.docsSectionGroupOrder, // Order of group itself
       docsSectionGroupIcon: frontmatter.docsSectionGroupIcon, // Phosphor icon name for sidebar group
       docsLanding: frontmatter.docsLanding, // Use as docs landing page
+      slides: frontmatter.slides, // Enable slide presentation mode
     };
   } catch (error) {
     console.error(`Error parsing ${filePath}:`, error);
@@ -272,6 +277,7 @@ function parsePageFile(filePath: string): ParsedPage | null {
       docsSectionGroupOrder: frontmatter.docsSectionGroupOrder, // Order of group itself
       docsSectionGroupIcon: frontmatter.docsSectionGroupIcon, // Phosphor icon name for sidebar group
       docsLanding: frontmatter.docsLanding, // Use as docs landing page
+      slides: frontmatter.slides, // Enable slide presentation mode
     };
   } catch (error) {
     console.error(`Error parsing page ${filePath}:`, error);

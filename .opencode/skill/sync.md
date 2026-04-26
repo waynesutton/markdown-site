@@ -22,10 +22,13 @@ content/pages/*.md --+
 |---------|-------------|---------------|
 | `npm run sync` | Development | Posts + pages to dev Convex |
 | `npm run sync:prod` | Production | Posts + pages to prod Convex |
-| `npm run sync:discovery` | Development | AGENTS.md + llms.txt |
-| `npm run sync:discovery:prod` | Production | AGENTS.md + llms.txt |
-| `npm run sync:all` | Development | Everything |
-| `npm run sync:all:prod` | Production | Everything |
+| `npm run sync:discovery` | Development | AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages) |
+| `npm run sync:discovery:prod` | Production | AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages) |
+| `npm run sync:wiki` | Development | Wiki from content/blog + content/pages |
+| `npm run sync:wiki:prod` | Production | Wiki to production |
+| `npm run sync:wiki -- --kb=<id>` | Development | Wiki into a specific knowledge base |
+| `npm run sync:all` | Development | Content + wiki + discovery |
+| `npm run sync:all:prod` | Production | Content + wiki + discovery |
 
 ## How sync works
 
@@ -41,9 +44,11 @@ content/pages/*.md --+
 ### Discovery sync (sync-discovery-files.ts)
 
 1. Reads site configuration from `src/config/siteConfig.ts`
-2. Queries Convex for post/page counts
-3. Updates `AGENTS.md` with current status
-4. Generates `public/llms.txt` with API info
+2. Queries Convex for post/page counts and wiki pages
+3. Updates `AGENTS.md` with current status and wiki knowledge base listing
+4. Generates `CLAUDE.md` with project instructions
+5. Generates `public/llms.txt` with API info and wiki knowledge base section
+6. Copies `AGENTS.md` to `public/AGENTS.md` for web access at `/AGENTS.md`
 
 ## File locations
 

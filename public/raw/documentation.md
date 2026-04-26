@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-03-21
+Date: 2026-04-26
 ---
 
 ## Getting started
@@ -18,14 +18,21 @@ Sync command scripts are located in `scripts/` (sync-posts.ts, sync-discovery-fi
 **Development:**
 
 - <span class="copy-command">npm run sync</span> - Sync markdown content
-- <span class="copy-command">npm run sync:discovery</span> - Update discovery files (AGENTS.md, llms.txt)
-- <span class="copy-command">npm run sync:all</span> - Sync content + discovery files together
+- <span class="copy-command">npm run sync:discovery</span> - Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages, copies AGENTS.md to public/)
+- <span class="copy-command">npm run sync:wiki</span> - Sync wiki from content/blog and content/pages
+- <span class="copy-command">npm run sync:all</span> - Sync content + wiki + discovery files together
 
 **Production:**
 
 - <span class="copy-command">npm run sync:prod</span> - Sync markdown content
 - <span class="copy-command">npm run sync:discovery:prod</span> - Update discovery files
-- <span class="copy-command">npm run sync:all:prod</span> - Sync content + discovery files together
+- <span class="copy-command">npm run sync:wiki:prod</span> - Sync wiki to production
+- <span class="copy-command">npm run sync:all:prod</span> - Sync content + wiki + discovery files together
+- <span class="copy-command">npm run deploy</span> - Build and upload static assets with the <a href="https://www.convex.dev/components/static-hosting" target="_blank" rel="noopener noreferrer">Convex Static Hosting component</a>
+
+**Knowledge base sync:**
+
+- <span class="copy-command">npm run sync:wiki -- --kb=&lt;id&gt;</span> - Sync wiki into a specific knowledge base
 
 **Export dashboard content:**
 
@@ -46,6 +53,8 @@ npm run dev
 
 Open `http://localhost:5173` to view locally.
 
+Default production hosting uses the <a href="https://www.convex.dev/components/static-hosting" target="_blank" rel="noopener noreferrer">Convex Static Hosting component</a>. Markdown content syncs with `npm run sync:prod`. Source code, styles, images in `public/`, and static assets deploy with `npm run deploy`.
+
 ## Requirements
 
 - Node.js 18+
@@ -64,7 +73,13 @@ markdown-site/
 │   ├── posts.ts        # Post queries/mutations
 │   ├── pages.ts        # Page queries/mutations
 │   ├── http.ts         # API endpoints
-│   └── rss.ts          # RSS generation
+│   ├── rss.ts          # RSS generation
+│   ├── wiki.ts         # Wiki pages and sync
+│   ├── knowledgeBases.ts # Knowledge base CRUD
+│   ├── kbUpload.ts     # KB file upload processing
+│   ├── virtualFs.ts    # Virtual filesystem
+│   ├── sources.ts      # Source ingest pipeline
+│   └── demo.ts         # Anonymous demo mode
 ├── netlify/            # Legacy hosting support only
 │   └── edge-functions/ # Netlify edge functions (legacy mode)
 ├── src/
@@ -119,7 +134,9 @@ Each post and page includes a share dropdown with options:
 | Content visible on your site         | `npm run sync` or `sync:prod`                     |
 | Discovery files updated              | `npm run sync:discovery` or `sync:discovery:prod` |
 | AI links (ChatGPT/Claude/Perplexity) | `git push` to GitHub                              |
-| Both content and discovery           | `npm run sync:all` or `sync:all:prod`             |
+| Both content, wiki, and discovery    | `npm run sync:all` or `sync:all:prod`             |
+| Wiki only                            | `npm run sync:wiki` or `sync:wiki:prod`           |
+| Wiki into a knowledge base           | `npm run sync:wiki -- --kb=<id>`                  |
 
 **Download as SKILL.md:** Downloads the content formatted as an Anthropic Agent Skills file with metadata, triggers, and instructions sections.
 
@@ -235,21 +252,29 @@ The `newsletter:send` command calls the `scheduleSendPostNewsletter` mutation di
 
 ## API endpoints
 
-| Endpoint                       | Description                 |
-| ------------------------------ | --------------------------- |
-| `/stats`                       | Real-time analytics         |
-| `/newsletter-admin`            | Newsletter management UI    |
-| `/rss.xml`                     | RSS feed (descriptions)     |
-| `/rss-full.xml`                | RSS feed (full content)     |
-| `/sitemap.xml`                 | XML sitemap                 |
-| `/api/posts`                   | JSON post list              |
-| `/api/post?slug=xxx`           | Single post (JSON)          |
-| `/api/post?slug=xxx&format=md` | Single post (markdown)      |
-| `/api/export`                  | All posts with full content |
-| `/raw/{slug}.md`               | Static raw markdown file    |
-| `/.well-known/ai-plugin.json`  | AI plugin manifest          |
-| `/openapi.yaml`                | OpenAPI 3.0 specification   |
-| `/llms.txt`                    | AI agent discovery          |
+All public endpoints are rate limited via `@convex-dev/rate-limiter`. Exceeding limits returns HTTP 429 with a `Retry-After` header.
+
+| Endpoint                       | Description                 | Rate limit |
+| ------------------------------ | --------------------------- | ---------- |
+| `/stats`                       | Real-time analytics         |            |
+| `/newsletter-admin`            | Newsletter management UI    |            |
+| `/rss.xml`                     | RSS feed (descriptions)     | 30/min     |
+| `/rss-full.xml`                | RSS feed (full content)     | 20/min     |
+| `/sitemap.xml`                 | XML sitemap                 | 10/min     |
+| `/api/posts`                   | JSON post list              | 60/min     |
+| `/api/post?slug=xxx`           | Single post (JSON)          | 60/min     |
+| `/api/post?slug=xxx&format=md` | Single post (markdown)      | 60/min     |
+| `/api/export`                  | All posts with full content | 10/min     |
+| `/raw/{slug}.md`               | Static raw markdown file    | 60/min     |
+| `/vfs/tree`                    | Virtual filesystem tree     | 30/min     |
+| `/vfs/exec`                    | VFS command execution       | 30/min     |
+| `/api/kb`                      | List public knowledge bases | 30/min     |
+| `/api/kb/pages?slug=xxx`       | Pages in a knowledge base   | 30/min     |
+| `/api/kb/page?kb=xxx&slug=yyy` | Single KB page content      | 30/min     |
+| `/ask-ai-stream`               | AI Q&A streaming            | 10/min/user|
+| `/.well-known/ai-plugin.json`  | AI plugin manifest          |            |
+| `/openapi.yaml`                | OpenAPI 3.0 specification   |            |
+| `/llms.txt`                    | AI agent discovery          |            |
 
 ## MCP Server
 
@@ -294,9 +319,94 @@ Add to `~/.cursor/mcp.json`:
 
 See [How to Use the MCP Server](/how-to-use-mcp-server) for full documentation.
 
+## Wiki and knowledge bases
+
+The `/wiki` page displays a searchable, interlinked wiki compiled from your site content. Run `npm run sync:wiki` to build it from `content/blog/` and `content/pages/`.
+
+**Features:**
+
+- Categorized sidebar navigation with page counts
+- Full-text search across wiki pages
+- Interactive knowledge graph showing how pages connect
+- "On This Page" table of contents for long articles
+- Backlink tracking between wiki pages
+
+**Knowledge bases:** Create separate wikis for different projects. Upload markdown files or Obsidian vaults from the dashboard, or sync from the CLI with `npm run sync:wiki -- --kb=<id>`.
+
+Each knowledge base has:
+
+- Public or private visibility
+- Per-KB API access (public, private, or off) at `/api/kb`, `/api/kb/pages`, `/api/kb/page`
+- Its own knowledge graph visualization
+- Independent search scoping
+
+Manage knowledge bases from the Dashboard under Knowledge > Knowledge Bases.
+
+**Accessing wiki data:**
+
+There are two ways to read wiki content, and they have different auth requirements:
+
+| Method | Auth required | Best for |
+| --- | --- | --- |
+| Convex client queries (`api.wiki.*`) | Yes, logged-in user | React frontend, dashboard UI |
+| VFS HTTP endpoints (`/vfs/exec`) | No | External agents, scripts, CLI tools |
+
+The Convex queries (`listWikiPages`, `getWikiPageBySlug`, `getWikiIndex`, `searchWikiPages`, `getGraphData`) all check `ctx.auth.getUserIdentity()` and require an authenticated session. Use these from the React app with `useQuery`.
+
+For unauthenticated access, use the virtual filesystem. Wiki pages live under the `/wiki` directory:
+
+```bash
+# List all wiki pages
+curl -X POST https://yoursite.example.com/vfs/exec \
+  -H "Content-Type: application/json" \
+  -d '{"command": "ls /wiki"}'
+
+# Read a specific wiki page
+curl -X POST https://yoursite.example.com/vfs/exec \
+  -H "Content-Type: application/json" \
+  -d '{"command": "cat /wiki/convex.md"}'
+
+# Search wiki content
+curl -X POST https://yoursite.example.com/vfs/exec \
+  -H "Content-Type: application/json" \
+  -d '{"command": "grep authentication /wiki"}'
+```
+
+Knowledge bases with API access enabled also have dedicated public endpoints at `/api/kb`, `/api/kb/pages`, and `/api/kb/page`.
+
+## Virtual filesystem
+
+The virtual filesystem exposes all site content through a shell-like HTTP interface. AI agents and CLI tools can browse posts, pages, sources, and wiki content as if navigating a directory tree.
+
+**Endpoints:**
+
+| Route | Method | Description |
+| --- | --- | --- |
+| `/vfs/tree` | GET | Full directory tree of all content |
+| `/vfs/exec` | POST | Execute commands: `ls`, `cat`, `grep`, `find`, `tree`, `pwd`, `cd`, `head`, `wc` |
+
+**Example:**
+
+```bash
+curl -X POST https://yoursite.example.com/vfs/exec \
+  -H "Content-Type: application/json" \
+  -d '{"command": "ls /blog"}'
+```
+
+The VFS reads from the same Convex database as the live site. No extra sync step needed. VFS endpoints are rate limited to 30 requests per minute.
+
+## Anonymous demo mode
+
+Visitors can explore the dashboard at `/dashboard` without signing in. Demo mode provides full read access to all dashboard features and lets users create temporary content.
+
+- Demo posts and pages are tagged with `source: "demo"`
+- Content is sanitized (scripts, iframes, event handlers stripped)
+- A cron job runs every 30 minutes to clean up all demo content
+- Upgrade to full admin by signing in with GitHub
+
 ## Raw markdown files
 
-When you run `npm run sync` (development) or `npm run sync:prod` (production), static `.md` files are generated in `public/raw/` for each published post and page. Use `npm run sync:all` or `npm run sync:all:prod` to sync content and update discovery files together.
+When you run `npm run sync` (development) or `npm run sync:prod` (production), static `.md` files are generated in `public/raw/` for each published post and page. Use `npm run sync:all` or `npm run sync:all:prod` to sync content, wiki, and discovery files together.
 
 **Access pattern:** `/raw/{slug}.md`
 
@@ -339,7 +449,8 @@ The import command creates local markdown files only. It does not interact with 
 
 - `npm run sync` to push to development
 - `npm run sync:prod` to push to production
-- Use `npm run sync:all` or `npm run sync:all:prod` to sync content and update discovery files together
+- Use `npm run sync:wiki` or `npm run sync:wiki:prod` for wiki
+- Use `npm run sync:all` or `npm run sync:all:prod` to sync content, wiki, and discovery files together
 
 There is no `npm run import:prod` because import creates local files and sync handles the target environment.
 

@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-03-21
+Date: 2026-04-26
 ---
 
 ## Frontmatter
@@ -43,6 +43,7 @@ Frontmatter is the YAML metadata at the top of each markdown file between `---` 
 | `docsSectionGroupOrder` | No       | Order of the group in docs sidebar. Lower numbers make the group appear first. Groups without this field sort alphabetically.                                                                          |
 | `docsSectionGroupIcon`  | No       | Phosphor icon name for docs sidebar group (e.g., "Rocket", "Book", "PuzzlePiece"). Icon appears left of the group title. See [Phosphor Icons](https://phosphoricons.com) for available icons.         |
 | `docsLanding`           | No       | Set `true` to use this post as the docs landing page (shown when navigating to `/docs`).                                                                                                               |
+| `slides`                | No       | Enable slide presentation mode. Set `true` to add a Present button that launches fullscreen slides. Content splits on `---` horizontal rules.                                                          |
 
 ## Page fields
 
@@ -75,6 +76,7 @@ Frontmatter is the YAML metadata at the top of each markdown file between `---` 
 | `docsSectionGroupOrder` | No       | Order of the group in docs sidebar. Lower numbers make the group appear first. Groups without this field sort alphabetically.                                                                          |
 | `docsSectionGroupIcon`  | No       | Phosphor icon name for docs sidebar group (e.g., "Rocket", "Book", "PuzzlePiece"). Icon appears left of the group title. See [Phosphor Icons](https://phosphoricons.com) for available icons.         |
 | `docsLanding`           | No       | Set `true` to use this page as the docs landing page (shown when navigating to `/docs`).                                                                                                               |
+| `slides`                | No       | Enable slide presentation mode. Set `true` to add a Present button that launches fullscreen slides. Content splits on `---` horizontal rules.                                                          |
 
 ## Common patterns
 
@@ -111,3 +113,7 @@ To add content to the docs sidebar:
 ### Docs landing page
 
 Set `docsLanding: true` on one post or page to make it the docs landing page. This content displays when navigating to `/docs`.
+
+### Slide presentations
+
+Set `slides: true` on any post or page to enable presentation mode. A Present button appears in the post header. Clicking it opens a fullscreen overlay where each `---` horizontal rule in your markdown becomes a slide boundary. Navigate with arrow keys, space bar, or the on-screen buttons. Press Escape to exit. The post still renders normally as a readable article by default. See the [slide template example](/slide-template-example) for a working demo.

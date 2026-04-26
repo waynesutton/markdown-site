@@ -1,10 +1,11 @@
 import { mutation, query, internalQuery } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import {
+  getStrictDashboardAdminEmail,
   isDashboardAdmin,
   requireDashboardAdmin,
 } from "./dashboardAuth";
-import { authUserListHelper } from "./authComponent";
+import { authUserGetByIdHelper, authUserListHelper } from "./authComponent";
 
 const DASHBOARD_ADMIN_QUERY_LIMIT = 25;
 
@@ -58,6 +59,43 @@ export const isCurrentUserAuthenticated = query({
   },
 });
 
+export const getCurrentDashboardAuthDebug = query({
+  args: {},
+  returns: v.object({
+    isAuthenticated: v.boolean(),
+    isDashboardAdmin: v.boolean(),
+    identityEmail: v.optional(v.string()),
+    authUserEmail: v.optional(v.string()),
+    strictAdminEmail: v.optional(v.string()),
+  }),
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const strictAdminEmail = getStrictDashboardAdminEmail();
+    if (!identity) {
+      return {
+        isAuthenticated: false,
+        isDashboardAdmin: false,
+        strictAdminEmail,
+      };
+    }
+
+    const delimiterIndex = identity.subject.indexOf("|");
+    const userId =
+      delimiterIndex > 0
+        ? identity.subject.slice(0, delimiterIndex)
+        : identity.subject;
+    const authUser = await authUserGetByIdHelper(ctx, userId);
+
+    return {
+      isAuthenticated: true,
+      isDashboardAdmin: await isDashboardAdmin(ctx, identity),
+      identityEmail: identity.email ?? undefined,
+      authUserEmail: authUser?.email,
+      strictAdminEmail,
+    };
+  },
+});
+
 export const getDashboardLoginOptions = query({
   args: {},
   returns: v.object({
@@ -84,6 +122,7 @@ export const getAuthSetupStatus = query({
     githubEnabled: v.boolean(),
     oauthBaseConfigured: v.boolean(),
     bootstrapKeyConfigured: v.boolean(),
+    strictAdminEmailConfigured: v.boolean(),
     adminCount: v.number(),
     hasAnyAdmin: v.boolean(),
   }),
@@ -98,6 +137,7 @@ export const getAuthSetupStatus = query({
         process.env.SITE_URL,
     );
     const bootstrapKeyConfigured = Boolean(process.env.DASHBOARD_ADMIN_BOOTSTRAP_KEY);
+    const strictAdminEmailConfigured = Boolean(getStrictDashboardAdminEmail());
     const adminCount = (await ctx.db
       .query("dashboardAdmins")
       .take(DASHBOARD_ADMIN_QUERY_LIMIT)).length;
@@ -106,6 +146,7 @@ export const getAuthSetupStatus = query({
       githubEnabled,
       oauthBaseConfigured,
       bootstrapKeyConfigured,
+      strictAdminEmailConfigured,
       adminCount,
       hasAnyAdmin: adminCount > 0,
     };

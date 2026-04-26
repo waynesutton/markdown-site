@@ -126,7 +126,7 @@ export interface AIChatConfig {
 
 // AI Model configuration for Dashboard multi-model support
 export interface AIModelOption {
-  id: string; // Model identifier (e.g., "claude-sonnet-4-20250514", "gpt-4o")
+  id: string; // Model identifier (e.g., "claude-sonnet-4-20250514", "gpt-4.1-mini")
   name: string; // Display name (e.g., "Claude Sonnet 4", "GPT-4o")
   provider: "anthropic" | "openai" | "google"; // Provider for the model
 }
@@ -581,6 +581,12 @@ export const siteConfig: SiteConfig = {
       order: 20,
       showInNav: true,
     },
+    {
+      slug: "wiki",
+      title: "Wiki",
+      order: 6,
+      showInNav: true,
+    },
   ],
 
   // Posts display configuration
@@ -832,8 +838,8 @@ export const siteConfig: SiteConfig = {
         provider: "anthropic",
       },
       {
-        id: "gpt-4o",
-        name: "GPT-4o",
+        id: "gpt-4.1-mini",
+        name: "GPT-4.1 mini",
         provider: "openai",
       },
       {
@@ -884,8 +890,8 @@ export const siteConfig: SiteConfig = {
         provider: "anthropic",
       },
       {
-        id: "gpt-4o",
-        name: "GPT-4o",
+        id: "gpt-4.1-mini",
+        name: "GPT-4.1 mini",
         provider: "openai",
       },
     ],

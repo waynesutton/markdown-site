@@ -2,6 +2,7 @@
 #
 # convex/_generated: skip lint on generated sources (they track codegen, not hand edits).
 # convex/authComponent.ts: thin helpers that forward to @robelest/convex-auth component queries.
+# convex/demo.ts: intentionally unauthenticated public mutations for anonymous dashboard demo mode.
 #
 # Rule tuning rationale:
 #   generated-code-modified  OFF  working tree is always dirty right after `npx convex codegen`
@@ -13,6 +14,7 @@
 #   duplicated-auth          OFF  auth awareness pattern is intentional per public handler
 #   monolithic-file          OFF  files are organized by domain (posts, pages, newsletter)
 #   large-handler            OFF  email templates, sync logic, and search ranking are inherently multi-step
+#   missing-auth-check       OFF  demo.ts mutations are intentionally unauthenticated for anonymous dashboard demo mode
 
 [rules]
 "correctness/generated-code-modified" = "off"
@@ -29,4 +31,5 @@
 files = [
   "convex/_generated/**",
   "convex/authComponent.ts",
+  "convex/demo.ts",
 ]

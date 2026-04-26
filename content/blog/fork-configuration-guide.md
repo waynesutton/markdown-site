@@ -313,7 +313,7 @@ The JSON config file supports additional options:
     "defaultModel": "claude-sonnet-4-20250514",
     "models": [
       { "id": "claude-sonnet-4-20250514", "name": "Claude Sonnet 4", "provider": "anthropic" },
-      { "id": "gpt-4o", "name": "GPT-4o", "provider": "openai" }
+      { "id": "gpt-4.1-mini", "name": "GPT-4.1 mini", "provider": "openai" }
     ]
   }
 }
@@ -360,7 +360,7 @@ Once configuration is complete:
 3. **Test locally**: Run `npm run dev` and verify your site name, footer, and metadata
 4. **Push to git**: Commit all changes and push to trigger a Netlify rebuild
 
-**Important**: Keep your `fork-config.json` file. The `sync:discovery` and `sync:all` commands read from it to update discovery files (`AGENTS.md`, `CLAUDE.md`, `public/llms.txt`) with your configured values. Without it, these files would revert to placeholder values.
+**Important**: Keep your `fork-config.json` file. The `sync:discovery` and `sync:all` commands read from it to update discovery files (`AGENTS.md`, `CLAUDE.md`, `public/llms.txt`) with your configured values. Discovery sync also fetches wiki pages from Convex and includes a wiki knowledge base section in the output files. `AGENTS.md` is automatically copied to `public/` for web access at `/AGENTS.md`. Without `fork-config.json`, these files would revert to placeholder values.
 
 ## Existing content
 

@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-03-21
+Date: 2026-04-26
 ---
 
 ## Content
@@ -242,8 +242,9 @@ To add a custom frontmatter field, update these files:
 
 ```bash
 npm run sync              # Sync markdown content
-npm run sync:discovery    # Update discovery files (AGENTS.md, llms.txt)
-npm run sync:all          # Sync content + discovery files together
+npm run sync:discovery    # Update AGENTS.md, CLAUDE.md, llms.txt (includes wiki pages)
+npm run sync:wiki         # Sync wiki from content/blog and content/pages
+npm run sync:all          # Sync content + wiki + discovery files together
 ```
 
 **Production:**
@@ -251,14 +252,15 @@ npm run sync:all          # Sync content + discovery files together
 ```bash
 npm run sync:prod              # Sync markdown content
 npm run sync:discovery:prod   # Update discovery files
-npm run sync:all:prod         # Sync content + discovery files together
+npm run sync:wiki:prod        # Sync wiki to production
+npm run sync:all:prod         # Sync content + wiki + discovery files together
 ```
 
 **Sync everything together:**
 
 ```bash
-npm run sync:all        # Development: content + discovery
-npm run sync:all:prod   # Production: content + discovery
+npm run sync:all        # Development: content + wiki + discovery
+npm run sync:all:prod   # Production: content + wiki + discovery
 ```
 
 ### When to sync vs deploy

@@ -8,7 +8,7 @@ tags: ["convex", "developer-tools", "code-quality", "static-analysis"]
 readTime: "7 min read"
 featured: true
 blogFeatured: true
-layout: "sidebar"
+showImageAtTop: true
 featuredOrder: 1
 authorName: "Wayne Sutton"
 authorImage: "/images/authors/markdown.png"
