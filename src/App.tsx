@@ -72,7 +72,14 @@ function App() {
   const useCustomHomepage =
     siteConfig.homepage.type !== "default" && siteConfig.homepage.slug;
 
-  const appUrl = import.meta.env.VITE_CONVEX_SITE_URL as string;
+  const configuredSiteUrl = import.meta.env.VITE_SITE_URL as string | undefined;
+  const convexSiteUrl = import.meta.env.DEV
+    ? (import.meta.env.VITE_CONVEX_SITE_URL as string | undefined)
+    : undefined;
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const appUrl = configuredSiteUrl || (isLocalhost ? convexSiteUrl : window.location.origin);
 
   return (
     <SidebarProvider>

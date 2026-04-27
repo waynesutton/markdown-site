@@ -2,7 +2,7 @@
 
 ---
 Type: page
-Date: 2026-04-26
+Date: 2026-04-27
 ---
 
 Ship **[docs](/docs)**, **[blogs](/blog)**, **[wikis](/wiki)**, **[slides](/slide-template-example)**, and **[knowledge bases](/docs#wiki-and-knowledge-bases)** from markdown. Always in sync.

@@ -45,3 +45,5 @@ packages/*/node_modules/
 # PRD files
 prds/metadataforsubs.md
 prds/addchattoapp.md
+prds/agent-ready-improvements.md
+prds/agent-ready-widget-url-feedback.md

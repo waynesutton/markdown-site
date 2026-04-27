@@ -6,6 +6,24 @@
 
 ## Completed
 
+### Agent-ready full config, widget URL fix, and production deploy (2026-04-26)
+
+- [x] Populated `agent-ready.config.json` with 28 pages and 16 API endpoints
+- [x] Set `appUrl` to `https://www.markdown.fast` so all generated URLs use the custom domain
+- [x] Enabled `fullTxtEnabled: true` for richer llms-full.txt
+- [x] Fixed the frontend widget URL resolver so production uses `VITE_SITE_URL` or the live browser origin instead of the dev Convex site URL
+- [x] Added `VITE_SITE_URL=https://www.markdown.fast` to `.env.production.local`
+- [x] Synced to dev and verified llms.txt now shows full page listing with correct URLs
+- [x] Verified agents.md shows all 16 API endpoints with descriptions
+- [x] Verified a fresh production build does not include the dev Convex deployment string
+- [x] Created `prds/agent-ready-improvements.md` with 7 component improvement suggestions
+- [x] Created `prds/agent-ready-widget-url-feedback.md` documenting the widget URL mismatch and proposed fixes
+- [x] Synced agent-ready config to dev and prod, regenerated files on both
+- [x] Deployed updated static bundle to production via `npm run deploy:static`
+- [x] Verified production widget uses `https://www.markdown.fast` URLs
+- [x] Created `prds/agent-ready-improvements.md` with 7 suggestions for the component author
+- [x] Updated changelog.md
+
 ### Setup and fork install audit (2026-04-26)
 
 - [x] Wrote PRD at `prds/setup-fork-install-audit.md`

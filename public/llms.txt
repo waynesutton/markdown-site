@@ -1,16 +1,16 @@
 # llms.txt - Information for AI assistants and LLMs
 # Learn more: https://llmstxt.org/
-# Last updated: 2026-04-26T22:56:14.181Z
+# Last updated: 2026-04-27T00:51:30.966Z
 
 > Your content is instantly available to browsers, LLMs, and AI agents.
 
 # Site Information
 - Name: markdown sync
 - URL: https://yoursite.example.com
-- Description: Your content is instantly available to browsers, LLMs, and AI agents. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex and Netlify.
-- Topics: Markdown, Convex, React, TypeScript, Netlify, Open Source, AI, LLM, AEO, GEO
+- Description: Your content is instantly available to browsers, LLMs, and AI agents. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex.
+- Topics: Markdown, Convex, React, TypeScript, Open Source, AI, LLM, AEO, GEO
 - Total Posts: 24
-- Wiki Pages: 43
+- Wiki Pages: 49
 - Latest Post: 2026-04-14
 - GitHub: https://github.com/waynesutton/markdown-site
 
@@ -66,7 +66,7 @@ AI plugin manifest for tool integration.
 4. Use /vfs/tree to browse the full content tree
 5. Use /vfs/exec with shell commands to search and read specific content
 
-# Wiki Knowledge Base (43 pages)
+# Wiki Knowledge Base (49 pages)
 
 Compiled knowledge base with interlinked wiki pages.
 Access via: /vfs/exec with {"command": "cat /wiki/{slug}.md"}
@@ -97,6 +97,10 @@ Access via: /vfs/exec with {"command": "cat /wiki/{slug}.md"}
 - Convex first: new defaults for markdown.fast (/wiki/wiki-convex-first-architecture)
 - How convex-doctor took markdown.fast from 42 to 100 (/wiki/wiki-convex-doctor-score-42-to-100)
 
+## Slides
+- Slide template example (/wiki/wiki-slide-template-example)
+- Markdown slides (/wiki/wiki-markdown-slides)
+
 ## Features
 - Visitor tracking and stats improvements (/wiki/wiki-visitor-tracking-and-stats-improvements)
 - New features: search, featured section, and logo gallery (/wiki/wiki-new-features-search-featured-logos)
@@ -107,10 +111,6 @@ Access via: /vfs/exec with {"command": "cat /wiki/{slug}.md"}
 ## Git
 - Team Workflows (/wiki/wiki-team-workflows-git-version-control)
 - Git commit message best practices (/wiki/wiki-git-commit-message-best-practices)
-
-## Slides
-- Slide template example (/wiki/wiki-slide-template-example)
-- Markdown slides (/wiki/wiki-markdown-slides)
 
 ## Release
 - v1.18.0 release: 12 versions of shipping (/wiki/wiki-raw-markdown-and-copy-improvements)
@@ -149,6 +149,20 @@ Access via: /vfs/exec with {"command": "cat /wiki/{slug}.md"}
 
 ## Opencode
 - OpenCode Integration (/wiki/wiki-docs-opencode)
+
+## overview
+- Markdown Sync Framework Overview (/wiki/wiki-markdown-sync-framework-overview)
+- Markdown Framework Overview (/wiki/wiki-markdown-framework-overview)
+- Markdown Framework Overview (/wiki/markdown-framework-overview)
+
+## framework
+- Markdown Sync Framework Overview (/wiki/wiki-markdown-sync-overview)
+
+## concept
+- # AGENTS.md instructions for /Users/waynesutton/Documents/sites/test-convex-app/todo6 (/wiki/agentsmdinstructionsfor-users-waynesutton-documents-sites-test-convex-app-todo6)
+
+## markdown
+- Markdown Syntax Reference (/wiki/markdown-syntax-reference)
 
 # Response Schema
 
