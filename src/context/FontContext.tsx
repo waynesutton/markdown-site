@@ -30,8 +30,10 @@ const fontFamilies: Record<FontFamily, string> = {
 const getInitialFont = (defaultFont: FontFamily): FontFamily => {
   try {
     const saved = localStorage.getItem("blog-font-family") as FontFamily;
-    const savedConfigDefault = localStorage.getItem("blog-font-family-config-default") as FontFamily;
-    
+    const savedConfigDefault = localStorage.getItem(
+      "blog-font-family-config-default"
+    ) as FontFamily;
+
     // If siteConfig default has changed, use the new default instead of saved preference
     if (savedConfigDefault && savedConfigDefault !== defaultFont) {
       // SiteConfig default changed - use new default and clear saved preference
@@ -39,7 +41,7 @@ const getInitialFont = (defaultFont: FontFamily): FontFamily => {
       localStorage.setItem("blog-font-family-config-default", defaultFont);
       return defaultFont;
     }
-    
+
     // Use saved preference if valid
     if (saved && ["serif", "sans", "monospace"].includes(saved)) {
       // Store current siteConfig default for future comparison
@@ -48,7 +50,7 @@ const getInitialFont = (defaultFont: FontFamily): FontFamily => {
       }
       return saved;
     }
-    
+
     // No saved preference - use siteConfig default
     localStorage.setItem("blog-font-family-config-default", defaultFont);
   } catch {
@@ -59,19 +61,13 @@ const getInitialFont = (defaultFont: FontFamily): FontFamily => {
 
 // Update CSS variable for font-family
 const updateFontFamily = (fontFamily: FontFamily) => {
-  document.documentElement.style.setProperty(
-    "--font-family",
-    fontFamilies[fontFamily]
-  );
+  document.documentElement.style.setProperty("--font-family", fontFamilies[fontFamily]);
 };
 
-export function FontProvider({
-  children,
-  defaultFont = DEFAULT_FONT,
-}: FontProviderProps) {
+export function FontProvider({ children, defaultFont = DEFAULT_FONT }: FontProviderProps) {
   // Initialize font and set CSS variable immediately (synchronously)
   const initialFont = getInitialFont(defaultFont);
-  
+
   // Set CSS variable immediately before React renders
   updateFontFamily(initialFont);
 
@@ -97,9 +93,7 @@ export function FontProvider({
   };
 
   return (
-    <FontContext.Provider
-      value={{ fontFamily, setFontFamily, toggleFontFamily }}
-    >
+    <FontContext.Provider value={{ fontFamily, setFontFamily, toggleFontFamily }}>
       {children}
     </FontContext.Provider>
   );
@@ -112,4 +106,3 @@ export function useFont() {
   }
   return context;
 }
-

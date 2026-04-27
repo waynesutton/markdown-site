@@ -20,8 +20,7 @@ export default function FontToggle() {
       className="font-toggle"
       onClick={toggleFontFamily}
       aria-label={`Font: ${getLabel()}. Click to change.`}
-      title={`Font: ${getLabel()}`}
-    >
+      title={`Font: ${getLabel()}`}>
       <TextAa size={18} />
     </button>
   );

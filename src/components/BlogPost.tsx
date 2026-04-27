@@ -77,16 +77,7 @@ const sanitizeSchema = {
     a: ["style", "href", "target", "rel"], // Allow inline styles on links
     img: [...(defaultSchema.attributes?.img || []), "style"], // Allow inline styles on images
     span: ["className", "class", "style"], // Allow class attribute on span for copy-command
-    iframe: [
-      "src",
-      "width",
-      "height",
-      "allow",
-      "allowfullscreen",
-      "frameborder",
-      "title",
-      "style",
-    ], // Allow iframe with specific attributes
+    iframe: ["src", "width", "height", "allow", "allowfullscreen", "frameborder", "title", "style"], // Allow iframe with specific attributes
   },
 };
 
@@ -105,8 +96,7 @@ function CodeCopyButton({ code }: { code: string }) {
       className="code-copy-button"
       onClick={handleCopy}
       aria-label={copied ? "Copied!" : "Copy code"}
-      title={copied ? "Copied!" : "Copy code"}
-    >
+      title={copied ? "Copied!" : "Copy code"}>
       {copied ? <Check size={14} /> : <Copy size={14} />}
     </button>
   );
@@ -129,23 +119,14 @@ function InlineCopyButton({ command }: { command: string }) {
       className="inline-copy-button"
       onClick={handleCopy}
       aria-label={copied ? "Copied!" : "Copy command"}
-      title={copied ? "Copied!" : "Copy command"}
-    >
+      title={copied ? "Copied!" : "Copy command"}>
       {copied ? <Check size={12} /> : <Copy size={12} />}
     </button>
   );
 }
 
 // Image lightbox component - uses portal to escape contain: layout
-function ImageLightbox({
-  src,
-  alt,
-  onClose,
-}: {
-  src: string;
-  alt: string;
-  onClose: () => void;
-}) {
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -169,11 +150,7 @@ function ImageLightbox({
   // Use portal to render at document body level, escaping contain: layout
   return createPortal(
     <div className="image-lightbox-backdrop" onClick={handleBackdropClick}>
-      <button
-        className="image-lightbox-close"
-        onClick={onClose}
-        aria-label="Close lightbox"
-      >
+      <button className="image-lightbox-close" onClick={onClose} aria-label="Close lightbox">
         <X size={24} />
       </button>
       <div className="image-lightbox-content">
@@ -190,8 +167,7 @@ const cursorDarkTheme: { [key: string]: React.CSSProperties } = {
   'code[class*="language-"]': {
     color: "#d4d4d4",
     background: "#1e1e1e",
-    fontFamily:
-      "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
+    fontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
     fontSize: "14px",
     textAlign: "left" as const,
     whiteSpace: "pre" as const,
@@ -205,8 +181,7 @@ const cursorDarkTheme: { [key: string]: React.CSSProperties } = {
   'pre[class*="language-"]': {
     color: "#d4d4d4",
     background: "#1e1e1e",
-    fontFamily:
-      "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
+    fontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
     fontSize: "14px",
     textAlign: "left" as const,
     whiteSpace: "pre" as const,
@@ -263,8 +238,7 @@ const cursorLightTheme: { [key: string]: React.CSSProperties } = {
   'code[class*="language-"]': {
     color: "#171717",
     background: "#f5f5f5",
-    fontFamily:
-      "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
+    fontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
     fontSize: "14px",
     textAlign: "left" as const,
     whiteSpace: "pre" as const,
@@ -278,8 +252,7 @@ const cursorLightTheme: { [key: string]: React.CSSProperties } = {
   'pre[class*="language-"]': {
     color: "#171717",
     background: "#f5f5f5",
-    fontFamily:
-      "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
+    fontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
     fontSize: "14px",
     textAlign: "left" as const,
     whiteSpace: "pre" as const,
@@ -336,8 +309,7 @@ const cursorTanTheme: { [key: string]: React.CSSProperties } = {
   'code[class*="language-"]': {
     color: "#1a1a1a",
     background: "#f0ece4",
-    fontFamily:
-      "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
+    fontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
     fontSize: "14px",
     textAlign: "left" as const,
     whiteSpace: "pre" as const,
@@ -351,8 +323,7 @@ const cursorTanTheme: { [key: string]: React.CSSProperties } = {
   'pre[class*="language-"]': {
     color: "#1a1a1a",
     background: "#f0ece4",
-    fontFamily:
-      "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
+    fontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace",
     fontSize: "14px",
     textAlign: "left" as const,
     whiteSpace: "pre" as const,
@@ -428,14 +399,8 @@ function stripHtmlComments(content: string): string {
   let processed = content;
 
   // Replace special placeholders with markers
-  processed = processed.replace(
-    /<!--\s*newsletter\s*-->/gi,
-    markers.newsletter,
-  );
-  processed = processed.replace(
-    /<!--\s*contactform\s*-->/gi,
-    markers.contactform,
-  );
+  processed = processed.replace(/<!--\s*newsletter\s*-->/gi, markers.newsletter);
+  processed = processed.replace(/<!--\s*contactform\s*-->/gi, markers.contactform);
 
   // Remove all remaining HTML comments (including multi-line)
   processed = processed.replace(/<!--[\s\S]*?-->/g, "");
@@ -532,18 +497,13 @@ function HeadingAnchor({ id }: { id: string }) {
       className="heading-anchor"
       onClick={handleClick}
       aria-label="Copy link to heading"
-      title="Copy link to heading"
-    >
+      title="Copy link to heading">
       #
     </a>
   );
 }
 
-export default function BlogPost({
-  content,
-  slug,
-  pageType = "post",
-}: BlogPostProps) {
+export default function BlogPost({ content, slug, pageType = "post" }: BlogPostProps) {
   const { theme } = useTheme();
   const [lightboxImage, setLightboxImage] = useState<{
     src: string;
@@ -583,17 +543,16 @@ export default function BlogPost({
       rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
       components={{
         code(codeProps) {
-          const { className, children, style, ...restProps } =
-            codeProps as {
-              className?: string;
-              children?: React.ReactNode;
-              node?: {
-                tagName?: string;
-                properties?: { className?: string[] };
-              };
-              style?: React.CSSProperties;
-              inline?: boolean;
+          const { className, children, style, ...restProps } = codeProps as {
+            className?: string;
+            children?: React.ReactNode;
+            node?: {
+              tagName?: string;
+              properties?: { className?: string[] };
             };
+            style?: React.CSSProperties;
+            inline?: boolean;
+          };
           const match = /language-(\w+)/.exec(className || "");
 
           // Detect inline code: no language class AND content is short without newlines
@@ -618,12 +577,7 @@ export default function BlogPost({
 
           // Route diff/patch to DiffCodeBlock for enhanced diff rendering
           if (language === "diff" || language === "patch") {
-            return (
-              <DiffCodeBlock
-                code={codeString}
-                language={language as "diff" | "patch"}
-              />
-            );
+            return <DiffCodeBlock code={codeString} language={language as "diff" | "patch"} />;
           }
 
           const isTextBlock = language === "text";
@@ -638,9 +592,7 @@ export default function BlogPost({
             : {};
 
           return (
-            <div
-              className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}
-            >
+            <div className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}>
               {match && <span className="code-language">{match[1]}</span>}
               <CodeCopyButton code={codeString} />
               <SyntaxHighlighter
@@ -648,10 +600,7 @@ export default function BlogPost({
                 language={language}
                 PreTag="div"
                 customStyle={textBlockStyle}
-                codeTagProps={
-                  isTextBlock ? { style: textBlockStyle } : undefined
-                }
-              >
+                codeTagProps={isTextBlock ? { style: textBlockStyle } : undefined}>
                 {codeString}
               </SyntaxHighlighter>
             </div>
@@ -684,16 +633,13 @@ export default function BlogPost({
               href={href}
               target={isExternal ? "_blank" : undefined}
               rel={isExternal ? "noopener noreferrer" : undefined}
-              className="blog-link"
-            >
+              className="blog-link">
               {children}
             </a>
           );
         },
         blockquote({ children }) {
-          return (
-            <blockquote className="blog-blockquote">{children}</blockquote>
-          );
+          return <blockquote className="blog-blockquote">{children}</blockquote>;
         },
         h1({ children }) {
           // Demote H1 in markdown content to H2 since page title is the H1
@@ -807,8 +753,7 @@ export default function BlogPost({
           try {
             const url = new URL(src);
             const isAllowed = ALLOWED_IFRAME_DOMAINS.some(
-              (domain) =>
-                url.hostname === domain || url.hostname.endsWith("." + domain),
+              (domain) => url.hostname === domain || url.hostname.endsWith("." + domain)
             );
             if (!isAllowed) return null;
 
@@ -825,8 +770,7 @@ export default function BlogPost({
             return null;
           }
         },
-      }}
-    >
+      }}>
       {markdownContent}
     </ReactMarkdown>
   );
@@ -881,17 +825,16 @@ export default function BlogPost({
           rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
           components={{
             code(codeProps) {
-              const { className, children, style, ...restProps } =
-                codeProps as {
-                  className?: string;
-                  children?: React.ReactNode;
-                  node?: {
-                    tagName?: string;
-                    properties?: { className?: string[] };
-                  };
-                  style?: React.CSSProperties;
-                  inline?: boolean;
+              const { className, children, style, ...restProps } = codeProps as {
+                className?: string;
+                children?: React.ReactNode;
+                node?: {
+                  tagName?: string;
+                  properties?: { className?: string[] };
                 };
+                style?: React.CSSProperties;
+                inline?: boolean;
+              };
               const match = /language-(\w+)/.exec(className || "");
 
               // Detect inline code: no language class AND content is short without newlines
@@ -917,12 +860,7 @@ export default function BlogPost({
 
               // Route diff/patch to DiffCodeBlock for enhanced diff rendering
               if (language === "diff" || language === "patch") {
-                return (
-                  <DiffCodeBlock
-                    code={codeString}
-                    language={language as "diff" | "patch"}
-                  />
-                );
+                return <DiffCodeBlock code={codeString} language={language as "diff" | "patch"} />;
               }
 
               const isTextBlock = language === "text";
@@ -937,9 +875,7 @@ export default function BlogPost({
                 : {};
 
               return (
-                <div
-                  className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}
-                >
+                <div className={`code-block-wrapper ${isTextBlock ? "code-block-text" : ""}`}>
                   {match && <span className="code-language">{match[1]}</span>}
                   <CodeCopyButton code={codeString} />
                   <SyntaxHighlighter
@@ -947,10 +883,7 @@ export default function BlogPost({
                     language={language}
                     PreTag="div"
                     customStyle={textBlockStyle}
-                    codeTagProps={
-                      isTextBlock ? { style: textBlockStyle } : undefined
-                    }
-                  >
+                    codeTagProps={isTextBlock ? { style: textBlockStyle } : undefined}>
                     {codeString}
                   </SyntaxHighlighter>
                 </div>
@@ -970,9 +903,7 @@ export default function BlogPost({
                     className={`blog-image ${isLightboxEnabled ? "blog-image-clickable" : ""}`}
                     loading="lazy"
                     onClick={isLightboxEnabled ? handleImageClick : undefined}
-                    style={
-                      isLightboxEnabled ? { cursor: "pointer" } : undefined
-                    }
+                    style={isLightboxEnabled ? { cursor: "pointer" } : undefined}
                   />
                   {alt && <span className="blog-image-caption">{alt}</span>}
                 </span>
@@ -985,16 +916,13 @@ export default function BlogPost({
                   href={href}
                   target={isExternal ? "_blank" : undefined}
                   rel={isExternal ? "noopener noreferrer" : undefined}
-                  className="blog-link"
-                >
+                  className="blog-link">
                   {children}
                 </a>
               );
             },
             blockquote({ children }) {
-              return (
-                <blockquote className="blog-blockquote">{children}</blockquote>
-              );
+              return <blockquote className="blog-blockquote">{children}</blockquote>;
             },
             h1({ children }) {
               // Demote H1 in markdown content to H2 since page title is the H1
@@ -1108,9 +1036,7 @@ export default function BlogPost({
               try {
                 const url = new URL(src);
                 const isAllowed = ALLOWED_IFRAME_DOMAINS.some(
-                  (domain) =>
-                    url.hostname === domain ||
-                    url.hostname.endsWith("." + domain),
+                  (domain) => url.hostname === domain || url.hostname.endsWith("." + domain)
                 );
                 if (!isAllowed) return null;
 
@@ -1127,8 +1053,7 @@ export default function BlogPost({
                 return null;
               }
             },
-          }}
-        >
+          }}>
           {cleanedContent}
         </ReactMarkdown>
       </article>

@@ -87,14 +87,17 @@ import { getConvexAuthClient } from "../utils/convexAuthClient";
 
 // Conditionally use auth components based on WorkOS configuration
 // When WorkOS is not configured, use dummy components that render nothing or just children
-const Authenticated: React.ComponentType<{ children: React.ReactNode }> =
-  isWorkOSConfigured ? ConvexAuthenticated : ({ children }) => <>{children}</>;
+const Authenticated: React.ComponentType<{ children: React.ReactNode }> = isWorkOSConfigured
+  ? ConvexAuthenticated
+  : ({ children }) => <>{children}</>;
 
-const Unauthenticated: React.ComponentType<{ children: React.ReactNode }> =
-  isWorkOSConfigured ? ConvexUnauthenticated : () => null;
+const Unauthenticated: React.ComponentType<{ children: React.ReactNode }> = isWorkOSConfigured
+  ? ConvexUnauthenticated
+  : () => null;
 
-const AuthLoading: React.ComponentType<{ children: React.ReactNode }> =
-  isWorkOSConfigured ? ConvexAuthLoading : () => null;
+const AuthLoading: React.ComponentType<{ children: React.ReactNode }> = isWorkOSConfigured
+  ? ConvexAuthLoading
+  : () => null;
 
 // Default slug values that should trigger a warning
 const DEFAULT_SLUGS = ["your-post-url", "page-url"];
@@ -160,10 +163,7 @@ function ToastNotification({
     <div className={`dashboard-toast ${toast.type}`}>
       <span className="dashboard-toast-icon">{getIcon()}</span>
       <span className="dashboard-toast-message">{toast.message}</span>
-      <button
-        className="dashboard-toast-close"
-        onClick={() => onDismiss(toast.id)}
-      >
+      <button className="dashboard-toast-close" onClick={() => onDismiss(toast.id)}>
         <X size={14} />
       </button>
     </div>
@@ -198,13 +198,7 @@ interface CommandModalProps {
   description?: string;
 }
 
-function CommandModal({
-  isOpen,
-  onClose,
-  title,
-  command,
-  description,
-}: CommandModalProps) {
+function CommandModal({ isOpen, onClose, title, command, description }: CommandModalProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyCommand = async () => {
@@ -246,33 +240,25 @@ function CommandModal({
           </button>
         </div>
 
-        {description && (
-          <p className="dashboard-modal-description">{description}</p>
-        )}
+        {description && <p className="dashboard-modal-description">{description}</p>}
 
         <div className="dashboard-modal-command-container">
           <code className="dashboard-modal-command">{command}</code>
           <button
             className="dashboard-modal-copy-btn"
             onClick={handleCopyCommand}
-            title="Copy command"
-          >
+            title="Copy command">
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
         </div>
 
         <div className="dashboard-modal-footer">
-          <p className="dashboard-modal-hint">
-            Copy this command and run it in your terminal
-          </p>
+          <p className="dashboard-modal-hint">Copy this command and run it in your terminal</p>
           <div className="dashboard-modal-actions">
             <button className="dashboard-modal-btn secondary" onClick={onClose}>
               Close
             </button>
-            <button
-              className="dashboard-modal-btn primary"
-              onClick={handleCopyCommand}
-            >
+            <button className="dashboard-modal-btn primary" onClick={handleCopyCommand}>
               {copied ? "Copied!" : "Copy Command"}
             </button>
           </div>
@@ -347,11 +333,7 @@ function ConfirmDeleteModal({
             <Warning size={24} weight="fill" />
           </div>
           <h3 className="dashboard-modal-title">{title}</h3>
-          <button
-            className="dashboard-modal-close"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
+          <button className="dashboard-modal-close" onClick={onClose} disabled={isDeleting}>
             <X size={18} weight="bold" />
           </button>
         </div>
@@ -365,8 +347,8 @@ function ConfirmDeleteModal({
             <span>{itemName}</span>
           </div>
           <p className="dashboard-modal-warning-text">
-            This action cannot be undone. The {itemType} will be permanently
-            removed from the database.
+            This action cannot be undone. The {itemType} will be permanently removed from the
+            database.
           </p>
           <div className="dashboard-modal-copy-prompt">
             <div className="dashboard-modal-copy-prompt-text">
@@ -377,8 +359,7 @@ function ConfirmDeleteModal({
               className={`dashboard-modal-copy-btn ${copied ? "copied" : ""}`}
               onClick={handleCopy}
               disabled={isDeleting}
-              title="Copy markdown to clipboard"
-            >
+              title="Copy markdown to clipboard">
               {copied ? (
                 <>
                   <Check size={16} weight="bold" />
@@ -399,15 +380,13 @@ function ConfirmDeleteModal({
             <button
               className="dashboard-modal-btn secondary"
               onClick={onClose}
-              disabled={isDeleting}
-            >
+              disabled={isDeleting}>
               Cancel
             </button>
             <button
               className="dashboard-modal-btn danger"
               onClick={onConfirm}
-              disabled={isDeleting}
-            >
+              disabled={isDeleting}>
               {isDeleting ? (
                 <>
                   <SpinnerGap size={16} className="animate-spin" />
@@ -500,11 +479,7 @@ function SyncWarningModal({
             <Warning size={24} weight="fill" />
           </div>
           <h3 className="dashboard-modal-title">Synced Content Warning</h3>
-          <button
-            className="dashboard-modal-close"
-            onClick={onClose}
-            disabled={isSaving}
-          >
+          <button className="dashboard-modal-close" onClick={onClose} disabled={isSaving}>
             <X size={18} weight="bold" />
           </button>
         </div>
@@ -519,16 +494,15 @@ function SyncWarningModal({
           </div>
           <p className="dashboard-modal-warning-text">
             Changes saved here will be <strong>overwritten</strong> on the next{" "}
-            <code>npm run sync</code>. To persist your changes, download or copy
-            the markdown and update your local file.
+            <code>npm run sync</code>. To persist your changes, download or copy the markdown and
+            update your local file.
           </p>
           <div className="dashboard-modal-sync-actions">
             <button
               className={`dashboard-modal-action-btn ${downloaded ? "success" : ""}`}
               onClick={handleDownload}
               disabled={isSaving}
-              title="Download as .md file"
-            >
+              title="Download as .md file">
               {downloaded ? (
                 <>
                   <Check size={16} weight="bold" />
@@ -545,8 +519,7 @@ function SyncWarningModal({
               className={`dashboard-modal-action-btn ${copied ? "success" : ""}`}
               onClick={handleCopy}
               disabled={isSaving}
-              title="Copy markdown to clipboard"
-            >
+              title="Copy markdown to clipboard">
               {copied ? (
                 <>
                   <Check size={16} weight="bold" />
@@ -564,18 +537,13 @@ function SyncWarningModal({
 
         <div className="dashboard-modal-footer">
           <div className="dashboard-modal-actions">
-            <button
-              className="dashboard-modal-btn secondary"
-              onClick={onClose}
-              disabled={isSaving}
-            >
+            <button className="dashboard-modal-btn secondary" onClick={onClose} disabled={isSaving}>
               Cancel
             </button>
             <button
               className="dashboard-modal-btn warning"
               onClick={onSaveAnyway}
-              disabled={isSaving}
-            >
+              disabled={isSaving}>
               {isSaving ? (
                 <>
                   <SpinnerGap size={16} className="animate-spin" />
@@ -717,7 +685,13 @@ const pageFrontmatterFields = [
   { key: "excerpt", label: "Excerpt", type: "textarea", required: false },
   { key: "image", label: "Image URL", type: "text", required: false },
   { key: "showImageAtTop", label: "Show Image at Top", type: "checkbox", required: false },
-  { key: "textAlign", label: "Text Align", type: "select", options: ["left", "center", "right"], required: false },
+  {
+    key: "textAlign",
+    label: "Text Align",
+    type: "select",
+    options: ["left", "center", "right"],
+    required: false,
+  },
   // Author
   { key: "authorName", label: "Author Name", type: "text", required: false },
   { key: "authorImage", label: "Author Image URL", type: "text", required: false },
@@ -762,8 +736,7 @@ function DashboardDisabled() {
             marginTop: "1rem",
             fontSize: "0.875rem",
             color: "var(--text-secondary)",
-          }}
-        >
+          }}>
           To enable the dashboard, set <code>dashboard.enabled: true</code> in{" "}
           <code>siteConfig.ts</code>.
         </p>
@@ -781,24 +754,17 @@ function WorkOSSetupRequired() {
     <div className="dashboard-auth-container">
       <div className="dashboard-auth-card">
         <h1>Authentication Required</h1>
-        <p>
-          WorkOS authentication is not configured. To enable dashboard access:
-        </p>
+        <p>WorkOS authentication is not configured. To enable dashboard access:</p>
         <ol
           style={{
             textAlign: "left",
             marginTop: "1rem",
             marginBottom: "1rem",
             lineHeight: "1.8",
-          }}
-        >
+          }}>
           <li>
             Create a WorkOS account at{" "}
-            <a
-              href="https://workos.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="https://workos.com" target="_blank" rel="noopener noreferrer">
               workos.com
             </a>
           </li>
@@ -816,10 +782,9 @@ function WorkOSSetupRequired() {
             marginTop: "1rem",
             fontSize: "0.875rem",
             color: "var(--text-secondary)",
-          }}
-        >
-          Alternatively, set <code>dashboard.requireAuth: false</code> in{" "}
-          <code>siteConfig.ts</code> to allow open access.
+          }}>
+          Alternatively, set <code>dashboard.requireAuth: false</code> in <code>siteConfig.ts</code>{" "}
+          to allow open access.
         </p>
         <p style={{ marginTop: "1.5rem" }}>
           <Link to="/">Back to Home</Link>
@@ -857,9 +822,7 @@ function DemoSectionGate({ section }: { section: string }) {
       <Lock size={32} weight="bold" />
       <h3>{section}</h3>
       <p>Sign in with GitHub for full access to {section.toLowerCase()}.</p>
-      <p className="demo-gate-hint">
-        This feature requires an authenticated admin session.
-      </p>
+      <p className="demo-gate-hint">This feature requires an authenticated admin session.</p>
     </div>
   );
 }
@@ -870,7 +833,7 @@ function DemoSignInButton() {
 
   const authClient = useMemo(
     () => getConvexAuthClient(convex as unknown as ConvexReactClient),
-    [convex],
+    [convex]
   );
 
   const handleGithubSignIn = async () => {
@@ -897,10 +860,11 @@ function DemoSignInButton() {
       </div>
       <button
         className="dashboard-signout-btn"
-        onClick={() => { void handleGithubSignIn(); }}
+        onClick={() => {
+          void handleGithubSignIn();
+        }}
         title="Sign in with GitHub for full access"
-        disabled={isSubmitting}
-      >
+        disabled={isSubmitting}>
         <span>{isSubmitting ? "Redirecting..." : "Sign in with GitHub"}</span>
       </button>
     </>
@@ -917,9 +881,7 @@ function DeniedAccessDemo() {
   const handleSignOut = async () => {
     if (isSigningOut) return;
     setIsSigningOut(true);
-    const authClient = getConvexAuthClient(
-      convex as unknown as ConvexReactClient,
-    );
+    const authClient = getConvexAuthClient(convex as unknown as ConvexReactClient);
     try {
       await authClient.signOut();
       window.location.assign("/dashboard");
@@ -928,8 +890,7 @@ function DeniedAccessDemo() {
     }
   };
 
-  const signedInEmail =
-    authDebug?.authUserEmail ?? authDebug?.identityEmail ?? "unknown email";
+  const signedInEmail = authDebug?.authUserEmail ?? authDebug?.identityEmail ?? "unknown email";
   const expectedEmail = authDebug?.strictAdminEmail ?? "not configured";
 
   return (
@@ -945,8 +906,7 @@ function DeniedAccessDemo() {
           onClick={() => {
             void handleSignOut();
           }}
-          disabled={isSigningOut}
-        >
+          disabled={isSigningOut}>
           <SignOut size={18} />
           <span>{isSigningOut ? "Signing out..." : "Sign out and retry"}</span>
         </button>
@@ -962,19 +922,19 @@ function FirstAdminSetupRequired() {
       <div className="dashboard-auth-card">
         <h1>Dashboard admin setup required</h1>
         <p>
-          You are signed in, but no dashboard admin exists yet. Bootstrap the first admin
-          from your terminal.
+          You are signed in, but no dashboard admin exists yet. Bootstrap the first admin from your
+          terminal.
         </p>
         <p style={{ marginTop: "0.75rem", textAlign: "left", color: "var(--text-secondary)" }}>
           1. Set a bootstrap key in Convex env:
           <br />
-          <code>npx convex env set DASHBOARD_ADMIN_BOOTSTRAP_KEY &quot;&lt;random-key&gt;&quot;</code>
+          <code>
+            npx convex env set DASHBOARD_ADMIN_BOOTSTRAP_KEY &quot;&lt;random-key&gt;&quot;
+          </code>
           <br />
           2. Run bootstrap:
           <br />
-          <code>
-            npx convex run authAdmin:bootstrapDashboardAdmin
-          </code>
+          <code>npx convex run authAdmin:bootstrapDashboardAdmin</code>
         </p>
         <p style={{ marginTop: "1rem" }}>
           <Link to="/">Back to Home</Link>
@@ -989,8 +949,7 @@ export default function Dashboard() {
   // Check if dashboard is enabled in siteConfig
   const dashboardEnabled = siteConfig.dashboard?.enabled ?? true;
   const requireAuth = siteConfig.dashboard?.requireAuth ?? true;
-  const authMode =
-    siteConfig.auth?.mode ?? (isWorkOSConfigured ? "workos" : "none");
+  const authMode = siteConfig.auth?.mode ?? (isWorkOSConfigured ? "workos" : "none");
   const isDashboardAdmin = useQuery(api.authAdmin.isCurrentUserDashboardAdmin);
   const isAuthenticated = useQuery(api.authAdmin.isCurrentUserAuthenticated);
   const authSetupStatus = useQuery(api.authAdmin.getAuthSetupStatus);
@@ -1046,10 +1005,7 @@ export default function Dashboard() {
     if (!isDashboardAdmin) {
       // Bootstrap path remains for forks without DASHBOARD_PRIMARY_ADMIN_EMAIL set.
       // Once strict email mode is configured, that env var is the sole admin gate.
-      if (
-        !authSetupStatus.strictAdminEmailConfigured &&
-        authSetupStatus.adminCount === 0
-      ) {
+      if (!authSetupStatus.strictAdminEmailConfigured && authSetupStatus.adminCount === 0) {
         return <FirstAdminSetupRequired />;
       }
       // App-level denied session: sign out and render demo mode.
@@ -1066,9 +1022,7 @@ export default function Dashboard() {
     return <Navigate to="/?dashboardNotice=not-admin" replace />;
   }
 
-  return (
-    <DashboardContent />
-  );
+  return <DashboardContent />;
 }
 
 // Dashboard content (protected by auth wrapper above)
@@ -1077,8 +1031,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
   const { fontFamily, setFontFamily } = useFont();
   const { user, signOut } = useAuth();
   const convex = useConvex();
-  const authMode =
-    siteConfig.auth?.mode ?? (isWorkOSConfigured ? "workos" : "none");
+  const authMode = siteConfig.auth?.mode ?? (isWorkOSConfigured ? "workos" : "none");
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [activeSection, setActiveSection] = useState<DashboardSection>("posts");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1146,9 +1099,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
   // Sync server state
   const [syncOutput, setSyncOutput] = useState<string>("");
   const [syncRunning, setSyncRunning] = useState<string | null>(null); // command id or null
-  const [syncServerAvailable, setSyncServerAvailable] = useState<
-    boolean | null
-  >(null);
+  const [syncServerAvailable, setSyncServerAvailable] = useState<boolean | null>(null);
   const syncOutputRef = useRef<HTMLPreElement>(null);
 
   // Convex queries: use auth-free demo queries when in demo mode
@@ -1191,7 +1142,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
       setSyncServerAvailable(false);
       return;
     }
-    
+
     const checkServer = async () => {
       try {
         const res = await fetch("http://127.0.0.1:3001/health", {
@@ -1215,10 +1166,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
     async (commandId: string, commandLabel: string) => {
       // Check server availability first
       if (syncServerAvailable === false) {
-        addToast(
-          "Sync server not running. Start it with: npm run sync-server",
-          "error",
-        );
+        addToast("Sync server not running. Start it with: npm run sync-server", "error");
         return;
       }
 
@@ -1269,23 +1217,15 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
 
           // Auto-scroll to bottom
           if (syncOutputRef.current) {
-            syncOutputRef.current.scrollTop =
-              syncOutputRef.current.scrollHeight;
+            syncOutputRef.current.scrollTop = syncOutputRef.current.scrollHeight;
           }
         }
 
         addToast(`Completed: ${commandLabel}`, "success");
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error";
-        if (
-          message.includes("Failed to fetch") ||
-          message.includes("NetworkError")
-        ) {
-          addToast(
-            "Sync server not running. Start it with: npm run sync-server",
-            "error",
-          );
+        const message = error instanceof Error ? error.message : "Unknown error";
+        if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+          addToast("Sync server not running. Start it with: npm run sync-server", "error");
           setSyncServerAvailable(false);
         } else {
           addToast(`Sync failed: ${message}`, "error");
@@ -1294,16 +1234,13 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
         setSyncRunning(null);
       }
     },
-    [syncRunning, syncServerAvailable, addToast],
+    [syncRunning, syncServerAvailable, addToast]
   );
 
   // Show command modal
-  const showCommandModal = useCallback(
-    (title: string, command: string, description?: string) => {
-      setCommandModal({ isOpen: true, title, command, description });
-    },
-    [],
-  );
+  const showCommandModal = useCallback((title: string, command: string, description?: string) => {
+    setCommandModal({ isOpen: true, title, command, description });
+  }, []);
 
   // Close command modal
   const closeCommandModal = useCallback(() => {
@@ -1319,7 +1256,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
       (post) =>
         post.title.toLowerCase().includes(query) ||
         post.slug.toLowerCase().includes(query) ||
-        post.description?.toLowerCase().includes(query),
+        post.description?.toLowerCase().includes(query)
     );
   }, [posts, searchQuery]);
 
@@ -1328,9 +1265,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
     if (!searchQuery) return pages;
     const query = searchQuery.toLowerCase();
     return pages.filter(
-      (page) =>
-        page.title.toLowerCase().includes(query) ||
-        page.slug.toLowerCase().includes(query),
+      (page) => page.title.toLowerCase().includes(query) || page.slug.toLowerCase().includes(query)
     );
   }, [pages, searchQuery]);
 
@@ -1349,32 +1284,26 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
   }, []);
 
   // Show delete confirmation modal for a post
-  const handleDeletePost = useCallback(
-    (item: ContentItem) => {
-      setDeleteModal({
-        isOpen: true,
-        id: item._id,
-        title: item.title,
-        type: "post",
-        item,
-      });
-    },
-    [],
-  );
+  const handleDeletePost = useCallback((item: ContentItem) => {
+    setDeleteModal({
+      isOpen: true,
+      id: item._id,
+      title: item.title,
+      type: "post",
+      item,
+    });
+  }, []);
 
   // Show delete confirmation modal for a page
-  const handleDeletePage = useCallback(
-    (item: ContentItem) => {
-      setDeleteModal({
-        isOpen: true,
-        id: item._id,
-        title: item.title,
-        type: "page",
-        item,
-      });
-    },
-    [],
-  );
+  const handleDeletePage = useCallback((item: ContentItem) => {
+    setDeleteModal({
+      isOpen: true,
+      id: item._id,
+      title: item.title,
+      type: "page",
+      item,
+    });
+  }, []);
 
   // Close delete modal
   const closeDeleteModal = useCallback(() => {
@@ -1406,12 +1335,20 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
     } catch (error) {
       addToast(
         error instanceof Error ? error.message : `Failed to delete ${deleteModal.type}`,
-        "error",
+        "error"
       );
     } finally {
       setIsDeleting(false);
     }
-  }, [deleteModal, deletePostMutation, deletePageMutation, demoDeletePostMutation, demoDeletePageMutation, isDemo, addToast]);
+  }, [
+    deleteModal,
+    deletePostMutation,
+    deletePageMutation,
+    demoDeletePostMutation,
+    demoDeletePageMutation,
+    isDemo,
+    addToast,
+  ]);
 
   // Internal function to save post (called after warning or directly for dashboard content)
   const doSavePost = useCallback(
@@ -1472,13 +1409,10 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
         }
         addToast("Post saved successfully", "success");
       } catch (error) {
-        addToast(
-          error instanceof Error ? error.message : "Failed to save post",
-          "error",
-        );
+        addToast(error instanceof Error ? error.message : "Failed to save post", "error");
       }
     },
-    [updatePostMutation, demoUpdatePostMutation, isDemo, addToast],
+    [updatePostMutation, demoUpdatePostMutation, isDemo, addToast]
   );
 
   // Internal function to save page (called after warning or directly for dashboard content)
@@ -1533,13 +1467,10 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
         }
         addToast("Page saved successfully", "success");
       } catch (error) {
-        addToast(
-          error instanceof Error ? error.message : "Failed to save page",
-          "error",
-        );
+        addToast(error instanceof Error ? error.message : "Failed to save page", "error");
       }
     },
-    [updatePageMutation, demoUpdatePageMutation, isDemo, addToast],
+    [updatePageMutation, demoUpdatePageMutation, isDemo, addToast]
   );
 
   // Handle saving post - shows warning if synced content
@@ -1554,7 +1485,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
         await doSavePost(item);
       }
     },
-    [doSavePost],
+    [doSavePost]
   );
 
   // Handle saving page - shows warning if synced content
@@ -1569,7 +1500,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
         await doSavePage(item);
       }
     },
-    [doSavePage],
+    [doSavePage]
   );
 
   // Close sync warning modal
@@ -1597,32 +1528,28 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
   }, [syncWarningModal, doSavePost, doSavePage]);
 
   // Generate markdown content from item
-  const generateMarkdown = useCallback(
-    (item: ContentItem, type: "post" | "page"): string => {
-      const fields =
-        type === "post" ? postFrontmatterFields : pageFrontmatterFields;
-      let frontmatter = "---\n";
+  const generateMarkdown = useCallback((item: ContentItem, type: "post" | "page"): string => {
+    const fields = type === "post" ? postFrontmatterFields : pageFrontmatterFields;
+    let frontmatter = "---\n";
 
-      fields.forEach((field) => {
-        const value = item[field.key as keyof ContentItem];
-        if (value !== undefined && value !== null && value !== "") {
-          if (field.type === "tags" && Array.isArray(value)) {
-            frontmatter += `${field.key}: [${value.map((t) => `"${t}"`).join(", ")}]\n`;
-          } else if (field.type === "checkbox") {
-            frontmatter += `${field.key}: ${value}\n`;
-          } else if (field.type === "number") {
-            frontmatter += `${field.key}: ${value}\n`;
-          } else {
-            frontmatter += `${field.key}: "${String(value).replace(/"/g, '\\"')}"\n`;
-          }
+    fields.forEach((field) => {
+      const value = item[field.key as keyof ContentItem];
+      if (value !== undefined && value !== null && value !== "") {
+        if (field.type === "tags" && Array.isArray(value)) {
+          frontmatter += `${field.key}: [${value.map((t) => `"${t}"`).join(", ")}]\n`;
+        } else if (field.type === "checkbox") {
+          frontmatter += `${field.key}: ${value}\n`;
+        } else if (field.type === "number") {
+          frontmatter += `${field.key}: ${value}\n`;
+        } else {
+          frontmatter += `${field.key}: "${String(value).replace(/"/g, '\\"')}"\n`;
         }
-      });
+      }
+    });
 
-      frontmatter += "---\n\n";
-      return frontmatter + item.content;
-    },
-    [],
-  );
+    frontmatter += "---\n\n";
+    return frontmatter + item.content;
+  }, []);
 
   // Copy markdown content before deletion
   const handleCopyBeforeDelete = useCallback(async () => {
@@ -1704,9 +1631,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
         { id: "write-page" as const, label: "Write Page", icon: File },
         { id: "ai-agent" as const, label: "AI Agent", icon: Robot },
         { id: "import" as const, label: "Import URL", icon: CloudArrowDown },
-        ...(mediaEnabled
-          ? [{ id: "media" as const, label: "Media", icon: Image }]
-          : []),
+        ...(mediaEnabled ? [{ id: "media" as const, label: "Media", icon: Image }] : []),
       ],
     },
     {
@@ -1764,12 +1689,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
 
   // Theme toggle
   const toggleTheme = () => {
-    const themes: Array<"dark" | "light" | "tan" | "cloud"> = [
-      "dark",
-      "light",
-      "tan",
-      "cloud",
-    ];
+    const themes: Array<"dark" | "light" | "tan" | "cloud"> = ["dark", "light", "tan", "cloud"];
     const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
     setTheme(themes[nextIndex]);
@@ -1777,11 +1697,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
 
   // Font toggle
   const toggleFont = () => {
-    const fonts: Array<"serif" | "sans" | "monospace"> = [
-      "serif",
-      "sans",
-      "monospace",
-    ];
+    const fonts: Array<"serif" | "sans" | "monospace"> = ["serif", "sans", "monospace"];
     const currentIndex = fonts.indexOf(fontFamily);
     const nextIndex = (currentIndex + 1) % fonts.length;
     setFontFamily(fonts[nextIndex]);
@@ -1794,9 +1710,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
     setIsSigningOut(true);
     try {
       if (authMode === "convex-auth") {
-        const authClient = getConvexAuthClient(
-          convex as unknown as ConvexReactClient,
-        );
+        const authClient = getConvexAuthClient(convex as unknown as ConvexReactClient);
         await authClient.signOut();
         window.location.assign("/dashboard");
         return;
@@ -1809,13 +1723,10 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
 
   // Check if auth is disabled (for warning banner)
   const requireAuth = siteConfig.dashboard?.requireAuth ?? false;
-  const showAuthWarning =
-    !requireAuth || (authMode === "workos" && !isWorkOSConfigured);
+  const showAuthWarning = !requireAuth || (authMode === "workos" && !isWorkOSConfigured);
 
   return (
-    <div
-      className={`dashboard-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
-    >
+    <div className={`dashboard-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
@@ -1826,8 +1737,8 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
           <span>
             Dashboard access is open.{" "}
             {siteConfig.auth?.mode === "workos" && !isWorkOSConfigured
-              ? 'Configure WorkOS and keep dashboard.requireAuth: true in siteConfig.ts for secure access.'
-              : 'Keep dashboard.requireAuth: true in siteConfig.ts for secure access.'}
+              ? "Configure WorkOS and keep dashboard.requireAuth: true in siteConfig.ts for secure access."
+              : "Keep dashboard.requireAuth: true in siteConfig.ts for secure access."}
           </span>
         </div>
       )}
@@ -1866,9 +1777,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
       />
 
       {/* Left Sidebar */}
-      <aside
-        className={`dashboard-sidebar-left ${sidebarCollapsed ? "collapsed" : ""}`}
-      >
+      <aside className={`dashboard-sidebar-left ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="dashboard-sidebar-header">
           <Link to="/" className="dashboard-logo-link" title="Back to home">
             <House size={20} weight="regular" />
@@ -1877,8 +1786,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
           <button
             className="dashboard-sidebar-toggle"
             onClick={toggleSidebar}
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
             <SidebarSimple size={20} weight="regular" />
           </button>
         </div>
@@ -1894,12 +1802,8 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
                   onClick={() => {
                     setActiveSection(item.id);
                     setEditingItem(null);
-                  }}
-                >
-                  <item.icon
-                    size={18}
-                    weight={activeSection === item.id ? "fill" : "regular"}
-                  />
+                  }}>
+                  <item.icon size={18} weight={activeSection === item.id ? "fill" : "regular"} />
                   <span>{item.label}</span>
                 </button>
               ))}
@@ -1926,8 +1830,8 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
                     {authMode === "convex-auth"
                       ? "Authenticated admin"
                       : user?.firstName
-                      ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
-                      : "User"}
+                        ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
+                        : "User"}
                   </span>
                 </div>
               </div>
@@ -1937,8 +1841,7 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
                   void handleDashboardSignOut();
                 }}
                 title="Sign out"
-                disabled={isSigningOut}
-              >
+                disabled={isSigningOut}>
                 <SignOut size={18} />
                 <span>{isSigningOut ? "Signing out..." : "Sign out"}</span>
               </button>
@@ -2006,19 +1909,16 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
                       showCommandModal(
                         "Sync Development",
                         "npm run sync:all",
-                        "Sync all content to development environment",
+                        "Sync all content to development environment"
                       );
                     }
                   }}
-                  disabled={syncRunning !== null}
-                >
+                  disabled={syncRunning !== null}>
                   <ArrowsClockwise
                     size={16}
                     className={syncRunning === "sync:all" ? "spinning" : ""}
                   />
-                  <span>
-                    {syncRunning === "sync:all" ? "Running..." : "Sync Dev"}
-                  </span>
+                  <span>{syncRunning === "sync:all" ? "Running..." : "Sync Dev"}</span>
                 </button>
                 <button
                   className={`dashboard-sync-btn prod ${syncRunning === "sync:all:prod" ? "running" : ""}`}
@@ -2034,27 +1934,20 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
                       showCommandModal(
                         "Sync Production",
                         "npm run sync:all:prod",
-                        "Sync all content to production environment",
+                        "Sync all content to production environment"
                       );
                     }
                   }}
-                  disabled={syncRunning !== null}
-                >
+                  disabled={syncRunning !== null}>
                   <ArrowsClockwise
                     size={16}
                     className={syncRunning === "sync:all:prod" ? "spinning" : ""}
                   />
-                  <span>
-                    {syncRunning === "sync:all:prod" ? "Running..." : "Sync Prod"}
-                  </span>
+                  <span>{syncRunning === "sync:all:prod" ? "Running..." : "Sync Prod"}</span>
                 </button>
               </>
             )}
-            <button
-              className="dashboard-theme-btn"
-              onClick={toggleTheme}
-              title={`Theme: ${theme}`}
-            >
+            <button className="dashboard-theme-btn" onClick={toggleTheme} title={`Theme: ${theme}`}>
               {theme === "dark" ? (
                 <Moon size={18} weight="fill" />
               ) : (
@@ -2064,12 +1957,8 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
             <button
               className="dashboard-font-btn"
               onClick={toggleFont}
-              title={`Font: ${fontFamily}`}
-            >
-              <TextAa
-                size={18}
-                weight={fontFamily === "monospace" ? "fill" : "regular"}
-              />
+              title={`Font: ${fontFamily}`}>
+              <TextAa size={18} weight={fontFamily === "monospace" ? "fill" : "regular"} />
             </button>
           </div>
         </header>
@@ -2080,7 +1969,11 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
             <Info size={16} weight="bold" />
             <span>
               Demo mode: your content resets every 30 minutes. Admins have full access.{" "}
-              <a href="https://github.com/waynesutton/markdown-site" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>
+              <a
+                href="https://github.com/waynesutton/markdown-site"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", textDecoration: "underline" }}>
                 Fork and set up your own
               </a>
             </span>
@@ -2112,25 +2005,19 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
           )}
 
           {/* Post/Page Editor */}
-          {(activeSection === "post-editor" ||
-            activeSection === "page-editor") &&
-            editingItem && (
-              <EditorView
-                item={editingItem}
-                type={editingType}
-                showPreview={showPreview}
-                setShowPreview={setShowPreview}
-                setItem={setEditingItem}
-                onDownload={handleDownloadMarkdown}
-                onCopy={handleCopyMarkdown}
-                onBack={() =>
-                  setActiveSection(editingType === "post" ? "posts" : "pages")
-                }
-                onSave={
-                  editingType === "post" ? handleSavePost : handleSavePage
-                }
-              />
-            )}
+          {(activeSection === "post-editor" || activeSection === "page-editor") && editingItem && (
+            <EditorView
+              item={editingItem}
+              type={editingType}
+              showPreview={showPreview}
+              setShowPreview={setShowPreview}
+              setItem={setEditingItem}
+              onDownload={handleDownloadMarkdown}
+              onCopy={handleCopyMarkdown}
+              onBack={() => setActiveSection(editingType === "post" ? "posts" : "pages")}
+              onSave={editingType === "post" ? handleSavePost : handleSavePage}
+            />
+          )}
 
           {/* Write Post Section */}
           {activeSection === "write-post" && (
@@ -2157,63 +2044,73 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
           )}
 
           {/* AI Agent Section */}
-          {activeSection === "ai-agent" && (
-            isDemo ? <DemoSectionGate section="AI Agent" /> : <AIAgentSection />
-          )}
+          {activeSection === "ai-agent" &&
+            (isDemo ? <DemoSectionGate section="AI Agent" /> : <AIAgentSection />)}
 
           {/* Newsletter Subscribers */}
-          {activeSection === "newsletter" && (
-            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterSubscribersSection />
-          )}
+          {activeSection === "newsletter" &&
+            (isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterSubscribersSection />)}
 
           {/* Newsletter Send */}
-          {activeSection === "newsletter-send" && (
-            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterSendSection addToast={addToast} />
-          )}
+          {activeSection === "newsletter-send" &&
+            (isDemo ? (
+              <DemoSectionGate section="Newsletter" />
+            ) : (
+              <NewsletterSendSection addToast={addToast} />
+            ))}
 
           {/* Newsletter Write Email */}
-          {activeSection === "newsletter-write-email" && (
-            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterWriteEmailSection addToast={addToast} />
-          )}
+          {activeSection === "newsletter-write-email" &&
+            (isDemo ? (
+              <DemoSectionGate section="Newsletter" />
+            ) : (
+              <NewsletterWriteEmailSection addToast={addToast} />
+            ))}
 
           {/* Newsletter Recent Sends */}
-          {activeSection === "newsletter-recent-sends" && (
-            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterRecentSendsSection />
-          )}
+          {activeSection === "newsletter-recent-sends" &&
+            (isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterRecentSendsSection />)}
 
           {/* Newsletter Stats */}
-          {activeSection === "newsletter-stats" && (
-            isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterStatsSection />
-          )}
+          {activeSection === "newsletter-stats" &&
+            (isDemo ? <DemoSectionGate section="Newsletter" /> : <NewsletterStatsSection />)}
 
           {/* Import URL */}
-          {activeSection === "import" && (
-            isDemo ? <DemoSectionGate section="Import" /> : <ImportURLSection addToast={addToast} />
-          )}
+          {activeSection === "import" &&
+            (isDemo ? (
+              <DemoSectionGate section="Import" />
+            ) : (
+              <ImportURLSection addToast={addToast} />
+            ))}
 
           {/* Site Config */}
-          {activeSection === "config" && (
-            isDemo ? <DemoSectionGate section="Site Config" /> : (
+          {activeSection === "config" &&
+            (isDemo ? (
+              <DemoSectionGate section="Site Config" />
+            ) : (
               <ConfigSection
                 addToast={addToast}
                 onNavigateToIndexHtml={() => setActiveSection("index-html")}
               />
-            )
-          )}
+            ))}
 
           {/* Index HTML */}
-          {activeSection === "index-html" && (
-            isDemo ? <DemoSectionGate section="Index HTML" /> : <IndexHtmlSection addToast={addToast} />
-          )}
+          {activeSection === "index-html" &&
+            (isDemo ? (
+              <DemoSectionGate section="Index HTML" />
+            ) : (
+              <IndexHtmlSection addToast={addToast} />
+            ))}
 
           {/* Stats */}
-          {activeSection === "stats" && (
-            isDemo ? <DemoSectionGate section="Analytics" /> : <StatsSection />
-          )}
+          {activeSection === "stats" &&
+            (isDemo ? <DemoSectionGate section="Analytics" /> : <StatsSection />)}
 
           {/* Sync */}
-          {activeSection === "sync" && (
-            isDemo ? <DemoSectionGate section="Sync" /> : (
+          {activeSection === "sync" &&
+            (isDemo ? (
+              <DemoSectionGate section="Sync" />
+            ) : (
               <SyncSection
                 showCommandModal={showCommandModal}
                 executeSync={executeSync}
@@ -2223,28 +2120,30 @@ function DashboardContent({ isDemo = false }: { isDemo?: boolean } = {}) {
                 syncOutputRef={syncOutputRef}
                 setSyncOutput={setSyncOutput}
               />
-            )
-          )}
+            ))}
 
           {/* Media */}
-          {activeSection === "media" && (
-            isDemo ? <DemoSectionGate section="Media" /> : <MediaLibrary />
-          )}
+          {activeSection === "media" &&
+            (isDemo ? <DemoSectionGate section="Media" /> : <MediaLibrary />)}
 
           {/* Sources */}
-          {activeSection === "sources" && (
-            isDemo ? <DemoSectionGate section="Sources" /> : <SourcesSection addToast={addToast} />
-          )}
+          {activeSection === "sources" &&
+            (isDemo ? (
+              <DemoSectionGate section="Sources" />
+            ) : (
+              <SourcesSection addToast={addToast} />
+            ))}
 
           {/* Wiki */}
-          {activeSection === "wiki" && (
-            <WikiSection addToast={addToast} />
-          )}
+          {activeSection === "wiki" && <WikiSection addToast={addToast} />}
 
           {/* Knowledge Bases */}
-          {activeSection === "knowledge-bases" && (
-            isDemo ? <DemoSectionGate section="Knowledge Bases" /> : <KnowledgeBasesSection addToast={addToast} />
-          )}
+          {activeSection === "knowledge-bases" &&
+            (isDemo ? (
+              <DemoSectionGate section="Knowledge Bases" />
+            ) : (
+              <KnowledgeBasesSection addToast={addToast} />
+            ))}
         </div>
       </main>
     </div>
@@ -2282,7 +2181,7 @@ function PostsListView({
           p.title.toLowerCase().includes(query) ||
           p.slug.toLowerCase().includes(query) ||
           (p.description && p.description.toLowerCase().includes(query)) ||
-          (p.content && p.content.toLowerCase().includes(query)),
+          (p.content && p.content.toLowerCase().includes(query))
       );
     }
 
@@ -2318,20 +2217,17 @@ function PostsListView({
         <div className="dashboard-filter-tabs">
           <button
             className={`dashboard-filter-tab ${filter === "all" ? "active" : ""}`}
-            onClick={() => handleFilterChange("all")}
-          >
+            onClick={() => handleFilterChange("all")}>
             All ({posts.length})
           </button>
           <button
             className={`dashboard-filter-tab ${filter === "published" ? "active" : ""}`}
-            onClick={() => handleFilterChange("published")}
-          >
+            onClick={() => handleFilterChange("published")}>
             Published ({posts.filter((p) => p.published).length})
           </button>
           <button
             className={`dashboard-filter-tab ${filter === "draft" ? "active" : ""}`}
-            onClick={() => handleFilterChange("draft")}
-          >
+            onClick={() => handleFilterChange("draft")}>
             Drafts ({posts.filter((p) => !p.published).length})
           </button>
           <div className="dashboard-items-per-page">
@@ -2345,8 +2241,7 @@ function PostsListView({
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(0);
               }}
-              className="dashboard-items-select"
-            >
+              className="dashboard-items-select">
               <option value={15}>15</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -2380,14 +2275,10 @@ function PostsListView({
                 <span>{post.date || "No date"}</span>
               </div>
               <div className="col-status">
-                <span
-                  className={`status-badge ${post.published ? "published" : "draft"}`}
-                >
+                <span className={`status-badge ${post.published ? "published" : "draft"}`}>
                   {post.published ? "Published" : "Draft"}
                 </span>
-                {post.source === "demo" && (
-                  <span className="source-badge demo">Demo</span>
-                )}
+                {post.source === "demo" && <span className="source-badge demo">Demo</span>}
                 {post.source === "dashboard" && (
                   <span className="source-badge dashboard">Dashboard</span>
                 )}
@@ -2401,26 +2292,20 @@ function PostsListView({
                   <button
                     className="action-btn edit"
                     onClick={() => onEdit(post as ContentItem)}
-                    title="Edit"
-                  >
+                    title="Edit">
                     <PencilSimple size={16} />
                   </button>
                 )}
-                <Link
-                  to={`/${post.slug}`}
-                  className="action-btn view"
-                  title="View"
-                  target="_blank"
-                >
+                <Link to={`/${post.slug}`} className="action-btn view" title="View" target="_blank">
                   <Eye size={16} />
                 </Link>
                 {/* Delete: admin can delete dashboard posts; demo can delete demo posts */}
-                {((!isDemo && post.source === "dashboard") || (isDemo && post.source === "demo")) && (
+                {((!isDemo && post.source === "dashboard") ||
+                  (isDemo && post.source === "demo")) && (
                   <button
                     className="action-btn delete"
                     onClick={() => onDelete(post as ContentItem)}
-                    title="Delete"
-                  >
+                    title="Delete">
                     <Trash size={16} />
                   </button>
                 )}
@@ -2436,16 +2321,14 @@ function PostsListView({
           <button
             onClick={handleFirstPage}
             disabled={currentPage === 0}
-            className="dashboard-pagination-btn"
-          >
+            className="dashboard-pagination-btn">
             <CaretLeft size={16} />
             First
           </button>
           <button
             onClick={handleNextPage}
             disabled={!hasNextPage}
-            className="dashboard-pagination-btn"
-          >
+            className="dashboard-pagination-btn">
             Next
             <CaretRight size={16} />
           </button>
@@ -2485,7 +2368,7 @@ function PagesListView({
         (p) =>
           p.title.toLowerCase().includes(query) ||
           p.slug.toLowerCase().includes(query) ||
-          (p.content && p.content.toLowerCase().includes(query)),
+          (p.content && p.content.toLowerCase().includes(query))
       );
     }
 
@@ -2521,20 +2404,17 @@ function PagesListView({
         <div className="dashboard-filter-tabs">
           <button
             className={`dashboard-filter-tab ${filter === "all" ? "active" : ""}`}
-            onClick={() => handleFilterChange("all")}
-          >
+            onClick={() => handleFilterChange("all")}>
             All ({pages.length})
           </button>
           <button
             className={`dashboard-filter-tab ${filter === "published" ? "active" : ""}`}
-            onClick={() => handleFilterChange("published")}
-          >
+            onClick={() => handleFilterChange("published")}>
             Published ({pages.filter((p) => p.published).length})
           </button>
           <button
             className={`dashboard-filter-tab ${filter === "draft" ? "active" : ""}`}
-            onClick={() => handleFilterChange("draft")}
-          >
+            onClick={() => handleFilterChange("draft")}>
             Drafts ({pages.filter((p) => !p.published).length})
           </button>
           <div className="dashboard-items-per-page">
@@ -2548,8 +2428,7 @@ function PagesListView({
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(0);
               }}
-              className="dashboard-items-select"
-            >
+              className="dashboard-items-select">
               <option value={15}>15</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -2578,18 +2457,12 @@ function PagesListView({
                 <span className="post-title">{page.title}</span>
                 <span className="post-slug">/{page.slug}</span>
               </div>
-              <div className="col-order">
-                {page.order !== undefined ? page.order : "-"}
-              </div>
+              <div className="col-order">{page.order !== undefined ? page.order : "-"}</div>
               <div className="col-status">
-                <span
-                  className={`status-badge ${page.published ? "published" : "draft"}`}
-                >
+                <span className={`status-badge ${page.published ? "published" : "draft"}`}>
                   {page.published ? "Published" : "Draft"}
                 </span>
-                {page.source === "demo" && (
-                  <span className="source-badge demo">Demo</span>
-                )}
+                {page.source === "demo" && <span className="source-badge demo">Demo</span>}
                 {page.source === "dashboard" && (
                   <span className="source-badge dashboard">Dashboard</span>
                 )}
@@ -2602,25 +2475,19 @@ function PagesListView({
                   <button
                     className="action-btn edit"
                     onClick={() => onEdit(page as ContentItem)}
-                    title="Edit"
-                  >
+                    title="Edit">
                     <PencilSimple size={16} />
                   </button>
                 )}
-                <Link
-                  to={`/${page.slug}`}
-                  className="action-btn view"
-                  title="View"
-                  target="_blank"
-                >
+                <Link to={`/${page.slug}`} className="action-btn view" title="View" target="_blank">
                   <Eye size={16} />
                 </Link>
-                {((!isDemo && page.source === "dashboard") || (isDemo && page.source === "demo")) && (
+                {((!isDemo && page.source === "dashboard") ||
+                  (isDemo && page.source === "demo")) && (
                   <button
                     className="action-btn delete"
                     onClick={() => onDelete(page as ContentItem)}
-                    title="Delete"
-                  >
+                    title="Delete">
                     <Trash size={16} />
                   </button>
                 )}
@@ -2636,16 +2503,14 @@ function PagesListView({
           <button
             onClick={handleFirstPage}
             disabled={currentPage === 0}
-            className="dashboard-pagination-btn"
-          >
+            className="dashboard-pagination-btn">
             <CaretLeft size={16} />
             First
           </button>
           <button
             onClick={handleNextPage}
             disabled={!hasNextPage}
-            className="dashboard-pagination-btn"
-          >
+            className="dashboard-pagination-btn">
             Next
             <CaretRight size={16} />
           </button>
@@ -2716,7 +2581,7 @@ function EditorView({
       startXRef.current = e.clientX;
       startWidthRef.current = sidebarWidth;
     },
-    [sidebarWidth],
+    [sidebarWidth]
   );
 
   useEffect(() => {
@@ -2759,21 +2624,15 @@ function EditorView({
         <div className="dashboard-editor-actions">
           <button
             className={`dashboard-view-toggle ${!showPreview ? "active" : ""}`}
-            onClick={() => setShowPreview(false)}
-          >
+            onClick={() => setShowPreview(false)}>
             Markdown
           </button>
           <button
             className={`dashboard-view-toggle ${showPreview ? "active" : ""}`}
-            onClick={() => setShowPreview(true)}
-          >
+            onClick={() => setShowPreview(true)}>
             Preview
           </button>
-          <button
-            className="dashboard-action-btn"
-            onClick={handleCopy}
-            title="Copy Markdown"
-          >
+          <button className="dashboard-action-btn" onClick={handleCopy} title="Copy Markdown">
             {copied ? <Check size={16} /> : <Copy size={16} />}
             <span>{copied ? "Copied" : "Copy"}</span>
           </button>
@@ -2781,8 +2640,7 @@ function EditorView({
             <button
               className="dashboard-action-btn"
               onClick={() => setShowVersionHistory(true)}
-              title="View Version History"
-            >
+              title="View Version History">
               <ClockCounterClockwise size={16} />
               <span>History</span>
             </button>
@@ -2790,8 +2648,7 @@ function EditorView({
           <button
             className="dashboard-action-btn primary"
             onClick={onDownload}
-            title="Download Markdown"
-          >
+            title="Download Markdown">
             <Download size={16} />
             <span>Download .md</span>
           </button>
@@ -2799,8 +2656,7 @@ function EditorView({
             className="dashboard-action-btn success"
             onClick={handleSave}
             disabled={isSaving}
-            title="Save to Database"
-          >
+            title="Save to Database">
             {isSaving ? (
               <SpinnerGap size={16} className="animate-spin" />
             ) : (
@@ -2821,8 +2677,7 @@ function EditorView({
                 <div className="blog-post-content">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkBreaks]}
-                    rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
-                  >
+                    rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}>
                     {item.content}
                   </ReactMarkdown>
                 </div>
@@ -2841,8 +2696,7 @@ function EditorView({
         <div
           ref={sidebarRef}
           className={`dashboard-editor-sidebar ${isResizing ? "resizing" : ""}`}
-          style={{ width: `${sidebarWidth}px` }}
-        >
+          style={{ width: `${sidebarWidth}px` }}>
           <div
             className="dashboard-sidebar-resize-handle"
             onMouseDown={handleMouseDown}
@@ -2874,7 +2728,7 @@ function convertFieldsToSidebarFormat(
     label: string;
     type: string;
     required: boolean;
-  }>,
+  }>
 ): Array<{ key: string; label: string; type: string; required: boolean }> {
   const activeKeys = new Set(activeFields.map((f) => f.key));
 
@@ -2882,11 +2736,7 @@ function convertFieldsToSidebarFormat(
   const allFieldsConverted = allFields.map((field) => {
     // Determine field type based on field name
     let fieldType = "text";
-    if (
-      field.name === "description" ||
-      field.name === "excerpt" ||
-      field.name === "footer"
-    ) {
+    if (field.name === "description" || field.name === "excerpt" || field.name === "footer") {
       fieldType = "textarea";
     } else if (field.name === "date") {
       fieldType = "date";
@@ -2939,8 +2789,7 @@ function FrontmatterSidebar({
   type: "post" | "page";
   setItem: (item: ContentItem) => void;
 }) {
-  const activeFields =
-    type === "post" ? postFrontmatterFields : pageFrontmatterFields;
+  const activeFields = type === "post" ? postFrontmatterFields : pageFrontmatterFields;
   const allFields = type === "post" ? POST_FIELDS : PAGE_FIELDS;
   const fields = convertFieldsToSidebarFormat(allFields, activeFields);
   const [tagInput, setTagInput] = useState("");
@@ -2962,7 +2811,7 @@ function FrontmatterSidebar({
     if (item.tags) {
       handleFieldChange(
         "tags",
-        item.tags.filter((t) => t !== tag),
+        item.tags.filter((t) => t !== tag)
       );
     }
   };
@@ -3018,10 +2867,7 @@ function FrontmatterSidebar({
                 className="dashboard-field-input"
                 value={String(item[field.key as keyof ContentItem] || "")}
                 onChange={(e) =>
-                  handleFieldChange(
-                    field.key,
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
+                  handleFieldChange(field.key, e.target.value ? Number(e.target.value) : undefined)
                 }
                 placeholder={field.label}
               />
@@ -3032,9 +2878,7 @@ function FrontmatterSidebar({
                 <input
                   type="checkbox"
                   checked={Boolean(item[field.key as keyof ContentItem])}
-                  onChange={(e) =>
-                    handleFieldChange(field.key, e.target.checked)
-                  }
+                  onChange={(e) => handleFieldChange(field.key, e.target.checked)}
                 />
                 <span>{field.label}</span>
               </label>
@@ -3057,9 +2901,7 @@ function FrontmatterSidebar({
                     type="text"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && (e.preventDefault(), handleAddTag())
-                    }
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
                     placeholder="Add tag..."
                   />
                   <button onClick={handleAddTag}>
@@ -3074,9 +2916,7 @@ function FrontmatterSidebar({
         {additionalFields.length > 0 && (
           <>
             <div className="dashboard-frontmatter-divider" />
-            <div className="dashboard-frontmatter-section-title">
-              Additional Fields
-            </div>
+            <div className="dashboard-frontmatter-section-title">Additional Fields</div>
             {additionalFields.map((field) => (
               <div key={field.key} className="dashboard-frontmatter-field">
                 <label className="dashboard-field-label">
@@ -3089,9 +2929,7 @@ function FrontmatterSidebar({
                     type="text"
                     className="dashboard-field-input"
                     value={String(item[field.key as keyof ContentItem] || "")}
-                    onChange={(e) =>
-                      handleFieldChange(field.key, e.target.value)
-                    }
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
                     placeholder={field.label}
                   />
                 )}
@@ -3100,9 +2938,7 @@ function FrontmatterSidebar({
                   <textarea
                     className="dashboard-field-textarea"
                     value={String(item[field.key as keyof ContentItem] || "")}
-                    onChange={(e) =>
-                      handleFieldChange(field.key, e.target.value)
-                    }
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
                     placeholder={field.label}
                     rows={3}
                   />
@@ -3113,9 +2949,7 @@ function FrontmatterSidebar({
                     type="date"
                     className="dashboard-field-input"
                     value={String(item[field.key as keyof ContentItem] || "")}
-                    onChange={(e) =>
-                      handleFieldChange(field.key, e.target.value)
-                    }
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
                   />
                 )}
 
@@ -3127,7 +2961,7 @@ function FrontmatterSidebar({
                     onChange={(e) =>
                       handleFieldChange(
                         field.key,
-                        e.target.value ? Number(e.target.value) : undefined,
+                        e.target.value ? Number(e.target.value) : undefined
                       )
                     }
                     placeholder={field.label}
@@ -3139,9 +2973,7 @@ function FrontmatterSidebar({
                     <input
                       type="checkbox"
                       checked={Boolean(item[field.key as keyof ContentItem])}
-                      onChange={(e) =>
-                        handleFieldChange(field.key, e.target.checked)
-                      }
+                      onChange={(e) => handleFieldChange(field.key, e.target.checked)}
                     />
                     <span>{field.label}</span>
                   </label>
@@ -3284,10 +3116,7 @@ const DEMO_PAGE_FIELDS = [
 ];
 
 // Generate frontmatter template based on content type
-function generateWriteTemplate(
-  type: "post" | "page",
-  isDemo: boolean = false,
-): string {
+function generateWriteTemplate(type: "post" | "page", isDemo: boolean = false): string {
   if (isDemo) {
     if (type === "post") {
       return `---
@@ -3515,7 +3344,15 @@ function WriteSection({
 
       setEditorMode(newMode);
     },
-    [editorMode, content, richTextHtml, getBodyContent, getFrontmatter, markedInstance, turndownService]
+    [
+      editorMode,
+      content,
+      richTextHtml,
+      getBodyContent,
+      getFrontmatter,
+      markedInstance,
+      turndownService,
+    ]
   );
 
   // Run a rich text command on the contenteditable editor
@@ -3528,7 +3365,7 @@ function WriteSection({
       document.execCommand(command, false, value);
       setRichTextHtml(richTextRef.current.innerHTML);
     },
-    [editorMode],
+    [editorMode]
   );
 
   // Keep rich text HTML state in sync with contenteditable DOM changes
@@ -3554,9 +3391,7 @@ function WriteSection({
 
   // localStorage key based on content type
   const storageKey =
-    contentType === "post"
-      ? DASHBOARD_WRITE_POST_CONTENT
-      : DASHBOARD_WRITE_PAGE_CONTENT;
+    contentType === "post" ? DASHBOARD_WRITE_POST_CONTENT : DASHBOARD_WRITE_PAGE_CONTENT;
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -3593,64 +3428,64 @@ function WriteSection({
   }, [content]);
 
   // Insert image markdown at cursor position
-  const handleInsertImage = useCallback((markdown: string) => {
-    if (editorMode === "markdown" && textareaRef.current) {
-      const textarea = textareaRef.current;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newContent = content.substring(0, start) + markdown + "\n" + content.substring(end);
-      setContent(newContent);
-      // Set cursor position after inserted text
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + markdown.length + 1, start + markdown.length + 1);
-      }, 0);
-    } else if (editorMode === "richtext") {
-      // For rich text mode, insert image at cursor when possible
-      const imgMatch = markdown.match(/!\[(.*?)\]\((.*?)\)/);
-      if (imgMatch) {
-        const escapeAttr = (value: string) =>
-          value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
-        const alt = escapeAttr(imgMatch[1]);
-        const src = escapeAttr(imgMatch[2]);
-        const imageHtml = `<p><img src="${src}" alt="${alt}" /></p>`;
+  const handleInsertImage = useCallback(
+    (markdown: string) => {
+      if (editorMode === "markdown" && textareaRef.current) {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newContent = content.substring(0, start) + markdown + "\n" + content.substring(end);
+        setContent(newContent);
+        // Set cursor position after inserted text
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start + markdown.length + 1, start + markdown.length + 1);
+        }, 0);
+      } else if (editorMode === "richtext") {
+        // For rich text mode, insert image at cursor when possible
+        const imgMatch = markdown.match(/!\[(.*?)\]\((.*?)\)/);
+        if (imgMatch) {
+          const escapeAttr = (value: string) =>
+            value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+          const alt = escapeAttr(imgMatch[1]);
+          const src = escapeAttr(imgMatch[2]);
+          const imageHtml = `<p><img src="${src}" alt="${alt}" /></p>`;
 
-        if (richTextRef.current) {
-          richTextRef.current.focus();
-          document.execCommand("insertHTML", false, imageHtml);
-          setRichTextHtml(richTextRef.current.innerHTML);
-        } else {
-          setRichTextHtml((prev) => prev + imageHtml);
+          if (richTextRef.current) {
+            richTextRef.current.focus();
+            document.execCommand("insertHTML", false, imageHtml);
+            setRichTextHtml(richTextRef.current.innerHTML);
+          } else {
+            setRichTextHtml((prev) => prev + imageHtml);
+          }
         }
-      }
-    } else {
-      // Preview mode - append to content
-      setContent(prev => prev + "\n" + markdown);
-    }
-  }, [content, editorMode]);
-
-  // Copy a single frontmatter field
-  const handleCopyField = useCallback(
-    async (fieldName: string, example: string) => {
-      const fieldText = `${fieldName}: ${example}`;
-      try {
-        await navigator.clipboard.writeText(fieldText);
-        setCopiedField(fieldName);
-        setTimeout(() => setCopiedField(null), 1500);
-      } catch {
-        // Fallback
-        const textarea = document.createElement("textarea");
-        textarea.value = fieldText;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-        setCopiedField(fieldName);
-        setTimeout(() => setCopiedField(null), 1500);
+      } else {
+        // Preview mode - append to content
+        setContent((prev) => prev + "\n" + markdown);
       }
     },
-    [],
+    [content, editorMode]
   );
+
+  // Copy a single frontmatter field
+  const handleCopyField = useCallback(async (fieldName: string, example: string) => {
+    const fieldText = `${fieldName}: ${example}`;
+    try {
+      await navigator.clipboard.writeText(fieldText);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 1500);
+    } catch {
+      // Fallback
+      const textarea = document.createElement("textarea");
+      textarea.value = fieldText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 1500);
+    }
+  }, []);
 
   // Clear content and reset to template
   const handleClear = useCallback(() => {
@@ -3670,8 +3505,7 @@ function WriteSection({
     } else {
       // Generate basic frontmatter with required fields
       const today = new Date().toISOString().split("T")[0];
-      const defaultSlug =
-        contentType === "post" ? "your-post-url" : "your-page-url";
+      const defaultSlug = contentType === "post" ? "your-post-url" : "your-page-url";
 
       if (contentType === "post") {
         frontmatter = `---
@@ -3749,7 +3583,10 @@ published: false
       const parseTags = (): string[] => {
         const match = frontmatterText.match(/^tags:\s*\[(.*?)\]/m);
         if (match) {
-          return match[1].split(",").map((t) => t.trim().replace(/["']/g, "")).filter(Boolean);
+          return match[1]
+            .split(",")
+            .map((t) => t.trim().replace(/["']/g, ""))
+            .filter(Boolean);
         }
         return [];
       };
@@ -3888,7 +3725,17 @@ published: false
     } finally {
       setIsSaving(false);
     }
-  }, [content, contentType, createPostMutation, createPageMutation, createDemoPostMutation, createDemoPageMutation, isDemo, addToast, setActiveSection]);
+  }, [
+    content,
+    contentType,
+    createPostMutation,
+    createPageMutation,
+    createDemoPostMutation,
+    createDemoPageMutation,
+    isDemo,
+    addToast,
+    setActiveSection,
+  ]);
 
   // Calculate stats
   const lines = content.split("\n").length;
@@ -3909,8 +3756,7 @@ published: false
 
   return (
     <div
-      className={`dashboard-write-section ${focusMode ? "focus-mode" : ""} ${frontmatterCollapsed ? "frontmatter-collapsed" : ""}`}
-    >
+      className={`dashboard-write-section ${focusMode ? "focus-mode" : ""} ${frontmatterCollapsed ? "frontmatter-collapsed" : ""}`}>
       {/* Write Actions Header */}
       <div className="dashboard-write-header">
         <div className="dashboard-write-title">
@@ -3918,50 +3764,37 @@ published: false
           <div className="dashboard-editor-mode-toggles">
             <button
               className={`dashboard-view-toggle ${editorMode === "markdown" ? "active" : ""}`}
-              onClick={() => handleModeChange("markdown")}
-            >
+              onClick={() => handleModeChange("markdown")}>
               Markdown
             </button>
             <button
               className={`dashboard-view-toggle ${editorMode === "richtext" ? "active" : ""}`}
-              onClick={() => handleModeChange("richtext")}
-            >
+              onClick={() => handleModeChange("richtext")}>
               Rich Text
             </button>
             <button
               className={`dashboard-view-toggle ${editorMode === "preview" ? "active" : ""}`}
-              onClick={() => handleModeChange("preview")}
-            >
+              onClick={() => handleModeChange("preview")}>
               Preview
             </button>
           </div>
         </div>
         <div className="dashboard-write-actions">
-          <button
-            onClick={handleClear}
-            className="dashboard-action-btn"
-            title="Clear content"
-          >
+          <button onClick={handleClear} className="dashboard-action-btn" title="Clear content">
             <Trash size={16} />
             <span>Clear</span>
           </button>
           <button
             onClick={handleCopy}
-            className={`dashboard-action-btn primary ${copied ? "copied" : ""}`}
-          >
-            {copied ? (
-              <Check size={16} weight="bold" />
-            ) : (
-              <CopySimple size={16} />
-            )}
+            className={`dashboard-action-btn primary ${copied ? "copied" : ""}`}>
+            {copied ? <Check size={16} weight="bold" /> : <CopySimple size={16} />}
             <span>{copied ? "Copied" : "Copy All"}</span>
           </button>
           {siteConfig.media?.enabled && !isDemo && (
             <button
               onClick={() => setShowImageUpload(true)}
               className="dashboard-action-btn"
-              title="Insert Image"
-            >
+              title="Insert Image">
               <Image size={16} />
               <span>Image</span>
             </button>
@@ -3969,8 +3802,7 @@ published: false
           <button
             onClick={handleDownloadMarkdown}
             className="dashboard-action-btn primary"
-            title="Download Markdown"
-          >
+            title="Download Markdown">
             <Download size={16} />
             <span>Download .md</span>
           </button>
@@ -3978,8 +3810,7 @@ published: false
             onClick={handleSaveToDb}
             disabled={isSaving}
             className="dashboard-action-btn success"
-            title="Save to Database"
-          >
+            title="Save to Database">
             {isSaving ? (
               <SpinnerGap size={16} className="animate-spin" />
             ) : (
@@ -3990,8 +3821,7 @@ published: false
           <button
             onClick={toggleFocusMode}
             className={`dashboard-action-btn focus-toggle ${focusMode ? "active" : ""}`}
-            title={focusMode ? "Exit focus mode (Esc)" : "Enter focus mode"}
-          >
+            title={focusMode ? "Exit focus mode (Esc)" : "Enter focus mode"}>
             {focusMode ? (
               <ArrowsIn size={16} weight="regular" />
             ) : (
@@ -4022,64 +3852,56 @@ published: false
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("bold")}
-                  title="Bold"
-                >
+                  title="Bold">
                   B
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("italic")}
-                  title="Italic"
-                >
+                  title="Italic">
                   I
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("strikeThrough")}
-                  title="Strike"
-                >
+                  title="Strike">
                   S
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("formatBlock", "H2")}
-                  title="Heading 2"
-                >
+                  title="Heading 2">
                   H2
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("formatBlock", "H3")}
-                  title="Heading 3"
-                >
+                  title="Heading 3">
                   H3
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("insertUnorderedList")}
-                  title="Bullet list"
-                >
+                  title="Bullet list">
                   List
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("insertOrderedList")}
-                  title="Numbered list"
-                >
+                  title="Numbered list">
                   1.
                 </button>
                 <button
                   type="button"
                   className="dashboard-rich-btn"
                   onClick={() => applyRichTextCommand("formatBlock", "BLOCKQUOTE")}
-                  title="Quote"
-                >
+                  title="Quote">
                   Quote
                 </button>
               </div>
@@ -4103,8 +3925,7 @@ published: false
                 <div className="blog-post-content">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkBreaks]}
-                    rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
-                  >
+                    rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}>
                     {getBodyContent(content)}
                   </ReactMarkdown>
                 </div>
@@ -4121,25 +3942,26 @@ published: false
               <span>{characters} chars</span>
             </div>
             <div className="dashboard-write-hint">
-              {editorMode === "richtext"
-                ? "Editing body content only (frontmatter preserved)"
-                : <>Save to{" "}<code>content/{contentType === "post" ? "blog" : "pages"}/</code>{" "}then <code>npm run sync</code></>
-              }
+              {editorMode === "richtext" ? (
+                "Editing body content only (frontmatter preserved)"
+              ) : (
+                <>
+                  Save to <code>content/{contentType === "post" ? "blog" : "pages"}/</code> then{" "}
+                  <code>npm run sync</code>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {/* Frontmatter Sidebar */}
-        <aside
-          className={`dashboard-write-sidebar ${frontmatterCollapsed ? "collapsed" : ""}`}
-        >
+        <aside className={`dashboard-write-sidebar ${frontmatterCollapsed ? "collapsed" : ""}`}>
           <div className="dashboard-write-sidebar-header">
             <span>Frontmatter</span>
             <button
               onClick={toggleFrontmatter}
               className="dashboard-write-sidebar-toggle"
-              title={frontmatterCollapsed ? "Expand" : "Collapse"}
-            >
+              title={frontmatterCollapsed ? "Expand" : "Collapse"}>
               <SidebarSimple size={16} weight="regular" />
             </button>
           </div>
@@ -4153,17 +3975,14 @@ published: false
                   <div className="write-field-info">
                     <code className="write-field-name">
                       {field.name}
-                      {field.required && (
-                        <span className="write-field-required">*</span>
-                      )}
+                      {field.required && <span className="write-field-required">*</span>}
                     </code>
                     <span className="write-field-example">{field.example}</span>
                   </div>
                   <button
                     onClick={() => handleCopyField(field.name, field.example)}
                     className={`write-field-copy ${copiedField === field.name ? "copied" : ""}`}
-                    title={`Copy ${field.name}`}
-                  >
+                    title={`Copy ${field.name}`}>
                     {copiedField === field.name ? (
                       <Check size={14} weight="bold" />
                     ) : (
@@ -4184,8 +4003,7 @@ published: false
       <div className="dashboard-write-warning">
         <Warning size={14} />
         <span>
-          Content saved locally in this browser only. Copy before leaving to
-          avoid losing work.
+          Content saved locally in this browser only. Copy before leaving to avoid losing work.
         </span>
       </div>
 
@@ -4212,7 +4030,9 @@ function AIAgentSection() {
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16" | "4:3" | "3:4">("1:1");
   const [imagePrompt, setImagePrompt] = useState("");
   const [isRequestingImage, setIsRequestingImage] = useState(false);
-  const [currentImageJobId, setCurrentImageJobId] = useState<Id<"aiImageGenerationJobs"> | null>(null);
+  const [currentImageJobId, setCurrentImageJobId] = useState<Id<"aiImageGenerationJobs"> | null>(
+    null
+  );
   const [imageRequestError, setImageRequestError] = useState<string | null>(null);
   const [showImageModelDropdown, setShowImageModelDropdown] = useState(false);
   const [showTextModelDropdown, setShowTextModelDropdown] = useState(false);
@@ -4231,7 +4051,11 @@ function AIAgentSection() {
     { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic" as const },
   ];
   const imageModels = siteConfig.aiDashboard?.imageModels || [
-    { id: "gemini-2.0-flash-exp-image-generation", name: "Nano Banana", provider: "google" as const },
+    {
+      id: "gemini-2.0-flash-exp-image-generation",
+      name: "Nano Banana",
+      provider: "google" as const,
+    },
   ];
 
   const enableImageGeneration = siteConfig.aiDashboard?.enableImageGeneration ?? true;
@@ -4251,8 +4075,7 @@ function AIAgentSection() {
     (imageGenerationJob?.status === "failed"
       ? imageGenerationJob.error || "Failed to generate image"
       : null);
-  const isGeneratingImage =
-    isRequestingImage || imageGenerationJob?.status === "pending";
+  const isGeneratingImage = isRequestingImage || imageGenerationJob?.status === "pending";
 
   const handleGenerateImage = async () => {
     if (!imagePrompt.trim() || isGeneratingImage) return;
@@ -4265,7 +4088,9 @@ function AIAgentSection() {
       const result = await requestImageGeneration({
         sessionId: localStorage.getItem("ai_chat_session_id") || crypto.randomUUID(),
         prompt: imagePrompt,
-        model: selectedImageModel as "gemini-2.0-flash-exp-image-generation" | "imagen-3.0-generate-002",
+        model: selectedImageModel as
+          | "gemini-2.0-flash-exp-image-generation"
+          | "imagen-3.0-generate-002",
         aspectRatio,
       });
       setCurrentImageJobId(result.jobId);
@@ -4292,8 +4117,10 @@ function AIAgentSection() {
     }
   };
 
-  const selectedTextModelName = textModels.find(m => m.id === selectedTextModel)?.name || "Claude Sonnet 4";
-  const selectedImageModelName = imageModels.find(m => m.id === selectedImageModel)?.name || "Nano Banana";
+  const selectedTextModelName =
+    textModels.find((m) => m.id === selectedTextModel)?.name || "Claude Sonnet 4";
+  const selectedImageModelName =
+    imageModels.find((m) => m.id === selectedImageModel)?.name || "Nano Banana";
 
   // Generate markdown code for the image
   const getMarkdownCode = (url: string, prompt: string) => `![${prompt}](${url})`;
@@ -4304,9 +4131,10 @@ function AIAgentSection() {
   // Copy code to clipboard
   const handleCopyCode = async (format: "md" | "html") => {
     if (!generatedImage) return;
-    const code = format === "md"
-      ? getMarkdownCode(generatedImage.url, generatedImage.prompt)
-      : getHtmlCode(generatedImage.url, generatedImage.prompt);
+    const code =
+      format === "md"
+        ? getMarkdownCode(generatedImage.url, generatedImage.prompt)
+        : getHtmlCode(generatedImage.url, generatedImage.prompt);
     await navigator.clipboard.writeText(code);
     setCopiedFormat(format);
     setTimeout(() => setCopiedFormat(null), 2000);
@@ -4343,16 +4171,14 @@ function AIAgentSection() {
       <div className="ai-agent-tabs">
         <button
           className={`ai-agent-tab ${activeTab === "chat" ? "active" : ""}`}
-          onClick={() => setActiveTab("chat")}
-        >
+          onClick={() => setActiveTab("chat")}>
           <ChatText size={18} weight="bold" />
           <span>Chat</span>
         </button>
         {enableImageGeneration && (
           <button
             className={`ai-agent-tab ${activeTab === "image" ? "active" : ""}`}
-            onClick={() => setActiveTab("image")}
-          >
+            onClick={() => setActiveTab("image")}>
             <Image size={18} weight="bold" />
             <span>Image</span>
           </button>
@@ -4368,8 +4194,7 @@ function AIAgentSection() {
             <div className="ai-model-dropdown-container">
               <button
                 className="ai-model-dropdown-trigger"
-                onClick={() => setShowTextModelDropdown(!showTextModelDropdown)}
-              >
+                onClick={() => setShowTextModelDropdown(!showTextModelDropdown)}>
                 <span>{selectedTextModelName}</span>
                 <CaretDown size={14} weight="bold" />
               </button>
@@ -4382,8 +4207,7 @@ function AIAgentSection() {
                       onClick={() => {
                         setSelectedTextModel(model.id);
                         setShowTextModelDropdown(false);
-                      }}
-                    >
+                      }}>
                       <span className="ai-model-name">{model.name}</span>
                       <span className="ai-model-provider">{model.provider}</span>
                     </button>
@@ -4405,8 +4229,7 @@ function AIAgentSection() {
             <div className="ai-model-dropdown-container">
               <button
                 className="ai-model-dropdown-trigger"
-                onClick={() => setShowImageModelDropdown(!showImageModelDropdown)}
-              >
+                onClick={() => setShowImageModelDropdown(!showImageModelDropdown)}>
                 <span>{selectedImageModelName}</span>
                 <CaretDown size={14} weight="bold" />
               </button>
@@ -4419,8 +4242,7 @@ function AIAgentSection() {
                       onClick={() => {
                         setSelectedImageModel(model.id);
                         setShowImageModelDropdown(false);
-                      }}
-                    >
+                      }}>
                       <span className="ai-model-name">{model.name}</span>
                       <span className="ai-model-provider">{model.provider}</span>
                     </button>
@@ -4438,8 +4260,7 @@ function AIAgentSection() {
                 <button
                   key={ratio}
                   className={`ai-aspect-ratio-option ${aspectRatio === ratio ? "selected" : ""}`}
-                  onClick={() => setAspectRatio(ratio)}
-                >
+                  onClick={() => setAspectRatio(ratio)}>
                   {ratio}
                 </button>
               ))}
@@ -4457,32 +4278,28 @@ function AIAgentSection() {
                 <button
                   className="ai-image-action-btn download"
                   onClick={handleDownloadImage}
-                  title="Download image"
-                >
+                  title="Download image">
                   <Download size={16} />
                   <span>Download</span>
                 </button>
                 <button
                   className={`ai-image-action-btn ${copiedFormat === "md" ? "copied" : ""}`}
                   onClick={() => handleCopyCode("md")}
-                  title="Copy as Markdown"
-                >
+                  title="Copy as Markdown">
                   {copiedFormat === "md" ? <Check size={16} /> : <CopySimple size={16} />}
                   <span>{copiedFormat === "md" ? "Copied" : "MD"}</span>
                 </button>
                 <button
                   className={`ai-image-action-btn ${copiedFormat === "html" ? "copied" : ""}`}
                   onClick={() => handleCopyCode("html")}
-                  title="Copy as HTML"
-                >
+                  title="Copy as HTML">
                   {copiedFormat === "html" ? <Check size={16} /> : <CopySimple size={16} />}
                   <span>{copiedFormat === "html" ? "Copied" : "HTML"}</span>
                 </button>
                 <button
                   className="ai-image-action-btn delete"
                   onClick={() => setShowDeleteConfirm(true)}
-                  title="Delete image from database"
-                >
+                  title="Delete image from database">
                   <Trash size={16} />
                   <span>Delete</span>
                 </button>
@@ -4496,15 +4313,13 @@ function AIAgentSection() {
                     <button
                       className="ai-image-confirm-btn cancel"
                       onClick={() => setShowDeleteConfirm(false)}
-                      disabled={isDeletingImage}
-                    >
+                      disabled={isDeletingImage}>
                       Cancel
                     </button>
                     <button
                       className="ai-image-confirm-btn confirm"
                       onClick={handleDeleteImage}
-                      disabled={isDeletingImage}
-                    >
+                      disabled={isDeletingImage}>
                       {isDeletingImage ? (
                         <>
                           <SpinnerGap size={14} className="animate-spin" />
@@ -4569,8 +4384,7 @@ function AIAgentSection() {
             <button
               className="ai-image-generate-button"
               onClick={handleGenerateImage}
-              disabled={!imagePrompt.trim() || isGeneratingImage}
-            >
+              disabled={!imagePrompt.trim() || isGeneratingImage}>
               {isGeneratingImage ? (
                 <SpinnerGap size={18} weight="bold" className="ai-image-spinner" />
               ) : (
@@ -4587,9 +4401,7 @@ function AIAgentSection() {
 
 function NewsletterSubscribersSection() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "subscribed" | "unsubscribed">(
-    "all",
-  );
+  const [filter, setFilter] = useState<"all" | "subscribed" | "unsubscribed">("all");
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -4609,7 +4421,7 @@ function NewsletterSubscribersSection() {
         setDeleteConfirm(null);
       }
     },
-    [deleteSubscriber],
+    [deleteSubscriber]
   );
 
   const handleNextPage = useCallback(() => {
@@ -4683,8 +4495,7 @@ function NewsletterSubscribersSection() {
                 setFilter("all");
                 setCursor(undefined);
               }}
-              className={`dashboard-newsletter-filter-btn ${filter === "all" ? "active" : ""}`}
-            >
+              className={`dashboard-newsletter-filter-btn ${filter === "all" ? "active" : ""}`}>
               All
             </button>
             <button
@@ -4692,8 +4503,7 @@ function NewsletterSubscribersSection() {
                 setFilter("subscribed");
                 setCursor(undefined);
               }}
-              className={`dashboard-newsletter-filter-btn ${filter === "subscribed" ? "active" : ""}`}
-            >
+              className={`dashboard-newsletter-filter-btn ${filter === "subscribed" ? "active" : ""}`}>
               Active
             </button>
             <button
@@ -4701,8 +4511,7 @@ function NewsletterSubscribersSection() {
                 setFilter("unsubscribed");
                 setCursor(undefined);
               }}
-              className={`dashboard-newsletter-filter-btn ${filter === "unsubscribed" ? "active" : ""}`}
-            >
+              className={`dashboard-newsletter-filter-btn ${filter === "unsubscribed" ? "active" : ""}`}>
               Unsubscribed
             </button>
           </div>
@@ -4723,21 +4532,16 @@ function NewsletterSubscribersSection() {
           <div className="dashboard-list-empty">Loading subscribers...</div>
         ) : subscribersData.subscribers.length === 0 ? (
           <div className="dashboard-list-empty">
-            {search
-              ? "No subscribers match your search."
-              : "No subscribers yet."}
+            {search ? "No subscribers match your search." : "No subscribers yet."}
           </div>
         ) : (
           subscribersData.subscribers.map((sub) => (
             <div
               key={sub._id}
-              className={`dashboard-list-row ${!sub.subscribed ? "unsubscribed" : ""}`}
-            >
+              className={`dashboard-list-row ${!sub.subscribed ? "unsubscribed" : ""}`}>
               <div className="col-email">{sub.email}</div>
               <div className="col-status">
-                <span
-                  className={`status-badge ${!sub.subscribed ? "draft" : "published"}`}
-                >
+                <span className={`status-badge ${!sub.subscribed ? "draft" : "published"}`}>
                   {!sub.subscribed ? "Unsubscribed" : "Active"}
                 </span>
               </div>
@@ -4750,15 +4554,13 @@ function NewsletterSubscribersSection() {
                     <button
                       onClick={() => handleDelete(sub._id)}
                       className="dashboard-action-btn delete"
-                      title="Confirm delete"
-                    >
+                      title="Confirm delete">
                       <Check size={16} weight="bold" />
                     </button>
                     <button
                       onClick={() => setDeleteConfirm(null)}
                       className="dashboard-action-btn"
-                      title="Cancel"
-                    >
+                      title="Cancel">
                       <X size={16} weight="bold" />
                     </button>
                   </div>
@@ -4766,8 +4568,7 @@ function NewsletterSubscribersSection() {
                   <button
                     onClick={() => setDeleteConfirm(sub._id)}
                     className="dashboard-action-btn delete"
-                    title="Delete subscriber"
-                  >
+                    title="Delete subscriber">
                     <Trash size={16} />
                   </button>
                 )}
@@ -4780,19 +4581,14 @@ function NewsletterSubscribersSection() {
       {/* Pagination */}
       {subscribersData && subscribersData.subscribers.length > 0 && (
         <div className="dashboard-newsletter-pagination">
-          <button
-            onClick={handlePrevPage}
-            disabled={!cursor}
-            className="dashboard-action-btn"
-          >
+          <button onClick={handlePrevPage} disabled={!cursor} className="dashboard-action-btn">
             <CaretLeft size={16} />
             First
           </button>
           <button
             onClick={handleNextPage}
             disabled={!subscribersData.nextCursor}
-            className="dashboard-action-btn"
-          >
+            className="dashboard-action-btn">
             Next
             <CaretRight size={16} />
           </button>
@@ -4817,9 +4613,7 @@ function NewsletterSendSection({
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const scheduleSendPost = useMutation(
-    api.newsletter.scheduleSendPostNewsletter,
-  );
+  const scheduleSendPost = useMutation(api.newsletter.scheduleSendPostNewsletter);
 
   const handleSendPostNewsletter = useCallback(async () => {
     if (!selectedPost) return;
@@ -4900,8 +4694,7 @@ function NewsletterSendSection({
             value={selectedPost}
             onChange={(e) => setSelectedPost(e.target.value)}
             className="dashboard-newsletter-select"
-            disabled={sendingNewsletter}
-          >
+            disabled={sendingNewsletter}>
             <option value="">Choose a post...</option>
             {posts?.map((post) => (
               <option key={post.slug} value={post.slug} disabled={post.wasSent}>
@@ -4914,8 +4707,7 @@ function NewsletterSendSection({
         <button
           onClick={handleSendPostNewsletter}
           disabled={!selectedPost || sendingNewsletter}
-          className="dashboard-newsletter-send-btn"
-        >
+          className="dashboard-newsletter-send-btn">
           {sendingNewsletter ? (
             "Sending..."
           ) : (
@@ -4928,24 +4720,16 @@ function NewsletterSendSection({
 
         {sendResult && (
           <div
-            className={`dashboard-newsletter-result ${sendResult.success ? "success" : "error"}`}
-          >
+            className={`dashboard-newsletter-result ${sendResult.success ? "success" : "error"}`}>
             <span>{sendResult.message}</span>
             {sendResult.command && (
               <div className="dashboard-newsletter-command-row">
-                <code className="dashboard-newsletter-command">
-                  {sendResult.command}
-                </code>
+                <code className="dashboard-newsletter-command">{sendResult.command}</code>
                 <button
                   onClick={() => handleCopyCommand(sendResult.command!)}
                   className="dashboard-action-btn"
-                  title={copied ? "Copied!" : "Copy command"}
-                >
-                  {copied ? (
-                    <Check size={14} weight="bold" />
-                  ) : (
-                    <Copy size={14} />
-                  )}
+                  title={copied ? "Copied!" : "Copy command"}>
+                  {copied ? <Check size={14} weight="bold" /> : <Copy size={14} />}
                 </button>
               </div>
             )}
@@ -4969,9 +4753,7 @@ function NewsletterWriteEmailSection({
     message: string;
   } | null>(null);
 
-  const scheduleSendCustom = useMutation(
-    api.newsletter.scheduleSendCustomNewsletter,
-  );
+  const scheduleSendCustom = useMutation(api.newsletter.scheduleSendCustomNewsletter);
 
   const handleSendCustomNewsletter = useCallback(async () => {
     if (!customSubject.trim() || !customContent.trim()) {
@@ -5004,8 +4786,7 @@ function NewsletterWriteEmailSection({
         addToast(result.message, "error");
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to send newsletter";
+      const errorMessage = error instanceof Error ? error.message : "Failed to send newsletter";
       setSendResult({
         success: false,
         message: errorMessage,
@@ -5031,8 +4812,7 @@ function NewsletterWriteEmailSection({
       <div className="dashboard-newsletter-write">
         <h3>Write Custom Email</h3>
         <p className="dashboard-newsletter-form-desc">
-          Write a custom email to send to all active subscribers. Supports
-          markdown formatting.
+          Write a custom email to send to all active subscribers. Supports markdown formatting.
         </p>
 
         <div className="dashboard-newsletter-form-group">
@@ -5048,9 +4828,7 @@ function NewsletterWriteEmailSection({
         </div>
 
         <div className="dashboard-newsletter-form-group">
-          <label className="dashboard-newsletter-label">
-            Content (Markdown)
-          </label>
+          <label className="dashboard-newsletter-label">Content (Markdown)</label>
           <textarea
             value={customContent}
             onChange={(e) => setCustomContent(e.target.value)}
@@ -5069,11 +4847,8 @@ Supports markdown:
 
         <button
           onClick={handleSendCustomNewsletter}
-          disabled={
-            !customSubject.trim() || !customContent.trim() || sendingNewsletter
-          }
-          className="dashboard-newsletter-send-btn"
-        >
+          disabled={!customSubject.trim() || !customContent.trim() || sendingNewsletter}
+          className="dashboard-newsletter-send-btn">
           {sendingNewsletter ? (
             "Sending..."
           ) : (
@@ -5086,8 +4861,7 @@ Supports markdown:
 
         {sendResult && (
           <div
-            className={`dashboard-newsletter-result ${sendResult.success ? "success" : "error"}`}
-          >
+            className={`dashboard-newsletter-result ${sendResult.success ? "success" : "error"}`}>
             <span>{sendResult.message}</span>
           </div>
         )}
@@ -5130,8 +4904,7 @@ function NewsletterRecentSendsSection() {
           {stats.recentNewsletters.map((newsletter, index) => (
             <div
               key={`${newsletter.postSlug}-${index}`}
-              className="dashboard-newsletter-recent-item"
-            >
+              className="dashboard-newsletter-recent-item">
               <div className="dashboard-newsletter-recent-info">
                 <span className="dashboard-newsletter-recent-slug">
                   {newsletter.type === "custom"
@@ -5140,13 +4913,9 @@ function NewsletterRecentSendsSection() {
                 </span>
                 <span className="dashboard-newsletter-recent-meta">
                   {newsletter.type === "custom" ? (
-                    <span className="dashboard-newsletter-badge-type custom">
-                      Custom
-                    </span>
+                    <span className="dashboard-newsletter-badge-type custom">Custom</span>
                   ) : (
-                    <span className="dashboard-newsletter-badge-type post">
-                      Post
-                    </span>
+                    <span className="dashboard-newsletter-badge-type post">Post</span>
                   )}
                   Sent to {newsletter.sentCount} subscriber
                   {newsletter.sentCount !== 1 ? "s" : ""}
@@ -5192,9 +4961,7 @@ function NewsletterStatsSection() {
                 <span className="dashboard-newsletter-stat-card-value">
                   {stats.totalEmailsSent}
                 </span>
-                <span className="dashboard-newsletter-stat-card-label">
-                  Total Emails Sent
-                </span>
+                <span className="dashboard-newsletter-stat-card-label">Total Emails Sent</span>
               </div>
             </div>
             <div className="dashboard-newsletter-stat-card">
@@ -5205,9 +4972,7 @@ function NewsletterStatsSection() {
                 <span className="dashboard-newsletter-stat-card-value">
                   {stats.totalNewslettersSent}
                 </span>
-                <span className="dashboard-newsletter-stat-card-label">
-                  Newsletters Sent
-                </span>
+                <span className="dashboard-newsletter-stat-card-label">Newsletters Sent</span>
               </div>
             </div>
             <div className="dashboard-newsletter-stat-card">
@@ -5218,9 +4983,7 @@ function NewsletterStatsSection() {
                 <span className="dashboard-newsletter-stat-card-value">
                   {stats.activeSubscribers}
                 </span>
-                <span className="dashboard-newsletter-stat-card-label">
-                  Active Subscribers
-                </span>
+                <span className="dashboard-newsletter-stat-card-label">Active Subscribers</span>
               </div>
             </div>
             <div className="dashboard-newsletter-stat-card">
@@ -5230,16 +4993,11 @@ function NewsletterStatsSection() {
               <div className="dashboard-newsletter-stat-card-content">
                 <span className="dashboard-newsletter-stat-card-value">
                   {stats.totalSubscribers > 0
-                    ? Math.round(
-                        (stats.activeSubscribers / stats.totalSubscribers) *
-                          100,
-                      )
+                    ? Math.round((stats.activeSubscribers / stats.totalSubscribers) * 100)
                     : 0}
                   %
                 </span>
-                <span className="dashboard-newsletter-stat-card-label">
-                  Retention Rate
-                </span>
+                <span className="dashboard-newsletter-stat-card-label">Retention Rate</span>
               </div>
             </div>
           </div>
@@ -5274,11 +5032,7 @@ function NewsletterStatsSection() {
   );
 }
 
-function ImportURLSection({
-  addToast,
-}: {
-  addToast: (message: string, type?: ToastType) => void;
-}) {
+function ImportURLSection({ addToast }: { addToast: (message: string, type?: ToastType) => void }) {
   const [url, setUrl] = useState("");
   const [isRequestingImport, setIsRequestingImport] = useState(false);
   const [publishImmediately, setPublishImmediately] = useState(false);
@@ -5286,17 +5040,13 @@ function ImportURLSection({
     title: string;
     slug: string;
   } | null>(null);
-  const [currentImportJobId, setCurrentImportJobId] = useState<
-    Id<"importUrlJobs"> | null
-  >(null);
+  const [currentImportJobId, setCurrentImportJobId] = useState<Id<"importUrlJobs"> | null>(null);
   const [importRequestError, setImportRequestError] = useState<string | null>(null);
-  const [handledImportJobId, setHandledImportJobId] = useState<
-    Id<"importUrlJobs"> | null
-  >(null);
+  const [handledImportJobId, setHandledImportJobId] = useState<Id<"importUrlJobs"> | null>(null);
   const requestImportFromUrl = useMutation(api.importJobs.requestImportFromUrl);
   const importJob = useQuery(
     api.importJobs.getImportJob,
-    currentImportJobId ? { jobId: currentImportJobId } : "skip",
+    currentImportJobId ? { jobId: currentImportJobId } : "skip"
   );
 
   const isLoading = isRequestingImport || importJob?.status === "pending";
@@ -5336,8 +5086,7 @@ function ImportURLSection({
       });
       setCurrentImportJobId(result.jobId);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to import URL";
+      const message = error instanceof Error ? error.message : "Failed to import URL";
       setImportRequestError(message);
       addToast(message, "error");
     } finally {
@@ -5380,8 +5129,7 @@ function ImportURLSection({
         <button
           className="dashboard-import-btn"
           onClick={handleImport}
-          disabled={isLoading || !url.trim()}
-        >
+          disabled={isLoading || !url.trim()}>
           {isLoading ? (
             <>
               <SpinnerGap size={16} className="animate-spin" />
@@ -5424,9 +5172,7 @@ function ImportURLSection({
           <li>Post is saved directly to the database</li>
           <li>Edit and publish from the Posts section</li>
         </ol>
-        <p className="note">
-          Requires FIRECRAWL_API_KEY in Convex environment variables
-        </p>
+        <p className="note">Requires FIRECRAWL_API_KEY in Convex environment variables</p>
       </div>
     </div>
   );
@@ -5451,11 +5197,7 @@ function escapeJson(text: string): string {
     .replace(/\t/g, "\\t");
 }
 
-function IndexHtmlSection({
-  addToast,
-}: {
-  addToast: (message: string, type: ToastType) => void;
-}) {
+function IndexHtmlSection({ addToast }: { addToast: (message: string, type: ToastType) => void }) {
   // Pre-populate from siteConfig (since index.html should match)
   const [htmlConfig, setHtmlConfig] = useState({
     siteName: siteConfig.name,
@@ -5468,8 +5210,7 @@ function IndexHtmlSection({
     ogImage: "/images/og-default.png",
     favicon: "/favicon.svg",
     themeColor: "#faf8f5",
-    keywords:
-      "markdown site, Convex, Netlify, React, TypeScript, open source, real-time, sync",
+    keywords: "markdown site, Convex, Netlify, React, TypeScript, open source, real-time, sync",
     author: siteConfig.name,
   });
 
@@ -5635,20 +5376,14 @@ function IndexHtmlSection({
       <div className="dashboard-config-header">
         <div>
           <h2>Index HTML Generator</h2>
-          <p>
-            Generate index.html with SEO metadata, Open Graph, and Twitter Card
-            tags
-          </p>
+          <p>Generate index.html with SEO metadata, Open Graph, and Twitter Card tags</p>
         </div>
         <div className="dashboard-config-actions">
           <button className="dashboard-action-btn" onClick={handleCopy}>
             {copied ? <Check size={16} /> : <Copy size={16} />}
             <span>{copied ? "Copied" : "Copy HTML"}</span>
           </button>
-          <button
-            className="dashboard-action-btn primary"
-            onClick={handleDownload}
-          >
+          <button className="dashboard-action-btn primary" onClick={handleDownload}>
             <Download size={16} />
             <span>Download</span>
           </button>
@@ -5667,9 +5402,7 @@ function IndexHtmlSection({
               onChange={(e) => handleChange("siteName", e.target.value)}
               placeholder="Your Site Name"
             />
-            <span className="config-field-note">
-              Used in Open Graph site_name and JSON-LD
-            </span>
+            <span className="config-field-note">Used in Open Graph site_name and JSON-LD</span>
           </div>
           <div className="config-field">
             <label>Site Title</label>
@@ -5712,9 +5445,7 @@ function IndexHtmlSection({
               onChange={(e) => handleChange("keywords", e.target.value)}
               placeholder="keyword1, keyword2, keyword3"
             />
-            <span className="config-field-note">
-              Comma-separated keywords for SEO
-            </span>
+            <span className="config-field-note">Comma-separated keywords for SEO</span>
           </div>
         </div>
 
@@ -5729,9 +5460,7 @@ function IndexHtmlSection({
               onChange={(e) => handleChange("siteUrl", e.target.value)}
               placeholder="https://example.com"
             />
-            <span className="config-field-note">
-              Full URL including protocol (https://)
-            </span>
+            <span className="config-field-note">Full URL including protocol (https://)</span>
           </div>
           <div className="config-field">
             <label>Site Domain</label>
@@ -5741,9 +5470,7 @@ function IndexHtmlSection({
               onChange={(e) => handleChange("siteDomain", e.target.value)}
               placeholder="example.com"
             />
-            <span className="config-field-note">
-              Auto-updated from Site URL, or set manually
-            </span>
+            <span className="config-field-note">Auto-updated from Site URL, or set manually</span>
           </div>
           <div className="config-field">
             <label>Open Graph Image</label>
@@ -5765,9 +5492,7 @@ function IndexHtmlSection({
               onChange={(e) => handleChange("favicon", e.target.value)}
               placeholder="/favicon.svg"
             />
-            <span className="config-field-note">
-              Path to favicon (e.g., /favicon.svg)
-            </span>
+            <span className="config-field-note">Path to favicon (e.g., /favicon.svg)</span>
           </div>
           <div className="config-field">
             <label>Theme Color</label>
@@ -5833,12 +5558,9 @@ function ConfigSection({
     showPostsOnHome: siteConfig.postsDisplay.showOnHome,
     showPostsOnBlogPage: siteConfig.postsDisplay.showOnBlogPage,
     homePostsLimit: siteConfig.postsDisplay.homePostsLimit || 0,
-    homePostsReadMoreEnabled:
-      siteConfig.postsDisplay.homePostsReadMore?.enabled || false,
-    homePostsReadMoreText:
-      siteConfig.postsDisplay.homePostsReadMore?.text || "",
-    homePostsReadMoreLink:
-      siteConfig.postsDisplay.homePostsReadMore?.link || "",
+    homePostsReadMoreEnabled: siteConfig.postsDisplay.homePostsReadMore?.enabled || false,
+    homePostsReadMoreText: siteConfig.postsDisplay.homePostsReadMore?.text || "",
+    homePostsReadMoreLink: siteConfig.postsDisplay.homePostsReadMore?.link || "",
     // Right sidebar
     rightSidebarEnabled: siteConfig.rightSidebar.enabled,
     rightSidebarMinWidth: siteConfig.rightSidebar.minWidth || 1135,
@@ -5854,12 +5576,9 @@ function ConfigSection({
     aiChatEnabledOnContent: siteConfig.aiChat.enabledOnContent,
     // Newsletter
     newsletterEnabled: siteConfig.newsletter?.enabled || false,
-    newsletterHomeEnabled:
-      siteConfig.newsletter?.signup?.home?.enabled || false,
-    newsletterBlogPageEnabled:
-      siteConfig.newsletter?.signup?.blogPage?.enabled || false,
-    newsletterPostsEnabled:
-      siteConfig.newsletter?.signup?.posts?.enabled || false,
+    newsletterHomeEnabled: siteConfig.newsletter?.signup?.home?.enabled || false,
+    newsletterBlogPageEnabled: siteConfig.newsletter?.signup?.blogPage?.enabled || false,
+    newsletterPostsEnabled: siteConfig.newsletter?.signup?.posts?.enabled || false,
     // Stats page
     statsPageEnabled: siteConfig.statsPage?.enabled || false,
     statsPageShowInNav: siteConfig.statsPage?.showInNav || false,
@@ -5880,10 +5599,8 @@ function ConfigSection({
     // GitHub contributions
     githubContributionsEnabled: siteConfig.gitHubContributions.enabled,
     githubContributionsUsername: siteConfig.gitHubContributions.username,
-    githubContributionsShowYearNav:
-      siteConfig.gitHubContributions.showYearNavigation,
-    githubContributionsLinkToProfile:
-      siteConfig.gitHubContributions.linkToProfile,
+    githubContributionsShowYearNav: siteConfig.gitHubContributions.showYearNavigation,
+    githubContributionsLinkToProfile: siteConfig.gitHubContributions.linkToProfile,
     // Visitor map
     visitorMapEnabled: siteConfig.visitorMap.enabled,
     visitorMapTitle: siteConfig.visitorMap.title,
@@ -5898,16 +5615,12 @@ function ConfigSection({
     // Social footer
     socialFooterEnabled: siteConfig.socialFooter?.enabled || false,
     socialFooterShowInHeader: siteConfig.socialFooter?.showInHeader || false,
-    socialFooterShowOnHomepage:
-      siteConfig.socialFooter?.showOnHomepage || false,
+    socialFooterShowOnHomepage: siteConfig.socialFooter?.showOnHomepage || false,
     socialFooterShowOnPosts: siteConfig.socialFooter?.showOnPosts || false,
     socialFooterShowOnPages: siteConfig.socialFooter?.showOnPages || false,
-    socialFooterShowOnBlogPage:
-      siteConfig.socialFooter?.showOnBlogPage || false,
-    socialFooterCopyrightSiteName:
-      siteConfig.socialFooter?.copyright?.siteName || "",
-    socialFooterCopyrightShowYear:
-      siteConfig.socialFooter?.copyright?.showYear || false,
+    socialFooterShowOnBlogPage: siteConfig.socialFooter?.showOnBlogPage || false,
+    socialFooterCopyrightSiteName: siteConfig.socialFooter?.copyright?.siteName || "",
+    socialFooterCopyrightShowYear: siteConfig.socialFooter?.copyright?.showYear || false,
     // Logo gallery
     logoGalleryEnabled: siteConfig.logoGallery?.enabled || false,
     logoGalleryPosition: siteConfig.logoGallery?.position || "above-footer",
@@ -6169,10 +5882,7 @@ export default siteConfig;
             {copied ? <Check size={16} /> : <Copy size={16} />}
             <span>{copied ? "Copied" : "Copy Code"}</span>
           </button>
-          <button
-            className="dashboard-action-btn primary"
-            onClick={handleDownloadConfig}
-          >
+          <button className="dashboard-action-btn primary" onClick={handleDownloadConfig}>
             <Download size={16} />
             <span>Download</span>
           </button>
@@ -6182,12 +5892,8 @@ export default siteConfig;
       <div className="dashboard-config-reminder">
         <Info size={16} />
         <span>
-          Don't forget to update <strong>index.html</strong> with matching
-          metadata!
-          <button
-            className="dashboard-link-button"
-            onClick={onNavigateToIndexHtml}
-          >
+          Don't forget to update <strong>index.html</strong> with matching metadata!
+          <button className="dashboard-link-button" onClick={onNavigateToIndexHtml}>
             Go to Index HTML Generator →
           </button>
         </span>
@@ -6230,16 +5936,15 @@ export default siteConfig;
               rows={2}
             />
             <span className="config-field-note">
-              Note: Bio is set in siteConfig.ts. Homepage content is separate
-              and comes from content/pages/home.md
+              Note: Bio is set in siteConfig.ts. Homepage content is separate and comes from
+              content/pages/home.md
             </span>
           </div>
           <div className="config-field">
             <label>Font Family</label>
             <select
               value={config.fontFamily}
-              onChange={(e) => handleChange("fontFamily", e.target.value)}
-            >
+              onChange={(e) => handleChange("fontFamily", e.target.value)}>
               <option value="serif">Serif (New York)</option>
               <option value="sans">Sans (System)</option>
               <option value="monospace">Monospace (IBM Plex Mono)</option>
@@ -6255,9 +5960,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.blogPageEnabled}
-                onChange={(e) =>
-                  handleChange("blogPageEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("blogPageEnabled", e.target.checked)}
               />
               <span>Enable /blog route</span>
             </label>
@@ -6267,9 +5970,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.blogPageShowInNav}
-                onChange={(e) =>
-                  handleChange("blogPageShowInNav", e.target.checked)
-                }
+                onChange={(e) => handleChange("blogPageShowInNav", e.target.checked)}
               />
               <span>Show in navigation</span>
             </label>
@@ -6286,8 +5987,7 @@ export default siteConfig;
             <label>View Mode</label>
             <select
               value={config.blogPageViewMode}
-              onChange={(e) => handleChange("blogPageViewMode", e.target.value)}
-            >
+              onChange={(e) => handleChange("blogPageViewMode", e.target.value)}>
               <option value="list">List</option>
               <option value="cards">Cards</option>
             </select>
@@ -6302,9 +6002,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.showPostsOnHome}
-                onChange={(e) =>
-                  handleChange("showPostsOnHome", e.target.checked)
-                }
+                onChange={(e) => handleChange("showPostsOnHome", e.target.checked)}
               />
               <span>Show posts on homepage</span>
             </label>
@@ -6314,9 +6012,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.showPostsOnBlogPage}
-                onChange={(e) =>
-                  handleChange("showPostsOnBlogPage", e.target.checked)
-                }
+                onChange={(e) => handleChange("showPostsOnBlogPage", e.target.checked)}
               />
               <span>Show posts on blog page</span>
             </label>
@@ -6326,9 +6022,7 @@ export default siteConfig;
             <input
               type="number"
               value={config.homePostsLimit}
-              onChange={(e) =>
-                handleChange("homePostsLimit", parseInt(e.target.value) || 0)
-              }
+              onChange={(e) => handleChange("homePostsLimit", parseInt(e.target.value) || 0)}
               min={0}
             />
           </div>
@@ -6349,8 +6043,7 @@ export default siteConfig;
             <label>View Mode</label>
             <select
               value={config.featuredViewMode}
-              onChange={(e) => handleChange("featuredViewMode", e.target.value)}
-            >
+              onChange={(e) => handleChange("featuredViewMode", e.target.value)}>
               <option value="list">List</option>
               <option value="cards">Cards</option>
             </select>
@@ -6360,9 +6053,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.showViewToggle}
-                onChange={(e) =>
-                  handleChange("showViewToggle", e.target.checked)
-                }
+                onChange={(e) => handleChange("showViewToggle", e.target.checked)}
               />
               <span>Show view toggle</span>
             </label>
@@ -6377,9 +6068,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.footerEnabled}
-                onChange={(e) =>
-                  handleChange("footerEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("footerEnabled", e.target.checked)}
               />
               <span>Enable footer</span>
             </label>
@@ -6389,9 +6078,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.footerShowOnHomepage}
-                onChange={(e) =>
-                  handleChange("footerShowOnHomepage", e.target.checked)
-                }
+                onChange={(e) => handleChange("footerShowOnHomepage", e.target.checked)}
               />
               <span>Show on homepage</span>
             </label>
@@ -6401,9 +6088,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.footerShowOnPosts}
-                onChange={(e) =>
-                  handleChange("footerShowOnPosts", e.target.checked)
-                }
+                onChange={(e) => handleChange("footerShowOnPosts", e.target.checked)}
               />
               <span>Show on posts</span>
             </label>
@@ -6413,16 +6098,13 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.footerShowOnPages}
-                onChange={(e) =>
-                  handleChange("footerShowOnPages", e.target.checked)
-                }
+                onChange={(e) => handleChange("footerShowOnPages", e.target.checked)}
               />
               <span>Show on pages</span>
             </label>
           </div>
           <p className="config-field-note" style={{ marginTop: "0.75rem" }}>
-            Footer content is managed via{" "}
-            <code>content/pages/footer.md</code>. Run{" "}
+            Footer content is managed via <code>content/pages/footer.md</code>. Run{" "}
             <code>npm run sync</code> to update.
           </p>
         </div>
@@ -6435,9 +6117,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.aiChatEnabledOnWritePage}
-                onChange={(e) =>
-                  handleChange("aiChatEnabledOnWritePage", e.target.checked)
-                }
+                onChange={(e) => handleChange("aiChatEnabledOnWritePage", e.target.checked)}
               />
               <span>Enable on Write page</span>
             </label>
@@ -6447,9 +6127,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.aiChatEnabledOnContent}
-                onChange={(e) =>
-                  handleChange("aiChatEnabledOnContent", e.target.checked)
-                }
+                onChange={(e) => handleChange("aiChatEnabledOnContent", e.target.checked)}
               />
               <span>Enable on content pages</span>
             </label>
@@ -6464,9 +6142,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.rightSidebarEnabled}
-                onChange={(e) =>
-                  handleChange("rightSidebarEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("rightSidebarEnabled", e.target.checked)}
               />
               <span>Enable right sidebar</span>
             </label>
@@ -6477,10 +6153,7 @@ export default siteConfig;
               type="number"
               value={config.rightSidebarMinWidth}
               onChange={(e) =>
-                handleChange(
-                  "rightSidebarMinWidth",
-                  parseInt(e.target.value) || 1135,
-                )
+                handleChange("rightSidebarMinWidth", parseInt(e.target.value) || 1135)
               }
               min={768}
             />
@@ -6495,9 +6168,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.newsletterEnabled}
-                onChange={(e) =>
-                  handleChange("newsletterEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("newsletterEnabled", e.target.checked)}
               />
               <span>Enable newsletter</span>
             </label>
@@ -6507,9 +6178,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.statsPageEnabled}
-                onChange={(e) =>
-                  handleChange("statsPageEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("statsPageEnabled", e.target.checked)}
               />
               <span>Enable stats page</span>
             </label>
@@ -6519,9 +6188,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.statsPageShowInNav}
-                onChange={(e) =>
-                  handleChange("statsPageShowInNav", e.target.checked)
-                }
+                onChange={(e) => handleChange("statsPageShowInNav", e.target.checked)}
               />
               <span>Show stats in nav</span>
             </label>
@@ -6531,9 +6198,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.dashboardEnabled}
-                onChange={(e) =>
-                  handleChange("dashboardEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("dashboardEnabled", e.target.checked)}
               />
               <span>Enable dashboard page</span>
             </label>
@@ -6543,9 +6208,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.dashboardRequireAuth}
-                onChange={(e) =>
-                  handleChange("dashboardRequireAuth", e.target.checked)
-                }
+                onChange={(e) => handleChange("dashboardRequireAuth", e.target.checked)}
               />
               <span>Require dashboard auth</span>
             </label>
@@ -6555,9 +6218,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.dashboardShowInNav}
-                onChange={(e) =>
-                  handleChange("dashboardShowInNav", e.target.checked)
-                }
+                onChange={(e) => handleChange("dashboardShowInNav", e.target.checked)}
               />
               <span>Show dashboard in nav (admins only)</span>
             </label>
@@ -6567,9 +6228,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.wikiShowInNav}
-                onChange={(e) =>
-                  handleChange("wikiShowInNav", e.target.checked)
-                }
+                onChange={(e) => handleChange("wikiShowInNav", e.target.checked)}
               />
               <span>Show wiki in nav</span>
             </label>
@@ -6579,9 +6238,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.visitorMapEnabled}
-                onChange={(e) =>
-                  handleChange("visitorMapEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("visitorMapEnabled", e.target.checked)}
               />
               <span>Enable visitor map</span>
             </label>
@@ -6620,9 +6277,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.githubContributionsEnabled}
-                onChange={(e) =>
-                  handleChange("githubContributionsEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("githubContributionsEnabled", e.target.checked)}
               />
               <span>Enable contributions graph</span>
             </label>
@@ -6632,9 +6287,7 @@ export default siteConfig;
             <input
               type="text"
               value={config.githubContributionsUsername}
-              onChange={(e) =>
-                handleChange("githubContributionsUsername", e.target.value)
-              }
+              onChange={(e) => handleChange("githubContributionsUsername", e.target.value)}
             />
           </div>
         </div>
@@ -6647,9 +6300,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.innerPageLogoEnabled}
-                onChange={(e) =>
-                  handleChange("innerPageLogoEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("innerPageLogoEnabled", e.target.checked)}
               />
               <span>Enable inner page logo</span>
             </label>
@@ -6659,12 +6310,7 @@ export default siteConfig;
             <input
               type="number"
               value={config.innerPageLogoSize}
-              onChange={(e) =>
-                handleChange(
-                  "innerPageLogoSize",
-                  parseInt(e.target.value) || 28,
-                )
-              }
+              onChange={(e) => handleChange("innerPageLogoSize", parseInt(e.target.value) || 28)}
               min={16}
               max={64}
             />
@@ -6678,8 +6324,7 @@ export default siteConfig;
             <label>Type</label>
             <select
               value={config.homepageType}
-              onChange={(e) => handleChange("homepageType", e.target.value)}
-            >
+              onChange={(e) => handleChange("homepageType", e.target.value)}>
               <option value="default">Default</option>
               <option value="post">Post</option>
               <option value="page">Page</option>
@@ -6699,15 +6344,12 @@ export default siteConfig;
             <input
               type="text"
               value={config.homepageOriginalRoute}
-              onChange={(e) =>
-                handleChange("homepageOriginalRoute", e.target.value)
-              }
+              onChange={(e) => handleChange("homepageOriginalRoute", e.target.value)}
               placeholder="/home"
             />
           </div>
           <span className="config-field-note">
-            Homepage content comes from content/pages/home.md (not siteConfig
-            bio)
+            Homepage content comes from content/pages/home.md (not siteConfig bio)
           </span>
         </div>
 
@@ -6719,9 +6361,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.contactFormEnabled}
-                onChange={(e) =>
-                  handleChange("contactFormEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("contactFormEnabled", e.target.checked)}
               />
               <span>Enable contact form</span>
             </label>
@@ -6739,9 +6379,7 @@ export default siteConfig;
             <input
               type="text"
               value={config.contactFormDescription}
-              onChange={(e) =>
-                handleChange("contactFormDescription", e.target.value)
-              }
+              onChange={(e) => handleChange("contactFormDescription", e.target.value)}
             />
           </div>
         </div>
@@ -6754,9 +6392,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.socialFooterEnabled}
-                onChange={(e) =>
-                  handleChange("socialFooterEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("socialFooterEnabled", e.target.checked)}
               />
               <span>Enable social footer</span>
             </label>
@@ -6766,9 +6402,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.socialFooterShowInHeader}
-                onChange={(e) =>
-                  handleChange("socialFooterShowInHeader", e.target.checked)
-                }
+                onChange={(e) => handleChange("socialFooterShowInHeader", e.target.checked)}
               />
               <span>Show in header</span>
             </label>
@@ -6778,9 +6412,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.socialFooterShowOnHomepage}
-                onChange={(e) =>
-                  handleChange("socialFooterShowOnHomepage", e.target.checked)
-                }
+                onChange={(e) => handleChange("socialFooterShowOnHomepage", e.target.checked)}
               />
               <span>Show on homepage</span>
             </label>
@@ -6790,9 +6422,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.socialFooterShowOnPosts}
-                onChange={(e) =>
-                  handleChange("socialFooterShowOnPosts", e.target.checked)
-                }
+                onChange={(e) => handleChange("socialFooterShowOnPosts", e.target.checked)}
               />
               <span>Show on posts</span>
             </label>
@@ -6802,9 +6432,7 @@ export default siteConfig;
             <input
               type="text"
               value={config.socialFooterCopyrightSiteName}
-              onChange={(e) =>
-                handleChange("socialFooterCopyrightSiteName", e.target.value)
-              }
+              onChange={(e) => handleChange("socialFooterCopyrightSiteName", e.target.value)}
             />
           </div>
           <div className="config-field checkbox">
@@ -6812,12 +6440,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.socialFooterCopyrightShowYear}
-                onChange={(e) =>
-                  handleChange(
-                    "socialFooterCopyrightShowYear",
-                    e.target.checked,
-                  )
-                }
+                onChange={(e) => handleChange("socialFooterCopyrightShowYear", e.target.checked)}
               />
               <span>Show year in copyright</span>
             </label>
@@ -6832,9 +6455,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.logoGalleryEnabled}
-                onChange={(e) =>
-                  handleChange("logoGalleryEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("logoGalleryEnabled", e.target.checked)}
               />
               <span>Enable logo gallery</span>
             </label>
@@ -6843,10 +6464,7 @@ export default siteConfig;
             <label>Position</label>
             <select
               value={config.logoGalleryPosition}
-              onChange={(e) =>
-                handleChange("logoGalleryPosition", e.target.value)
-              }
-            >
+              onChange={(e) => handleChange("logoGalleryPosition", e.target.value)}>
               <option value="above-featured">Above Featured</option>
               <option value="above-footer">Above Footer</option>
             </select>
@@ -6864,9 +6482,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.logoGalleryScrolling}
-                onChange={(e) =>
-                  handleChange("logoGalleryScrolling", e.target.checked)
-                }
+                onChange={(e) => handleChange("logoGalleryScrolling", e.target.checked)}
               />
               <span>Enable scrolling marquee</span>
             </label>
@@ -6876,9 +6492,7 @@ export default siteConfig;
             <input
               type="number"
               value={config.logoGallerySpeed}
-              onChange={(e) =>
-                handleChange("logoGallerySpeed", parseInt(e.target.value) || 30)
-              }
+              onChange={(e) => handleChange("logoGallerySpeed", parseInt(e.target.value) || 30)}
               min={1}
               max={100}
             />
@@ -6888,19 +6502,13 @@ export default siteConfig;
             <input
               type="number"
               value={config.logoGalleryMaxItems}
-              onChange={(e) =>
-                handleChange(
-                  "logoGalleryMaxItems",
-                  parseInt(e.target.value) || 4,
-                )
-              }
+              onChange={(e) => handleChange("logoGalleryMaxItems", parseInt(e.target.value) || 4)}
               min={1}
               max={20}
             />
           </div>
           <span className="config-field-note">
-            Logo images are configured in the logoGallery.images array in
-            siteConfig.ts
+            Logo images are configured in the logoGallery.images array in siteConfig.ts
           </span>
         </div>
 
@@ -6912,9 +6520,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.newsletterHomeEnabled}
-                onChange={(e) =>
-                  handleChange("newsletterHomeEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("newsletterHomeEnabled", e.target.checked)}
               />
               <span>Show on homepage</span>
             </label>
@@ -6924,9 +6530,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.newsletterBlogPageEnabled}
-                onChange={(e) =>
-                  handleChange("newsletterBlogPageEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("newsletterBlogPageEnabled", e.target.checked)}
               />
               <span>Show on blog page</span>
             </label>
@@ -6936,9 +6540,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.newsletterPostsEnabled}
-                onChange={(e) =>
-                  handleChange("newsletterPostsEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("newsletterPostsEnabled", e.target.checked)}
               />
               <span>Show on posts</span>
             </label>
@@ -6953,9 +6555,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.mcpServerEnabled}
-                onChange={(e) =>
-                  handleChange("mcpServerEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("mcpServerEnabled", e.target.checked)}
               />
               <span>Enable MCP server</span>
             </label>
@@ -6965,9 +6565,7 @@ export default siteConfig;
             <input
               type="text"
               value={config.mcpServerEndpoint}
-              onChange={(e) =>
-                handleChange("mcpServerEndpoint", e.target.value)
-              }
+              onChange={(e) => handleChange("mcpServerEndpoint", e.target.value)}
               placeholder="/mcp"
             />
           </div>
@@ -6976,9 +6574,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.mcpServerRequireAuth}
-                onChange={(e) =>
-                  handleChange("mcpServerRequireAuth", e.target.checked)
-                }
+                onChange={(e) => handleChange("mcpServerRequireAuth", e.target.checked)}
               />
               <span>Require authentication</span>
             </label>
@@ -6993,9 +6589,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.imageLightboxEnabled}
-                onChange={(e) =>
-                  handleChange("imageLightboxEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("imageLightboxEnabled", e.target.checked)}
               />
               <span>Enable image lightbox (click images to magnify)</span>
             </label>
@@ -7010,15 +6604,14 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.semanticSearchEnabled}
-                onChange={(e) =>
-                  handleChange("semanticSearchEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("semanticSearchEnabled", e.target.checked)}
               />
               <span>Enable semantic search (requires OPENAI_API_KEY in Convex)</span>
             </label>
           </div>
           <p className="config-hint">
-            When enabled, search modal shows both Keyword and Semantic modes. Requires OpenAI API key for embeddings.
+            When enabled, search modal shows both Keyword and Semantic modes. Requires OpenAI API
+            key for embeddings.
           </p>
         </div>
 
@@ -7030,15 +6623,14 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.askAIEnabled}
-                onChange={(e) =>
-                  handleChange("askAIEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("askAIEnabled", e.target.checked)}
               />
               <span>Enable Ask AI header button</span>
             </label>
           </div>
           <p className="config-hint">
-            Shows a sparkle icon in header. Requires semantic search enabled and API keys (ANTHROPIC_API_KEY or OPENAI_API_KEY in Convex).
+            Shows a sparkle icon in header. Requires semantic search enabled and API keys
+            (ANTHROPIC_API_KEY or OPENAI_API_KEY in Convex).
           </p>
         </div>
 
@@ -7050,9 +6642,7 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.mediaEnabled}
-                onChange={(e) =>
-                  handleChange("mediaEnabled", e.target.checked)
-                }
+                onChange={(e) => handleChange("mediaEnabled", e.target.checked)}
               />
               <span>Enable media library</span>
             </label>
@@ -7068,7 +6658,8 @@ export default siteConfig;
             />
           </div>
           <p className="config-hint">
-            Upload and manage images via ConvexFS and Bunny.net CDN. Requires BUNNY_API_KEY, BUNNY_STORAGE_ZONE, and BUNNY_CDN_HOSTNAME in Convex dashboard.
+            Upload and manage images via ConvexFS and Bunny.net CDN. Requires BUNNY_API_KEY,
+            BUNNY_STORAGE_ZONE, and BUNNY_CDN_HOSTNAME in Convex dashboard.
           </p>
         </div>
 
@@ -7079,10 +6670,7 @@ export default siteConfig;
             <label>Default View Mode</label>
             <select
               value={config.relatedPostsDefaultViewMode}
-              onChange={(e) =>
-                handleChange("relatedPostsDefaultViewMode", e.target.value)
-              }
-            >
+              onChange={(e) => handleChange("relatedPostsDefaultViewMode", e.target.value)}>
               <option value="thumbnails">Thumbnails</option>
               <option value="list">List</option>
             </select>
@@ -7092,15 +6680,14 @@ export default siteConfig;
               <input
                 type="checkbox"
                 checked={config.relatedPostsShowViewToggle}
-                onChange={(e) =>
-                  handleChange("relatedPostsShowViewToggle", e.target.checked)
-                }
+                onChange={(e) => handleChange("relatedPostsShowViewToggle", e.target.checked)}
               />
               <span>Show view toggle button</span>
             </label>
           </div>
           <p className="config-hint">
-            Controls the display of related posts at the bottom of blog posts. Thumbnails view shows image, title, description and author.
+            Controls the display of related posts at the bottom of blog posts. Thumbnails view shows
+            image, title, description and author.
           </p>
         </div>
 
@@ -7142,9 +6729,8 @@ export default siteConfig;
 
       <div className="dashboard-config-note">
         <p>
-          After generating, copy this code and paste it into{" "}
-          <code>src/config/siteConfig.ts</code>. You may need to adjust the type
-          definitions and add your logo gallery images manually.
+          After generating, copy this code and paste it into <code>src/config/siteConfig.ts</code>.
+          You may need to adjust the type definitions and add your logo gallery images manually.
         </p>
       </div>
     </div>
@@ -7166,10 +6752,7 @@ function VersionControlCard({
     setIsToggling(true);
     try {
       await setVersionControlEnabled({ enabled: !versionControlEnabled });
-      addToast(
-        `Version control ${!versionControlEnabled ? "enabled" : "disabled"}`,
-        "success"
-      );
+      addToast(`Version control ${!versionControlEnabled ? "enabled" : "disabled"}`, "success");
     } catch {
       addToast("Failed to update version control setting", "error");
     } finally {
@@ -7193,17 +6776,14 @@ function VersionControlCard({
             onChange={handleToggle}
             disabled={isToggling}
           />
-          <span>
-            {isToggling ? "Updating..." : "Enable version history (3-day retention)"}
-          </span>
+          <span>{isToggling ? "Updating..." : "Enable version history (3-day retention)"}</span>
         </label>
       </div>
       <p className="config-hint">
-        When enabled, saves a snapshot before each edit. View and restore previous versions
-        from the editor toolbar.
+        When enabled, saves a snapshot before each edit. View and restore previous versions from the
+        editor toolbar.
       </p>
-      {versionStats &&
-        (versionStats.totalVersions === null || versionStats.totalVersions > 0) && (
+      {versionStats && (versionStats.totalVersions === null || versionStats.totalVersions > 0) && (
         <div className="version-stats">
           <div className="version-stat">
             <span className="version-stat-label">Total versions:</span>
@@ -7215,15 +6795,11 @@ function VersionControlCard({
           </div>
           <div className="version-stat">
             <span className="version-stat-label">Oldest:</span>
-            <span className="version-stat-value">
-              {formatDate(versionStats.oldestVersion)}
-            </span>
+            <span className="version-stat-value">{formatDate(versionStats.oldestVersion)}</span>
           </div>
           <div className="version-stat">
             <span className="version-stat-label">Newest:</span>
-            <span className="version-stat-value">
-              {formatDate(versionStats.newestVersion)}
-            </span>
+            <span className="version-stat-value">{formatDate(versionStats.newestVersion)}</span>
           </div>
         </div>
       )}
@@ -7231,37 +6807,30 @@ function VersionControlCard({
   );
 }
 
-function SourcesSection({
-  addToast,
-}: {
-  addToast: (message: string, type?: ToastType) => void;
-}) {
+function SourcesSection({ addToast }: { addToast: (message: string, type?: ToastType) => void }) {
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [sourceType, setSourceType] = useState<
     "article" | "paper" | "repo" | "note" | "transcript"
   >("article");
   const [isRequesting, setIsRequesting] = useState(false);
-  const [currentJobId, setCurrentJobId] = useState<
-    Id<"sourceIngestJobs"> | null
-  >(null);
-  const [handledJobId, setHandledJobId] = useState<
-    Id<"sourceIngestJobs"> | null
-  >(null);
+  const [currentJobId, setCurrentJobId] = useState<Id<"sourceIngestJobs"> | null>(null);
+  const [handledJobId, setHandledJobId] = useState<Id<"sourceIngestJobs"> | null>(null);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
 
   const sources = useQuery(api.sources.listSources);
   const requestIngest = useMutation(api.sources.requestIngestSource);
   const ingestJob = useQuery(
     api.sources.getIngestJobStatus,
-    currentJobId ? { jobId: currentJobId } : "skip",
+    currentJobId ? { jobId: currentJobId } : "skip"
   );
   const sourceBySlug = useQuery(
     api.sources.getSourceBySlug,
-    selectedSource ? { slug: selectedSource } : "skip",
+    selectedSource ? { slug: selectedSource } : "skip"
   );
 
-  const isLoading = isRequesting || ingestJob?.status === "pending" || ingestJob?.status === "running";
+  const isLoading =
+    isRequesting || ingestJob?.status === "pending" || ingestJob?.status === "running";
 
   useEffect(() => {
     if (!ingestJob || !currentJobId) return;
@@ -7303,8 +6872,7 @@ function SourcesSection({
       });
       setCurrentJobId(result.jobId);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to start ingestion";
+      const message = error instanceof Error ? error.message : "Failed to start ingestion";
       addToast(message, "error");
     } finally {
       setIsRequesting(false);
@@ -7350,9 +6918,7 @@ function SourcesSection({
           <select
             value={sourceType}
             onChange={(e) =>
-              setSourceType(
-                e.target.value as "article" | "paper" | "repo" | "note" | "transcript",
-              )
+              setSourceType(e.target.value as "article" | "paper" | "repo" | "note" | "transcript")
             }
             style={{
               padding: "0.4rem 0.6rem",
@@ -7361,8 +6927,7 @@ function SourcesSection({
               background: "var(--bg-secondary)",
               color: "var(--text-primary)",
               fontSize: "0.85rem",
-            }}
-          >
+            }}>
             <option value="article">Article</option>
             <option value="paper">Paper</option>
             <option value="repo">Repository</option>
@@ -7373,8 +6938,7 @@ function SourcesSection({
         <button
           className="dashboard-import-btn"
           onClick={handleIngest}
-          disabled={isLoading || !url.trim() || !title.trim()}
-        >
+          disabled={isLoading || !url.trim() || !title.trim()}>
           {isLoading ? (
             <>
               <SpinnerGap size={16} className="animate-spin" />
@@ -7406,8 +6970,7 @@ function SourcesSection({
                 textTransform: "uppercase",
                 opacity: 0.6,
                 fontWeight: 600,
-              }}
-            >
+              }}>
               <span>Title</span>
               <span>Type</span>
               <span>Status</span>
@@ -7417,9 +6980,7 @@ function SourcesSection({
               <div
                 key={source._id}
                 onClick={() =>
-                  setSelectedSource(
-                    selectedSource === source.slug ? null : source.slug,
-                  )
+                  setSelectedSource(selectedSource === source.slug ? null : source.slug)
                 }
                 style={{
                   display: "grid",
@@ -7429,21 +6990,17 @@ function SourcesSection({
                   borderBottom: "1px solid var(--border-color)",
                   cursor: "pointer",
                   background:
-                    selectedSource === source.slug
-                      ? "var(--bg-secondary)"
-                      : "transparent",
+                    selectedSource === source.slug ? "var(--bg-secondary)" : "transparent",
                   fontSize: "0.85rem",
                   transition: "background 0.15s",
-                }}
-              >
+                }}>
                 <span
                   style={{
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}
-                  title={source.title}
-                >
+                  title={source.title}>
                   {source.title}
                 </span>
                 <span
@@ -7451,17 +7008,28 @@ function SourcesSection({
                     fontSize: "0.75rem",
                     opacity: 0.7,
                     textTransform: "capitalize",
-                  }}
-                >
+                  }}>
                   {source.sourceType}
                 </span>
                 <span>
                   {source.processed ? (
-                    <span style={{ color: "var(--success-color, #22c55e)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                    <span
+                      style={{
+                        color: "var(--success-color, #22c55e)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                      }}>
                       <CheckCircle size={14} weight="fill" /> Ready
                     </span>
                   ) : (
-                    <span style={{ color: "var(--warning-color, #f59e0b)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                    <span
+                      style={{
+                        color: "var(--warning-color, #f59e0b)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                      }}>
                       <Clock size={14} /> Pending
                     </span>
                   )}
@@ -7481,9 +7049,14 @@ function SourcesSection({
                 border: "1px solid var(--border-color)",
                 borderRadius: "8px",
                 background: "var(--bg-secondary)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "0.75rem",
+                }}>
                 <h4 style={{ margin: 0 }}>{sourceBySlug.title}</h4>
                 <button
                   onClick={() => setSelectedSource(null)}
@@ -7493,20 +7066,29 @@ function SourcesSection({
                     cursor: "pointer",
                     color: "var(--text-primary)",
                     opacity: 0.6,
-                  }}
-                >
+                  }}>
                   <X size={16} />
                 </button>
               </div>
               {sourceBySlug.url && (
                 <p style={{ fontSize: "0.8rem", opacity: 0.6, margin: "0 0 0.5rem" }}>
-                  <a href={sourceBySlug.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--link-color)" }}>
+                  <a
+                    href={sourceBySlug.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--link-color)" }}>
                     {sourceBySlug.url}
                   </a>
                 </p>
               )}
               {sourceBySlug.tags && sourceBySlug.tags.length > 0 && (
-                <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.25rem",
+                    flexWrap: "wrap",
+                    marginBottom: "0.5rem",
+                  }}>
                   {sourceBySlug.tags.map((tag: string) => (
                     <span
                       key={tag}
@@ -7516,8 +7098,7 @@ function SourcesSection({
                         borderRadius: "4px",
                         background: "var(--bg-primary)",
                         border: "1px solid var(--border-color)",
-                      }}
-                    >
+                      }}>
                       {tag}
                     </span>
                   ))}
@@ -7536,8 +7117,7 @@ function SourcesSection({
                   background: "var(--bg-primary)",
                   borderRadius: "6px",
                   border: "1px solid var(--border-color)",
-                }}
-              >
+                }}>
                 {sourceBySlug.content.slice(0, 2000)}
                 {sourceBySlug.content.length > 2000 && "\n\n... (truncated)"}
               </pre>
@@ -7549,7 +7129,10 @@ function SourcesSection({
       {sources && sources.length === 0 && (
         <div className="dashboard-import-info">
           <h3>No sources yet</h3>
-          <p>Ingest a URL above to add your first source. Sources are scraped with Firecrawl and embedded with OpenAI for use in wiki compilation.</p>
+          <p>
+            Ingest a URL above to add your first source. Sources are scraped with Firecrawl and
+            embedded with OpenAI for use in wiki compilation.
+          </p>
           <p className="note">
             Requires FIRECRAWL_API_KEY and OPENAI_API_KEY in Convex environment variables
           </p>
@@ -7559,26 +7142,14 @@ function SourcesSection({
   );
 }
 
-function WikiSection({
-  addToast,
-}: {
-  addToast: (message: string, type?: ToastType) => void;
-}) {
+function WikiSection({ addToast }: { addToast: (message: string, type?: ToastType) => void }) {
   const [selectedPage, setSelectedPage] = useState<string | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isLinting, setIsLinting] = useState(false);
-  const [compileJobId, setCompileJobId] = useState<
-    Id<"wikiCompilationJobs"> | null
-  >(null);
-  const [lintJobId, setLintJobId] = useState<
-    Id<"wikiCompilationJobs"> | null
-  >(null);
-  const [handledCompileId, setHandledCompileId] = useState<
-    Id<"wikiCompilationJobs"> | null
-  >(null);
-  const [handledLintId, setHandledLintId] = useState<
-    Id<"wikiCompilationJobs"> | null
-  >(null);
+  const [compileJobId, setCompileJobId] = useState<Id<"wikiCompilationJobs"> | null>(null);
+  const [lintJobId, setLintJobId] = useState<Id<"wikiCompilationJobs"> | null>(null);
+  const [handledCompileId, setHandledCompileId] = useState<Id<"wikiCompilationJobs"> | null>(null);
+  const [handledLintId, setHandledLintId] = useState<Id<"wikiCompilationJobs"> | null>(null);
   const [showLintReport, setShowLintReport] = useState(false);
 
   const wikiPages = useQuery(api.wiki.listWikiPages, {});
@@ -7587,15 +7158,15 @@ function WikiSection({
   const lintReport = useQuery(api.wiki.getWikiIndex, { key: "lint" });
   const pageDetail = useQuery(
     api.wiki.getWikiPageBySlug,
-    selectedPage ? { slug: selectedPage } : "skip",
+    selectedPage ? { slug: selectedPage } : "skip"
   );
   const compileJobStatus = useQuery(
     api.wikiJobs.getCompilationJobStatus,
-    compileJobId ? { jobId: compileJobId } : "skip",
+    compileJobId ? { jobId: compileJobId } : "skip"
   );
   const lintJobStatus = useQuery(
     api.wikiJobs.getCompilationJobStatus,
-    lintJobId ? { jobId: lintJobId } : "skip",
+    lintJobId ? { jobId: lintJobId } : "skip"
   );
 
   const requestCompilation = useMutation(api.wikiJobs.requestCompilation);
@@ -7651,8 +7222,7 @@ function WikiSection({
       const result = await requestCompilation({});
       setCompileJobId(result.jobId);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to start compilation";
+      const message = error instanceof Error ? error.message : "Failed to start compilation";
       addToast(message, "error");
       setIsCompiling(false);
     }
@@ -7667,21 +7237,16 @@ function WikiSection({
       const result = await requestLint({});
       setLintJobId(result.jobId);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to start lint";
+      const message = error instanceof Error ? error.message : "Failed to start lint";
       addToast(message, "error");
       setIsLinting(false);
     }
   };
 
   const compileRunning =
-    isCompiling ||
-    compileJobStatus?.status === "pending" ||
-    compileJobStatus?.status === "running";
+    isCompiling || compileJobStatus?.status === "pending" || compileJobStatus?.status === "running";
   const lintRunning =
-    isLinting ||
-    lintJobStatus?.status === "pending" ||
-    lintJobStatus?.status === "running";
+    isLinting || lintJobStatus?.status === "pending" || lintJobStatus?.status === "running";
 
   return (
     <div className="dashboard-import-section">
@@ -7697,8 +7262,7 @@ function WikiSection({
           className="dashboard-import-btn"
           onClick={handleCompile}
           disabled={compileRunning || lintRunning}
-          style={{ flex: "0 0 auto" }}
-        >
+          style={{ flex: "0 0 auto" }}>
           {compileRunning ? (
             <>
               <SpinnerGap size={16} className="animate-spin" />
@@ -7715,8 +7279,7 @@ function WikiSection({
           className="dashboard-import-btn"
           onClick={handleLint}
           disabled={lintRunning || compileRunning}
-          style={{ flex: "0 0 auto" }}
-        >
+          style={{ flex: "0 0 auto" }}>
           {lintRunning ? (
             <>
               <SpinnerGap size={16} className="animate-spin" />
@@ -7733,8 +7296,7 @@ function WikiSection({
           <button
             className="dashboard-import-btn"
             onClick={() => setShowLintReport(!showLintReport)}
-            style={{ flex: "0 0 auto", opacity: 0.8 }}
-          >
+            style={{ flex: "0 0 auto", opacity: 0.8 }}>
             <Info size={16} />
             <span>{showLintReport ? "Hide Lint Report" : "Show Lint Report"}</span>
           </button>
@@ -7755,11 +7317,22 @@ function WikiSection({
             gap: "1.5rem",
             flexWrap: "wrap",
             alignItems: "center",
-          }}
-        >
+          }}>
           <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-            {latestJob.status === "completed" && <CheckCircle size={16} weight="fill" style={{ color: "var(--success-color, #22c55e)" }} />}
-            {latestJob.status === "failed" && <WarningCircle size={16} weight="fill" style={{ color: "var(--error-color, #ef4444)" }} />}
+            {latestJob.status === "completed" && (
+              <CheckCircle
+                size={16}
+                weight="fill"
+                style={{ color: "var(--success-color, #22c55e)" }}
+              />
+            )}
+            {latestJob.status === "failed" && (
+              <WarningCircle
+                size={16}
+                weight="fill"
+                style={{ color: "var(--error-color, #ef4444)" }}
+              />
+            )}
             {latestJob.status === "running" && <SpinnerGap size={16} className="animate-spin" />}
             {latestJob.status === "pending" && <Clock size={16} />}
             Last job: <strong>{latestJob.trigger}</strong>
@@ -7767,12 +7340,8 @@ function WikiSection({
           <span>
             Status: <strong>{latestJob.status}</strong>
           </span>
-          {latestJob.pagesCreated !== undefined && (
-            <span>Created: {latestJob.pagesCreated}</span>
-          )}
-          {latestJob.pagesUpdated !== undefined && (
-            <span>Updated: {latestJob.pagesUpdated}</span>
-          )}
+          {latestJob.pagesCreated !== undefined && <span>Created: {latestJob.pagesCreated}</span>}
+          {latestJob.pagesUpdated !== undefined && <span>Updated: {latestJob.pagesUpdated}</span>}
           {latestJob.completedAt && (
             <span style={{ opacity: 0.6, fontSize: "0.8rem" }}>
               {new Date(latestJob.completedAt).toLocaleString()}
@@ -7795,9 +7364,14 @@ function WikiSection({
             border: "1px solid var(--border-color)",
             borderRadius: "8px",
             background: "var(--bg-secondary)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+          }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}>
             <h4 style={{ margin: 0 }}>Lint Report</h4>
             <span style={{ fontSize: "0.75rem", opacity: 0.5 }}>
               {new Date(lintReport.lastUpdatedAt).toLocaleString()}
@@ -7816,8 +7390,7 @@ function WikiSection({
               background: "var(--bg-primary)",
               borderRadius: "6px",
               border: "1px solid var(--border-color)",
-            }}
-          >
+            }}>
             {lintReport.content}
           </pre>
         </div>
@@ -7841,8 +7414,7 @@ function WikiSection({
                 textTransform: "uppercase",
                 opacity: 0.6,
                 fontWeight: 600,
-              }}
-            >
+              }}>
               <span>Title</span>
               <span>Type</span>
               <span>Category</span>
@@ -7851,11 +7423,7 @@ function WikiSection({
             {wikiPages.map((page) => (
               <div
                 key={page._id}
-                onClick={() =>
-                  setSelectedPage(
-                    selectedPage === page.slug ? null : page.slug,
-                  )
-                }
+                onClick={() => setSelectedPage(selectedPage === page.slug ? null : page.slug)}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 100px 120px 140px",
@@ -7863,22 +7431,17 @@ function WikiSection({
                   padding: "0.6rem 0.75rem",
                   borderBottom: "1px solid var(--border-color)",
                   cursor: "pointer",
-                  background:
-                    selectedPage === page.slug
-                      ? "var(--bg-secondary)"
-                      : "transparent",
+                  background: selectedPage === page.slug ? "var(--bg-secondary)" : "transparent",
                   fontSize: "0.85rem",
                   transition: "background 0.15s",
-                }}
-              >
+                }}>
                 <span
                   style={{
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}
-                  title={page.title}
-                >
+                  title={page.title}>
                   {page.title}
                 </span>
                 <span
@@ -7886,16 +7449,14 @@ function WikiSection({
                     fontSize: "0.75rem",
                     opacity: 0.7,
                     textTransform: "capitalize",
-                  }}
-                >
+                  }}>
                   {page.pageType}
                 </span>
                 <span
                   style={{
                     fontSize: "0.75rem",
                     opacity: 0.7,
-                  }}
-                >
+                  }}>
                   {page.category || "\u2014"}
                 </span>
                 <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
@@ -7914,9 +7475,14 @@ function WikiSection({
                 border: "1px solid var(--border-color)",
                 borderRadius: "8px",
                 background: "var(--bg-secondary)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "0.75rem",
+                }}>
                 <h4 style={{ margin: 0 }}>{pageDetail.title}</h4>
                 <button
                   onClick={() => setSelectedPage(null)}
@@ -7926,12 +7492,17 @@ function WikiSection({
                     cursor: "pointer",
                     color: "var(--text-primary)",
                     opacity: 0.6,
-                  }}
-                >
+                  }}>
                   <X size={16} />
                 </button>
               </div>
-              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  marginBottom: "0.75rem",
+                  flexWrap: "wrap",
+                }}>
                 <span
                   style={{
                     fontSize: "0.7rem",
@@ -7940,8 +7511,7 @@ function WikiSection({
                     background: "var(--bg-primary)",
                     border: "1px solid var(--border-color)",
                     textTransform: "capitalize",
-                  }}
-                >
+                  }}>
                   {pageDetail.pageType}
                 </span>
                 {pageDetail.category && (
@@ -7952,8 +7522,7 @@ function WikiSection({
                       borderRadius: "4px",
                       background: "var(--bg-primary)",
                       border: "1px solid var(--border-color)",
-                    }}
-                  >
+                    }}>
                     {pageDetail.category}
                   </span>
                 )}
@@ -7962,8 +7531,7 @@ function WikiSection({
                     fontSize: "0.7rem",
                     padding: "0.15rem 0.4rem",
                     opacity: 0.5,
-                  }}
-                >
+                  }}>
                   Compiled: {new Date(pageDetail.lastCompiledAt).toLocaleString()}
                 </span>
               </div>
@@ -7983,8 +7551,7 @@ function WikiSection({
                         background: "var(--bg-primary)",
                         color: "var(--link-color)",
                         cursor: "pointer",
-                      }}
-                    >
+                      }}>
                       {bl}
                     </button>
                   ))}
@@ -8004,8 +7571,7 @@ function WikiSection({
                         border: "1px solid var(--border-color)",
                         background: "var(--bg-primary)",
                         opacity: 0.7,
-                      }}
-                    >
+                      }}>
                       {sl}
                     </span>
                   ))}
@@ -8022,12 +7588,10 @@ function WikiSection({
                   border: "1px solid var(--border-color)",
                   fontSize: "0.85rem",
                   lineHeight: 1.6,
-                }}
-              >
+                }}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkBreaks]}
-                  rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
-                >
+                  rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}>
                   {pageDetail.content}
                 </ReactMarkdown>
               </div>
@@ -8039,9 +7603,13 @@ function WikiSection({
       {wikiPages && wikiPages.length === 0 && (
         <div className="dashboard-import-info">
           <h3>No wiki pages yet</h3>
-          <p>Click "Compile Wiki" to generate interlinked wiki pages from all posts, pages, and sources using GPT-4.1 mini.</p>
+          <p>
+            Click "Compile Wiki" to generate interlinked wiki pages from all posts, pages, and
+            sources using GPT-4.1 mini.
+          </p>
           <p className="note">
-            Requires OPENAI_API_KEY in Convex environment variables. Daily auto-compilation runs at 4:00 AM UTC.
+            Requires OPENAI_API_KEY in Convex environment variables. Daily auto-compilation runs at
+            4:00 AM UTC.
           </p>
         </div>
       )}
@@ -8055,8 +7623,7 @@ function WikiSection({
             border: "1px solid var(--border-color)",
             borderRadius: "8px",
             background: "var(--bg-secondary)",
-          }}
-        >
+          }}>
           <h4 style={{ margin: "0 0 0.5rem" }}>Wiki Index</h4>
           <pre
             style={{
@@ -8071,8 +7638,7 @@ function WikiSection({
               background: "var(--bg-primary)",
               borderRadius: "6px",
               border: "1px solid var(--border-color)",
-            }}
-          >
+            }}>
             {wikiIndex.content}
           </pre>
         </div>
@@ -8201,9 +7767,14 @@ function KnowledgeBasesSection({
             border: "1px solid var(--border-color)",
             borderRadius: "8px",
             background: "var(--bg-secondary)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+          }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.75rem",
+            }}>
             <h3 style={{ margin: 0, fontSize: "1rem" }}>New knowledge base</h3>
             <button
               onClick={() => setShowCreate(false)}
@@ -8213,8 +7784,7 @@ function KnowledgeBasesSection({
                 cursor: "pointer",
                 color: "var(--text-primary)",
                 opacity: 0.6,
-              }}
-            >
+              }}>
               <X size={16} />
             </button>
           </div>
@@ -8240,7 +7810,8 @@ function KnowledgeBasesSection({
               />
             </div>
           </div>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "0.5rem" }}>
+          <div
+            style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "0.5rem" }}>
             <label style={{ fontSize: "0.85rem", opacity: 0.7 }}>Visibility:</label>
             <select
               value={visibility}
@@ -8252,8 +7823,7 @@ function KnowledgeBasesSection({
                 background: "var(--bg-secondary)",
                 color: "var(--text-primary)",
                 fontSize: "0.85rem",
-              }}
-            >
+              }}>
               <option value="public">Public</option>
               <option value="private">Private</option>
             </select>
@@ -8268,8 +7838,7 @@ function KnowledgeBasesSection({
                 background: "var(--bg-secondary)",
                 color: "var(--text-primary)",
                 fontSize: "0.85rem",
-              }}
-            >
+              }}>
               <option value="upload">Markdown Upload</option>
               <option value="obsidian">Obsidian Vault</option>
             </select>
@@ -8278,8 +7847,7 @@ function KnowledgeBasesSection({
             className="dashboard-import-btn"
             onClick={handleCreate}
             disabled={isCreating || !title.trim()}
-            style={{ marginTop: "0.75rem" }}
-          >
+            style={{ marginTop: "0.75rem" }}>
             {isCreating ? (
               <>
                 <SpinnerGap size={16} className="animate-spin" />
@@ -8295,10 +7863,7 @@ function KnowledgeBasesSection({
         </div>
       ) : (
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
-          <button
-            className="dashboard-import-btn"
-            onClick={() => setShowCreate(true)}
-          >
+          <button className="dashboard-import-btn" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
             <span>New Knowledge Base</span>
           </button>
@@ -8314,8 +7879,7 @@ function KnowledgeBasesSection({
             border: "1px dashed var(--border-color)",
             borderRadius: "8px",
             color: "var(--text-secondary)",
-          }}
-        >
+          }}>
           No knowledge bases yet. Create one to upload markdown files or Obsidian vaults.
         </div>
       )}
@@ -8338,8 +7902,7 @@ function KnowledgeBasesSection({
                 textTransform: "uppercase",
                 opacity: 0.6,
                 fontWeight: 600,
-              }}
-            >
+              }}>
               <span>Title</span>
               <span>Pages</span>
               <span>Visibility</span>
@@ -8360,12 +7923,10 @@ function KnowledgeBasesSection({
                     background: selectedKbId === kb._id ? "var(--bg-secondary)" : "transparent",
                     fontSize: "0.85rem",
                     transition: "background 0.15s",
-                  }}
-                >
+                  }}>
                   <span
                     style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                    title={kb.title}
-                  >
+                    title={kb.title}>
                     <strong>{kb.title}</strong>
                     {kb.description && (
                       <span style={{ marginLeft: "0.5rem", fontSize: "0.8em", opacity: 0.5 }}>
@@ -8378,7 +7939,10 @@ function KnowledgeBasesSection({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleVisibility(kb._id, kb.visibility === "public" ? "private" : "public");
+                        handleToggleVisibility(
+                          kb._id,
+                          kb.visibility === "public" ? "private" : "public"
+                        );
                       }}
                       style={{
                         background: "none",
@@ -8391,12 +7955,17 @@ function KnowledgeBasesSection({
                         fontSize: "0.8rem",
                         padding: 0,
                       }}
-                      title={`Toggle to ${kb.visibility === "public" ? "private" : "public"}`}
-                    >
+                      title={`Toggle to ${kb.visibility === "public" ? "private" : "public"}`}>
                       {kb.visibility === "public" ? (
-                        <><Globe size={14} style={{ color: "var(--success-color, #22c55e)" }} /> Public</>
+                        <>
+                          <Globe size={14} style={{ color: "var(--success-color, #22c55e)" }} />{" "}
+                          Public
+                        </>
                       ) : (
-                        <><Lock size={14} style={{ color: "var(--warning-color, #f59e0b)" }} /> Private</>
+                        <>
+                          <Lock size={14} style={{ color: "var(--warning-color, #f59e0b)" }} />{" "}
+                          Private
+                        </>
                       )}
                     </button>
                   </span>
@@ -8410,12 +7979,13 @@ function KnowledgeBasesSection({
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        color: kb.apiEnabled ? "var(--success-color, #22c55e)" : "var(--text-secondary)",
+                        color: kb.apiEnabled
+                          ? "var(--success-color, #22c55e)"
+                          : "var(--text-secondary)",
                         fontSize: "0.8rem",
                         padding: 0,
                       }}
-                      title={kb.apiEnabled ? "Disable API" : "Enable API"}
-                    >
+                      title={kb.apiEnabled ? "Disable API" : "Enable API"}>
                       {kb.apiEnabled ? "On" : "Off"}
                     </button>
                   </span>
@@ -8435,8 +8005,7 @@ function KnowledgeBasesSection({
                         display: "flex",
                         alignItems: "center",
                       }}
-                      title="Delete knowledge base"
-                    >
+                      title="Delete knowledge base">
                       <Trash size={14} />
                     </button>
                   </span>
@@ -8449,11 +8018,23 @@ function KnowledgeBasesSection({
                       padding: "1rem",
                       borderBottom: "1px solid var(--border-color)",
                       background: "var(--bg-secondary)",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+                    }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "1rem",
+                        flexWrap: "wrap",
+                        alignItems: "flex-start",
+                      }}>
                       <div style={{ flex: 1, minWidth: "200px" }}>
-                        <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                        <h4
+                          style={{
+                            margin: "0 0 0.5rem",
+                            fontSize: "0.9rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.35rem",
+                          }}>
                           <UploadSimple size={16} /> Upload markdown files
                         </h4>
                         <input
@@ -8469,7 +8050,12 @@ function KnowledgeBasesSection({
                           }}
                         />
                         {uploadFiles.length > 0 && (
-                          <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                          <p
+                            style={{
+                              margin: "0 0 0.5rem",
+                              fontSize: "0.85rem",
+                              color: "var(--text-secondary)",
+                            }}>
                             {uploadFiles.length} file(s) selected
                           </p>
                         )}
@@ -8477,8 +8063,7 @@ function KnowledgeBasesSection({
                           className="dashboard-import-btn"
                           onClick={handleUpload}
                           disabled={isUploading || uploadFiles.length === 0}
-                          style={{ fontSize: "0.85rem" }}
-                        >
+                          style={{ fontSize: "0.85rem" }}>
                           {isUploading ? (
                             <>
                               <SpinnerGap size={14} className="animate-spin" />
@@ -8505,8 +8090,7 @@ function KnowledgeBasesSection({
                               border: "1px solid var(--border-color)",
                               borderRadius: "6px",
                               wordBreak: "break-all",
-                            }}
-                          >
+                            }}>
                             /api/kb/pages?slug={kb.slug}
                           </code>
                         </div>
@@ -8514,8 +8098,11 @@ function KnowledgeBasesSection({
                     </div>
 
                     <div style={{ marginTop: "0.75rem", fontSize: "0.8rem", opacity: 0.5 }}>
-                      Source type: {kb.sourceType} / Created: {new Date(kb.createdAt).toLocaleDateString()}
-                      {kb.lastCompiledAt && <> / Last compiled: {new Date(kb.lastCompiledAt).toLocaleDateString()}</>}
+                      Source type: {kb.sourceType} / Created:{" "}
+                      {new Date(kb.createdAt).toLocaleDateString()}
+                      {kb.lastCompiledAt && (
+                        <> / Last compiled: {new Date(kb.lastCompiledAt).toLocaleDateString()}</>
+                      )}
                     </div>
                   </div>
                 )}
@@ -8633,11 +8220,7 @@ function SyncSection({
   syncOutputRef,
   setSyncOutput,
 }: {
-  showCommandModal: (
-    title: string,
-    command: string,
-    description?: string,
-  ) => void;
+  showCommandModal: (title: string, command: string, description?: string) => void;
   executeSync: (commandId: string, commandLabel: string) => Promise<void>;
   syncOutput: string;
   syncRunning: string | null;
@@ -8684,11 +8267,7 @@ function SyncSection({
     },
   ];
 
-  const handleCopyCommand = (
-    label: string,
-    command: string,
-    description: string,
-  ) => {
+  const handleCopyCommand = (label: string, command: string, description: string) => {
     showCommandModal(label, command, description);
   };
 
@@ -8709,7 +8288,7 @@ function SyncSection({
       showCommandModal(
         "Start Sync Server",
         "npm run sync-server",
-        "Start the local sync server to enable execute buttons",
+        "Start the local sync server to enable execute buttons"
       );
     }
   };
@@ -8723,13 +8302,9 @@ function SyncSection({
       </div>
 
       {/* Server Status */}
-      <div
-        className={`sync-server-status ${syncServerAvailable ? "online" : "offline"}`}
-      >
+      <div className={`sync-server-status ${syncServerAvailable ? "online" : "offline"}`}>
         <div className="status-indicator">
-          <span
-            className={`status-dot ${syncServerAvailable ? "online" : "offline"}`}
-          />
+          <span className={`status-dot ${syncServerAvailable ? "online" : "offline"}`} />
           <span className="status-text">
             Sync Server:{" "}
             {syncServerAvailable === null
@@ -8746,13 +8321,8 @@ function SyncSection({
             <button
               className="copy-sync-server-btn"
               onClick={handleCopySyncServer}
-              title="Copy command"
-            >
-              {copiedSyncServer ? (
-                <Check size={12} />
-              ) : (
-                <CopySimple size={12} />
-              )}
+              title="Copy command">
+              {copiedSyncServer ? <Check size={12} /> : <CopySimple size={12} />}
             </button>
             <span>to enable execute buttons</span>
           </div>
@@ -8764,9 +8334,7 @@ function SyncSection({
           <div key={cmd.id} className="dashboard-sync-card">
             <div className="sync-card-header">
               <h3>{cmd.label}</h3>
-              <span
-                className={`sync-status ${syncRunning === cmd.id ? "running" : "idle"}`}
-              >
+              <span className={`sync-status ${syncRunning === cmd.id ? "running" : "idle"}`}>
                 {syncRunning === cmd.id && "Running..."}
               </span>
             </div>
@@ -8775,11 +8343,8 @@ function SyncSection({
             <div className="sync-card-buttons">
               <button
                 className="dashboard-sync-card-btn copy"
-                onClick={() =>
-                  handleCopyCommand(cmd.label, cmd.command, cmd.description)
-                }
-                title="Copy command to clipboard"
-              >
+                onClick={() => handleCopyCommand(cmd.label, cmd.command, cmd.description)}
+                title="Copy command to clipboard">
                 <CopySimple size={16} />
                 <span>Copy</span>
               </button>
@@ -8787,16 +8352,8 @@ function SyncSection({
                 className={`dashboard-sync-card-btn execute ${!syncServerAvailable ? "disabled" : ""}`}
                 onClick={() => handleExecute(cmd.id, cmd.label)}
                 disabled={!syncServerAvailable || syncRunning !== null}
-                title={
-                  syncServerAvailable
-                    ? "Execute command"
-                    : "Start sync-server first"
-                }
-              >
-                <ArrowsClockwise
-                  size={16}
-                  className={syncRunning === cmd.id ? "spinning" : ""}
-                />
+                title={syncServerAvailable ? "Execute command" : "Start sync-server first"}>
+                <ArrowsClockwise size={16} className={syncRunning === cmd.id ? "spinning" : ""} />
                 <span>{syncRunning === cmd.id ? "Running..." : "Execute"}</span>
               </button>
             </div>
@@ -8814,8 +8371,7 @@ function SyncSection({
               <button
                 className="sync-terminal-clear"
                 onClick={() => setSyncOutput("")}
-                title="Clear output"
-              >
+                title="Clear output">
                 <X size={14} />
               </button>
             )}
@@ -8831,9 +8387,8 @@ function SyncSection({
         <p>
           {syncServerAvailable ? (
             <>
-              Click <strong>Execute</strong> to run commands directly from the
-              dashboard, or <strong>Copy</strong> to copy the command for your
-              terminal.
+              Click <strong>Execute</strong> to run commands directly from the dashboard, or{" "}
+              <strong>Copy</strong> to copy the command for your terminal.
             </>
           ) : (
             <>
@@ -8843,17 +8398,12 @@ function SyncSection({
                 <button
                   className="inline-copy-btn"
                   onClick={handleCopySyncServer}
-                  title="Copy command"
-                >
-                  {copiedSyncServer ? (
-                    <Check size={10} />
-                  ) : (
-                    <CopySimple size={10} />
-                  )}
+                  title="Copy command">
+                  {copiedSyncServer ? <Check size={10} /> : <CopySimple size={10} />}
                 </button>
               </code>{" "}
-              to enable execute buttons, or use <strong>Copy</strong> to run
-              commands manually in your terminal.
+              to enable execute buttons, or use <strong>Copy</strong> to run commands manually in
+              your terminal.
             </>
           )}
         </p>

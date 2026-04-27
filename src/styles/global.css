@@ -1075,8 +1075,7 @@ body {
   }
 
   /* Center article in middle column when right sidebar exists */
-  .post-content-with-sidebar:has(.post-sidebar-right)
-    .post-article-with-sidebar {
+  .post-content-with-sidebar:has(.post-sidebar-right) .post-article-with-sidebar {
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
@@ -2129,8 +2128,12 @@ body {
 }
 
 @keyframes slideFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .slide-progress {
@@ -2139,7 +2142,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--border-color, rgba(255,255,255,0.06));
+  background: var(--border-color, rgba(255, 255, 255, 0.06));
   z-index: 2;
 }
 
@@ -2204,7 +2207,7 @@ body {
   font-size: 0.88em;
   padding: 0.15em 0.4em;
   border-radius: 4px;
-  background: var(--bg-secondary, rgba(255,255,255,0.08));
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.08));
 }
 
 .slide-content pre {
@@ -2237,13 +2240,13 @@ body {
 
 .slide-content th,
 .slide-content td {
-  border: 1px solid var(--border-color, rgba(255,255,255,0.15));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
   padding: 8px 12px;
   text-align: left;
 }
 
 .slide-content th {
-  background: var(--bg-secondary, rgba(255,255,255,0.05));
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.05));
   font-weight: 600;
 }
 
@@ -2273,17 +2276,19 @@ body {
   padding: 6px 14px;
   font-size: var(--font-size-sm, 14px);
   font-weight: 500;
-  border: 1px solid var(--border-color, rgba(0,0,0,0.15));
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.15));
   border-radius: 6px;
-  background: var(--bg-secondary, rgba(0,0,0,0.04));
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.04));
   color: var(--text-primary, #111);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .slide-present-btn:hover {
-  background: var(--bg-tertiary, rgba(0,0,0,0.08));
-  border-color: var(--border-color-hover, rgba(0,0,0,0.25));
+  background: var(--bg-tertiary, rgba(0, 0, 0, 0.08));
+  border-color: var(--border-color-hover, rgba(0, 0, 0, 0.25));
 }
 
 @media (max-width: 768px) {
@@ -2763,7 +2768,9 @@ body {
   color: var(--text-secondary);
   text-decoration: none;
   opacity: 0.7;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease;
 }
 
 .social-footer-ai-link:hover {
@@ -3390,7 +3397,9 @@ body {
   max-height: calc(100vh - 60px);
   overflow: hidden;
   display: flex;
-  transition: width 0.25s ease, opacity 0.2s ease;
+  transition:
+    width 0.25s ease,
+    opacity 0.2s ease;
 }
 
 .wiki-sidebar.collapsed {
@@ -3448,7 +3457,9 @@ body {
   height: 24px;
   border-radius: 1px;
   background: var(--border-sidebar);
-  transition: background 0.15s, height 0.15s;
+  transition:
+    background 0.15s,
+    height 0.15s;
 }
 
 .wiki-resize-handle-right::after {
@@ -3483,7 +3494,9 @@ body {
   background: var(--bg-sidebar);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .wiki-sidebar-toggle:hover {
@@ -3510,7 +3523,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .wiki-sidebar-toggle-right-inline:hover {
@@ -3554,7 +3569,9 @@ body {
   color: var(--text-muted, var(--text-secondary));
   cursor: pointer;
   opacity: 0.5;
-  transition: opacity 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .wiki-sidebar-close:hover {
@@ -3638,7 +3655,10 @@ body {
   width: 100%;
   text-decoration: none;
   border-radius: 0;
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
   word-wrap: break-word;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -3695,7 +3715,9 @@ body {
   word-wrap: break-word;
   overflow-wrap: break-word;
   min-width: 0;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .wiki-nav-category:hover {
@@ -3749,7 +3771,9 @@ body {
   background: var(--bg-secondary);
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   font-family: inherit;
   color: var(--text-primary);
   min-width: 0;
@@ -4071,7 +4095,10 @@ body {
   font-family: inherit;
   cursor: pointer;
   line-height: 1;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
   opacity: 0.7;
 }
 
@@ -4134,7 +4161,10 @@ body {
   text-decoration: none;
   border-left: 2px solid transparent;
   border-radius: 0;
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
   line-height: 1.4;
 }
 
@@ -4514,8 +4544,7 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 /* Card content */
@@ -5941,20 +5970,8 @@ body {
   position: relative;
   width: 100%;
   overflow: hidden;
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 
 .logo-marquee-track {
@@ -6970,8 +6987,7 @@ body {
   flex: 1;
   width: 100%;
   padding: 1.5rem;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 14px;
   line-height: 1.7;
   background: transparent;
@@ -7011,8 +7027,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 .write-stats-divider {
@@ -7030,8 +7045,7 @@ body {
 }
 
 .write-save-hint code {
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   background: var(--bg-secondary);
   padding: 0.125rem 0.375rem;
@@ -7101,8 +7115,7 @@ body {
 }
 
 .write-field-name {
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 12px;
   color: var(--text-primary);
   font-weight: 500;
@@ -7800,8 +7813,7 @@ body {
 }
 
 .ai-chat-message-content code {
-  font-family:
-    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
   font-size: 0.9em;
   padding: 2px 6px;
   background-color: var(--bg-hover);
@@ -9937,17 +9949,12 @@ body {
   padding: 0.5rem;
 }
 
-.dashboard-sidebar-left.collapsed
-  .dashboard-sidebar-footer
-  .dashboard-nav-item {
+.dashboard-sidebar-left.collapsed .dashboard-sidebar-footer .dashboard-nav-item {
   justify-content: center;
   padding: 0.5rem;
 }
 
-.dashboard-sidebar-left.collapsed
-  .dashboard-sidebar-footer
-  .dashboard-nav-item
-  span {
+.dashboard-sidebar-left.collapsed .dashboard-sidebar-footer .dashboard-nav-item span {
   display: none;
 }
 
@@ -10739,8 +10746,7 @@ body {
   width: 100%;
   height: 100%;
   padding: 1rem;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-sm);
   line-height: 1.6;
   color: var(--text-primary);
@@ -12102,8 +12108,7 @@ body:has(.dashboard-layout) {
   padding: 0.5rem 0.75rem;
   background: var(--bg-primary);
   border-radius: 4px;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   margin-bottom: 0.75rem;
@@ -12381,9 +12386,7 @@ body:has(.dashboard-layout) {
   padding: 1rem;
   max-height: 400px;
   overflow-y: auto;
-  font-family:
-    ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Consolas,
-    monospace;
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Consolas, monospace;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-secondary);
@@ -12971,8 +12974,7 @@ body:has(.dashboard-layout) {
   flex-shrink: 0;
 }
 
-.dashboard-write-section.focus-mode.frontmatter-collapsed
-  .dashboard-write-sidebar {
+.dashboard-write-section.focus-mode.frontmatter-collapsed .dashboard-write-sidebar {
   width: 56px;
 }
 
@@ -13267,8 +13269,7 @@ body:has(.dashboard-layout) {
 
 .dashboard-modal-command {
   flex: 1;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   white-space: nowrap;
@@ -13796,8 +13797,7 @@ body:has(.dashboard-layout) {
   padding: 0.125rem 0.375rem;
   background: var(--bg-primary);
   border-radius: 4px;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-xs);
 }
 
@@ -13861,8 +13861,7 @@ body:has(.dashboard-layout) {
   margin: 0;
   padding: 1rem;
   overflow-x: auto;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-xs);
   line-height: 1.6;
   color: var(--text-secondary);
@@ -13884,8 +13883,7 @@ body:has(.dashboard-layout) {
 }
 
 .config-field input[type="url"] {
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 /* Newsletter Section in Dashboard */
@@ -13976,8 +13974,7 @@ body:has(.dashboard-layout) {
   padding: 0.5rem 0.75rem;
   background: var(--bg-secondary);
   border-radius: 4px;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-xs);
   color: var(--text-primary);
 }
@@ -14124,8 +14121,7 @@ body:has(.dashboard-layout) {
   padding: 0.5rem 0.75rem;
   background: var(--bg-primary);
   border-radius: 4px;
-  font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--font-size-xs);
   color: var(--text-primary);
 }
@@ -15197,12 +15193,7 @@ body:has(.docs-layout) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--bg-hover) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, var(--bg-hover) 50%, transparent 100%);
   transform: translateX(-100%);
   animation: docs-skeleton-pulse 1.5s ease-in-out infinite;
   will-change: transform;

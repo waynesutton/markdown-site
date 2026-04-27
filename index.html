@@ -15,13 +15,11 @@
     <!-- SEO Meta Tags -->
     <meta
       name="description"
-      content="An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex."
-    />
+      content="An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex." />
     <meta name="author" content="markdown sync publishing framework" />
     <meta
       name="keywords"
-      content="markdown site, Convex, Netlify, React, TypeScript, open source, real-time, sync"
-    />
+      content="markdown site, Convex, Netlify, React, TypeScript, open source, real-time, sync" />
     <meta name="robots" content="index, follow" />
 
     <!-- Canonical URL -->
@@ -37,36 +35,117 @@
     <!-- Critical CSS - inlined for fast first paint -->
     <style>
       /* Theme variables */
-      :root[data-theme="dark"]{--bg-primary:#111;--bg-secondary:#1a1a1a;--bg-hover:#252525;--text-primary:#fafafa;--text-secondary:#a1a1a1;--text-muted:#6b6b6b;--border-color:#2a2a2a;--accent:#fafafa}
-      :root[data-theme="light"]{--bg-primary:#fff;--bg-secondary:#fafafa;--bg-hover:#f5f5f5;--text-primary:#111;--text-secondary:#6b6b6b;--text-muted:#a1a1a1;--border-color:#e5e5e5;--accent:#111}
-      :root[data-theme="tan"]{--bg-primary:#faf8f5;--bg-secondary:#f5f3f0;--bg-hover:#ebe9e6;--text-primary:#1a1a1a;--text-secondary:#6b6b6b;--text-muted:#999;--border-color:#e6e4e1;--accent:#8b7355}
-      :root[data-theme="cloud"]{--bg-primary:#f5f5f5;--bg-secondary:#ebebeb;--bg-hover:#e0e0e0;--text-primary:#171717;--text-secondary:#525252;--text-muted:#737373;--border-color:#d4d4d4;--accent:#171717}
+      :root[data-theme="dark"] {
+        --bg-primary: #111;
+        --bg-secondary: #1a1a1a;
+        --bg-hover: #252525;
+        --text-primary: #fafafa;
+        --text-secondary: #a1a1a1;
+        --text-muted: #6b6b6b;
+        --border-color: #2a2a2a;
+        --accent: #fafafa;
+      }
+      :root[data-theme="light"] {
+        --bg-primary: #fff;
+        --bg-secondary: #fafafa;
+        --bg-hover: #f5f5f5;
+        --text-primary: #111;
+        --text-secondary: #6b6b6b;
+        --text-muted: #a1a1a1;
+        --border-color: #e5e5e5;
+        --accent: #111;
+      }
+      :root[data-theme="tan"] {
+        --bg-primary: #faf8f5;
+        --bg-secondary: #f5f3f0;
+        --bg-hover: #ebe9e6;
+        --text-primary: #1a1a1a;
+        --text-secondary: #6b6b6b;
+        --text-muted: #999;
+        --border-color: #e6e4e1;
+        --accent: #8b7355;
+      }
+      :root[data-theme="cloud"] {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #ebebeb;
+        --bg-hover: #e0e0e0;
+        --text-primary: #171717;
+        --text-secondary: #525252;
+        --text-muted: #737373;
+        --border-color: #d4d4d4;
+        --accent: #171717;
+      }
       /* Reset and base */
-      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-      html{font-size:16px;-webkit-font-smoothing:antialiased}
-      body{font-family:"New York",-apple-system-ui-serif,ui-serif,Georgia,serif;background-color:var(--bg-primary);color:var(--text-primary);line-height:1.6}
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family:
+          "New York",
+          -apple-system-ui-serif,
+          ui-serif,
+          Georgia,
+          serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+      }
       /* Layout skeleton */
-      .layout{min-height:100vh;display:flex;flex-direction:column;padding-top:60px}
-      .main-content{flex:1;max-width:800px;width:100%;margin:0 auto}
+      .layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-top: 60px;
+      }
+      .main-content {
+        flex: 1;
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+      }
       /* Fixed nav */
-      .top-nav{position:fixed;top:0;left:13px;right:13px;z-index:100;display:flex;align-items:center;gap:16px;background-color:var(--bg-primary);padding:8px 12px;border-radius:8px}
-      @media(max-width:1024px){.layout{padding:60px 15px 15px}}
+      .top-nav {
+        position: fixed;
+        top: 0;
+        left: 13px;
+        right: 13px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background-color: var(--bg-primary);
+        padding: 8px 12px;
+        border-radius: 8px;
+      }
+      @media (max-width: 1024px) {
+        .layout {
+          padding: 60px 15px 15px;
+        }
+      }
     </style>
 
     <!-- Theme initialization - runs before any rendering to prevent FOUC -->
     <script>
-      (function() {
-        var theme = 'tan';
+      (function () {
+        var theme = "tan";
         try {
-          var saved = localStorage.getItem('blog-theme');
-          if (saved && ['dark', 'light', 'tan', 'cloud'].includes(saved)) {
+          var saved = localStorage.getItem("blog-theme");
+          if (saved && ["dark", "light", "tan", "cloud"].includes(saved)) {
             theme = saved;
           }
-        } catch(e) {}
-        document.documentElement.setAttribute('data-theme', theme);
-        var colors = { dark: '#111111', light: '#ffffff', tan: '#faf8f5', cloud: '#f5f5f5' };
+        } catch (e) {}
+        document.documentElement.setAttribute("data-theme", theme);
+        var colors = { dark: "#111111", light: "#ffffff", tan: "#faf8f5", cloud: "#f5f5f5" };
         var meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', colors[theme] || colors.tan);
+        if (meta) meta.setAttribute("content", colors[theme] || colors.tan);
       })();
     </script>
 
@@ -74,18 +153,11 @@
     <meta property="og:title" content="markdown sync publishing framework" />
     <meta
       property="og:description"
-      content="An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex."
-    />
+      content="An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.markdown.fast/" />
-    <meta
-      property="og:site_name"
-      content="markdown sync publishing framework"
-    />
-    <meta
-      property="og:image"
-      content="https://www.markdown.fast/images/og-default.png"
-    />
+    <meta property="og:site_name" content="markdown sync publishing framework" />
+    <meta property="og:image" content="https://www.markdown.fast/images/og-default.png" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -94,29 +166,19 @@
     <meta name="twitter:title" content="markdown sync publishing framework" />
     <meta
       name="twitter:description"
-      content="An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex."
-    />
-    <meta
-      name="twitter:image"
-      content="https://www.markdown.fast/images/og-default.png"
-    />
+      content="An open-source publishing framework built for AI agents and developers to ship websites, docs, or blogs. Write markdown, sync from the terminal. Your content is instantly available to browsers, LLMs, and AI agents. Built on Convex." />
+    <meta name="twitter:image" content="https://www.markdown.fast/images/og-default.png" />
     <!-- twitter:site - configure in siteConfig.ts for your Twitter handle -->
     <meta name="twitter:site" content="" />
     <meta name="twitter:creator" content="" />
 
     <!-- RSS Feeds -->
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="RSS Feed"
-      href="/rss.xml"
-    />
+    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
     <link
       rel="alternate"
       type="application/rss+xml"
       title="RSS Feed (Full Content)"
-      href="/rss-full.xml"
-    />
+      href="/rss-full.xml" />
 
     <!-- LLM and AI Discovery -->
     <link rel="author" href="/llms.txt" />
@@ -148,10 +210,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Rybbit Analytics -->
-    <script
-      src="https://app.rybbit.io/api/script.js"
-      data-site-id="24731ca420a4"
-      defer
-    ></script>
+    <script src="https://app.rybbit.io/api/script.js" data-site-id="24731ca420a4" defer></script>
   </body>
 </html>

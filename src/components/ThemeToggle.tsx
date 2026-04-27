@@ -41,8 +41,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="theme-toggle"
       aria-label={`Current theme: ${getLabel()}. Click to toggle.`}
-      title={`Theme: ${getLabel()}`}
-    >
+      title={`Theme: ${getLabel()}`}>
       {getIcon()}
     </button>
   );

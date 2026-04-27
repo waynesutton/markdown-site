@@ -151,6 +151,7 @@ function App() {
             mobileCollapse={true}
             mobileBreakpoint={480}
             defaultMobileCollapsed={true}
+            desktopCollapse={true}
           />
         </>
       )}

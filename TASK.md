@@ -6,11 +6,19 @@
 
 ## Completed
 
+### Agent-ready desktop collapse widget update (2026-04-26)
+
+- [x] Created PRD at `prds/agent-ready-desktop-collapse-widget.md`
+- [x] Confirmed npm latest is `@waynesutton/agent-ready@0.2.4`
+- [x] Updated `src/App.tsx` so `AgentReadyWidget` opts into `desktopCollapse={true}` while keeping the mobile collapse props
+- [x] Verified `npm run typecheck` passes
+- [x] Updated `changelog.md` and `files.md`
+
 ### Agent-ready mobile widget update (2026-04-26)
 
 - [x] Created PRD at `prds/agent-ready-mobile-widget.md`
 - [x] Updated `src/App.tsx` so `AgentReadyWidget` opts into mobile collapse behavior with a 480px breakpoint and collapsed initial mobile state
-- [x] Verified `@waynesutton/agent-ready@0.2.0` is the latest published npm version and the app already depends on `^0.2.0`
+- [x] Verified the app supports the mobile collapse widget props from `@waynesutton/agent-ready`
 - [x] Verified `npm run typecheck` passes
 - [x] Updated `changelog.md` and `files.md`
 
@@ -832,7 +840,6 @@ Session updates complete on 2026-02-16.
   - [x] Created docs-opencode.md documentation page
   - [x] Updated files.md with OpenCode Configuration section
   - [x] Works alongside Claude Code and Cursor without conflicts
-
 
 - [x] ConvexFS Media Library with Bunny CDN (v2.17.0)
   - [x] Installed convex-fs package and configured Convex component
